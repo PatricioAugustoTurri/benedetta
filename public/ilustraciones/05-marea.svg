@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img">
+  <defs>
+    <filter id="g4">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="11"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="900" fill="#E4EAEE"/>
+  <path d="M0 198 C 360 135, 720 261, 1200 180" fill="none" stroke="#7A97A8" stroke-width="18" opacity="0.85" stroke-linecap="round"/><path d="M0 333 C 360 270, 720 396, 1200 315" fill="none" stroke="#4C6273" stroke-width="18" opacity="0.75" stroke-linecap="round"/><path d="M0 468 C 360 405, 720 531, 1200 450" fill="none" stroke="#D9A03F" stroke-width="18" opacity="0.6499999999999999" stroke-linecap="round"/><path d="M0 602.9999999999999 C 360 539.9999999999999, 720 665.9999999999999, 1200 584.9999999999999" fill="none" stroke="#7A97A8" stroke-width="18" opacity="0.5499999999999999" stroke-linecap="round"/><path d="M0 738 C 360 675, 720 801, 1200 720" fill="none" stroke="#4C6273" stroke-width="18" opacity="0.44999999999999996" stroke-linecap="round"/><circle cx="264" cy="126.00000000000001" r="40.5" fill="#D9A03F"/>
+  <rect width="1200" height="900" filter="url(#g4)" opacity="0.06" style="mix-blend-mode:multiply"/>
+</svg>

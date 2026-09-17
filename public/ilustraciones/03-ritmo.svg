@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000" role="img">
+  <defs>
+    <filter id="g2">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="9"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+  <rect width="1000" height="1000" fill="#F4E5DC"/>
+  <path d="M 380 620 A 120 120 0 0 1 620 620" fill="none" stroke="#A8674F" stroke-width="12" opacity="0.85"/><path d="M 305 620 A 195 195 0 0 1 695 620" fill="none" stroke="#6F5347" stroke-width="12" opacity="0.77"/><path d="M 230 620 A 270 270 0 0 1 770 620" fill="none" stroke="#A8674F" stroke-width="12" opacity="0.69"/><path d="M 155 620 A 345 345 0 0 1 845 620" fill="none" stroke="#6F5347" stroke-width="12" opacity="0.61"/><path d="M 80 620 A 420 420 0 0 1 920 620" fill="none" stroke="#A8674F" stroke-width="12" opacity="0.53"/><path d="M 5 620 A 495 495 0 0 1 995 620" fill="none" stroke="#6F5347" stroke-width="12" opacity="0.44999999999999996"/><circle cx="500" cy="620" r="55" fill="#E0B48C"/><line x1="120" y1="620" x2="880" y2="620" stroke="#2E2622" stroke-width="6" opacity="0.5"/>
+  <rect width="1000" height="1000" filter="url(#g2)" opacity="0.06" style="mix-blend-mode:multiply"/>
+</svg>

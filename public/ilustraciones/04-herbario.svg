@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" width="900" height="1200" role="img">
+  <defs>
+    <filter id="g3">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="10"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+  <rect width="900" height="1200" fill="#E9EBE0"/>
+  <path d="M 450 120 C 684 384, 648 792, 450 1080 C 252 792, 216 384, 450 120 Z" fill="#7E8C6A"/><line x1="450" y1="156" x2="450" y2="1056" stroke="#E9EBE0" stroke-width="9.6" opacity="0.8"/><path d="M 450 288 Q 496.44 302.4, 527.4 348" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 288 Q 403.56 302.4, 372.6 348" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 395.99999999999994 Q 511.56 410.3999999999999, 552.6 455.99999999999994" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 395.99999999999994 Q 388.44 410.3999999999999, 347.4 455.99999999999994" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 504 Q 526.6800000000001 518.4, 577.8 564" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 504 Q 373.32 518.4, 322.2 564" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 612 Q 541.8 626.4, 603 672" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 612 Q 358.2 626.4, 297 672" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 720 Q 526.6800000000001 734.4, 577.8 780" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 720 Q 373.32 734.4, 322.2 780" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 827.9999999999999 Q 511.56 842.3999999999999, 552.6 887.9999999999999" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 827.9999999999999 Q 388.44 842.3999999999999, 347.4 887.9999999999999" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 936 Q 496.44 950.4, 527.4 996" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/><path d="M 450 936 Q 403.56 950.4, 372.6 996" fill="none" stroke="#E9EBE0" stroke-width="6" opacity="0.7"/>
+  <rect width="900" height="1200" filter="url(#g3)" opacity="0.06" style="mix-blend-mode:multiply"/>
+</svg>

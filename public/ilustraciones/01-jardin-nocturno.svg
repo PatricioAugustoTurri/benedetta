@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" width="900" height="1200" role="img">
+  <defs>
+    <filter id="g0">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="7"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+  <rect width="900" height="1200" fill="#E9EBE0"/>
+  <circle cx="450" cy="360" r="174" fill="none" stroke="#7E8C6A" stroke-width="13.2"/><path d="M 450 1140 C 414 864, 477 720, 450 504" fill="none" stroke="#5E6B55" stroke-width="12"/><path d="M 450 1104 C 522 1038, 594 1068, 582.48 1118.4 C 522 1146, 478.8 1130.4, 450 1104 Z" fill="#7E8C6A" opacity="0.7110000000000001"/><path d="M 450 972.0000000000001 C 378 906.0000000000001, 306 936.0000000000001, 317.52 986.4000000000001 C 378 1014.0000000000001, 421.2 998.4000000000001, 450 972.0000000000001 Z" fill="#5E6B55" opacity="0.746"/><path d="M 450 840.0000000000001 C 522 774.0000000000001, 594 804.0000000000001, 582.48 854.4000000000001 C 522 882.0000000000001, 478.8 866.4000000000001, 450 840.0000000000001 Z" fill="#7E8C6A" opacity="0.781"/><path d="M 450 708.0000000000001 C 378 642.0000000000001, 306 672.0000000000001, 317.52 722.4000000000001 C 378 750.0000000000001, 421.2 734.4000000000001, 450 708.0000000000001 Z" fill="#5E6B55" opacity="0.8160000000000001"/><path d="M 450 576 C 522 510, 594 540, 582.48 590.4 C 522 618, 478.8 602.4, 450 576 Z" fill="#7E8C6A" opacity="0.851"/>
+  <rect width="900" height="1200" filter="url(#g0)" opacity="0.06" style="mix-blend-mode:multiply"/>
+</svg>
