@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
+import ContactClose from "@/components/ContactClose";
 import Reveal from "@/components/Reveal";
 import { site } from "@/data/site";
 
 export const metadata: Metadata = {
-  title: "Sobre mí",
+  title: "Studio",
   description: "Quién soy, cómo trabajo y con quién trabajé.",
 };
 
+// PLACEHOLDER: los tres servicios y la lista de clientes son de relleno.
 const servicios = [
   {
     title: "Editorial",
@@ -33,10 +34,10 @@ const clientes = [
   "Fundación Raíz",
 ];
 
-export default function SobreMiPage() {
+export default function StudioPage() {
   return (
     <>
-      <section className="shell pt-16 pb-12 md:pt-24">
+      <section className="shell pt-12 pb-12 md:pt-20">
         <div className="grid gap-12 md:grid-cols-12 md:gap-16">
           <div className="md:col-span-5">
             <Reveal>
@@ -55,18 +56,17 @@ export default function SobreMiPage() {
 
           <div className="md:col-span-7">
             <Reveal delay={80}>
-              <p className="eyebrow">Sobre mí</p>
-              <h1 className="mt-5 font-display text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] tracking-[-0.02em]">
-                Hola, soy {site.name}.
+              <h1 className="display-lead font-display text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] tracking-[-0.02em] text-balance">
+                Hola, soy {site.author}.
               </h1>
             </Reveal>
 
             <Reveal delay={160}>
-              <div className="mt-8 space-y-5 text-lg leading-relaxed text-ink-soft">
+              <div className="prose-measure mt-8 space-y-5 text-lg leading-relaxed text-ink-soft">
                 <p>
                   Ilustro desde {site.location}. Estudié diseño y pasé de las tipografías a los
                   pinceles sin mirar atrás: hoy la mayor parte de lo que hago empieza en papel,
-                  con acuarela y lápiz, y sólo pasa a digital cuando el encargo lo necesita.
+                  con acuarela y lápiz, y sólo pasa a digital cuando el encargo lo pide.
                 </p>
                 <p>
                   Me interesa el detalle chico —la nervadura de una hoja, el gesto de una mano— y
@@ -83,9 +83,9 @@ export default function SobreMiPage() {
         </div>
       </section>
 
-      <section className="shell mt-16" aria-labelledby="servicios">
+      <section className="shell mt-16" aria-labelledby="servizi">
         <Reveal>
-          <h2 id="servicios" className="eyebrow border-b border-line pb-5">
+          <h2 id="servizi" className="label border-b border-line pb-4">
             Cómo trabajo
           </h2>
         </Reveal>
@@ -99,9 +99,9 @@ export default function SobreMiPage() {
         </dl>
       </section>
 
-      <section className="shell mt-24" aria-labelledby="clientes">
+      <section className="shell mt-24" aria-labelledby="clienti">
         <Reveal>
-          <h2 id="clientes" className="eyebrow border-b border-line pb-5">
+          <h2 id="clienti" className="label border-b border-line pb-4">
             Trabajé con
           </h2>
           <ul className="mt-8 grid grid-cols-2 gap-y-4 md:grid-cols-3">
@@ -114,18 +114,7 @@ export default function SobreMiPage() {
         </Reveal>
       </section>
 
-      <section className="shell mt-24">
-        <Reveal>
-          <div className="border-t border-line pt-14">
-            <p className="max-w-2xl font-display text-[clamp(1.5rem,3.2vw,2.25rem)] leading-[1.18] tracking-[-0.01em]">
-              ¿Tenés un proyecto en mente?
-            </p>
-            <Link href="/contacto" className="link-underline mt-6 inline-block text-sm" data-active="true">
-              Escribime
-            </Link>
-          </div>
-        </Reveal>
-      </section>
+      <ContactClose cta="Escribime">¿Tenés un proyecto en mente?</ContactClose>
     </>
   );
 }

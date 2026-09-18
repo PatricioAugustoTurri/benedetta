@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Herramientas del agente: código de terceros, ya viene empaquetado.
+    ".claude/**",
+    ".impeccable/**",
   ]),
 ]);
 

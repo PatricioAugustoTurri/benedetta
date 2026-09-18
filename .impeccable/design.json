@@ -1,0 +1,204 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-18T00:00:00.000Z",
+  "title": "Design System: Illustrando",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "canonical": "#faf7f2",
+        "tonalRamp": ["#1a1713", "#332d26", "#4d453a", "#6b6155", "#8f867a", "#b8b0a4", "#ddd6cc", "#faf7f2"]
+      },
+      "paper-deep": {
+        "role": "neutral",
+        "displayName": "Deep Paper",
+        "canonical": "#f2ece3",
+        "tonalRamp": ["#1a150f", "#332a20", "#4d4032", "#6b5c4a", "#8f8070", "#b8ab9b", "#ddd3c6", "#f2ece3"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1c1a16",
+        "tonalRamp": ["#0e0d0b", "#1c1a16", "#332f28", "#4d473d", "#6b6456", "#918a7b", "#bcb5a7", "#e6e1d8"]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "#55504a",
+        "tonalRamp": ["#14120f", "#26231f", "#3b3732", "#55504a", "#6f6961", "#8d867c", "#b5aea4", "#ddd8d0"]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Faint Ink",
+        "canonical": "#6f6861",
+        "tonalRamp": ["#171512", "#2a2723", "#403c36", "#57524b", "#6f6861", "#938c83", "#bab3aa", "#e0dad2"]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "#e2dad0",
+        "tonalRamp": ["#1a1610", "#332c20", "#4d4231", "#6b5d47", "#8f7f66", "#b5a794", "#cfc4b5", "#e2dad0"]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Terracotta Rule",
+        "canonical": "#b4552f",
+        "tonalRamp": ["#2b1409", "#4a2311", "#6b331a", "#8d4323", "#b4552f", "#cf7550", "#e0a385", "#f1d2c3"]
+      }
+    },
+    "typographyMeta": {
+      "display-mark": { "displayName": "Display Mark", "purpose": "The year on the archive spine. Optical size 144, SOFT 0, WONK 1, tabular figures. Nothing else uses it." },
+      "display-lead": { "displayName": "Display Lead", "purpose": "The h1 of every interior page: work title, studio, contact, journal entry, 404." },
+      "display-statement": { "displayName": "Display Statement", "purpose": "The closing invitation at the foot of the archive and the studio page, measured to 68ch." },
+      "display-section": { "displayName": "Display Section", "purpose": "Section headings and list item titles. Text-size type gets text-size optical modulation (opsz 32)." },
+      "title": { "displayName": "Title", "purpose": "Work titles inside the archive grid." },
+      "body-lead": { "displayName": "Body Lead", "purpose": "Long-form prose in soft ink, capped at 68ch." },
+      "body": { "displayName": "Body", "purpose": "Default running text and list items." },
+      "body-small": { "displayName": "Body Small", "purpose": "Nav labels, links, metadata rows." },
+      "caption": { "displayName": "Caption", "purpose": "Footnotes, credit line, work metadata under a title." },
+      "label": { "displayName": "Label", "purpose": "Uppercase small caps that head a list or name a field. Never an eyebrow above a heading." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "ease-out-soft", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "The only easing in the system. Every transition and reveal uses it." },
+      { "name": "duration-reveal", "value": "900ms", "purpose": "Scroll reveal (opacity + 1.25rem rise) and the image scale on work hover." },
+      { "name": "duration-dim", "value": "550ms", "purpose": "The archive dimming to 30% around the held work, and the year marks following it." },
+      { "name": "duration-underline", "value": "400ms", "purpose": "The link underline scaling in from the left." },
+      { "name": "duration-header", "value": "300ms", "purpose": "The header taking paper and rule past scrollY > 8." },
+      { "name": "stagger", "value": "70-90ms", "purpose": "Delay step between successive Reveal elements down a list." },
+      { "name": "reduced-motion", "value": "animation-duration: 0.01ms; transition-duration: 0.01ms", "purpose": "Under prefers-reduced-motion everything collapses and reveals render shown." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Underline Link",
+      "kind": "nav",
+      "refersTo": "link-underline",
+      "description": "The only interactive primitive in the system: a line that grows from the left on hover, focus, or active state.",
+      "html": "<a class=\"ds-link\" href=\"#\">Chiedi info</a>",
+      "css": ".ds-link { position: relative; display: inline-block; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: var(--color-ink, #1c1a16); text-decoration: none; } .ds-link::after { content: \"\"; position: absolute; left: 0; bottom: -0.15em; height: 1px; width: 100%; background-color: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); } .ds-link:hover::after, .ds-link:focus-visible::after, .ds-link[data-active=\"true\"]::after { transform: scaleX(1); } .ds-link:focus-visible { outline: 2px solid var(--color-accent, #b4552f); outline-offset: 3px; border-radius: 2px; }"
+    },
+    {
+      "name": "Primary Action (Chiedi info)",
+      "kind": "button",
+      "refersTo": "action-primary",
+      "description": "The site's primary action, on each work page: a mailto link with a drawn mail icon that turns terracotta on hover. No fill, no box.",
+      "html": "<a class=\"ds-action\" href=\"mailto:\"><svg class=\"ds-action-icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"1.5\"/><path d=\"m3.5 6.5 8.5 6 8.5-6\"/></svg><span class=\"ds-action-label\">Chiedi info</span></a>",
+      "css": ".ds-action { display: inline-flex; align-items: center; gap: 0.625rem; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: var(--color-ink, #1c1a16); text-decoration: none; } .ds-action-icon { flex-shrink: 0; color: var(--color-ink-faint, #6f6861); transition: color 0.3s cubic-bezier(0.22, 1, 0.36, 1); } .ds-action:hover .ds-action-icon { color: var(--color-accent, #b4552f); } .ds-action-label { position: relative; display: inline-block; } .ds-action-label::after { content: \"\"; position: absolute; left: 0; bottom: -0.15em; height: 1px; width: 100%; background-color: currentColor; transform: scaleX(1); transform-origin: left; transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); } .ds-action:focus-visible { outline: 2px solid var(--color-accent, #b4552f); outline-offset: 3px; border-radius: 2px; }"
+    },
+    {
+      "name": "Header Navigation",
+      "kind": "nav",
+      "refersTo": "header",
+      "description": "Transparent sticky bar: wordmark left, four routes right. Takes paper, blur and rule only past scrollY > 8 (shown here in its scrolled state).",
+      "html": "<header class=\"ds-header\" data-scrolled=\"true\"><a class=\"ds-wordmark\" href=\"/\">illustrando</a><nav class=\"ds-nav\"><a class=\"ds-nav-link\" href=\"/\" data-active=\"true\">Opera</a><a class=\"ds-nav-link\" href=\"/studio\">Studio</a><a class=\"ds-nav-link\" href=\"/diario\">Diario</a><a class=\"ds-nav-link\" href=\"/contatti\">Contatti</a></nav></header>",
+      "css": ".ds-header { display: flex; align-items: center; justify-content: space-between; height: 4rem; padding-inline: 1.5rem; border-bottom: 1px solid transparent; transition: background-color 0.3s, border-color 0.3s; } .ds-header[data-scrolled=\"true\"] { background-color: color-mix(in srgb, var(--color-paper, #faf7f2) 85%, transparent); border-bottom-color: color-mix(in srgb, var(--color-line, #e2dad0) 70%, transparent); backdrop-filter: blur(12px); } .ds-wordmark { font-family: Fraunces, ui-serif, Georgia, serif; font-size: 1.25rem; letter-spacing: -0.025em; text-transform: lowercase; color: var(--color-ink, #1c1a16); text-decoration: none; } .ds-nav { display: flex; align-items: center; gap: 2.5rem; } .ds-nav-link { position: relative; display: inline-block; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: var(--color-ink-soft, #55504a); text-decoration: none; transition: color 0.3s; } .ds-nav-link:hover, .ds-nav-link[data-active=\"true\"] { color: var(--color-ink, #1c1a16); } .ds-nav-link::after { content: \"\"; position: absolute; left: 0; bottom: -0.15em; height: 1px; width: 100%; background-color: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); } .ds-nav-link:hover::after, .ds-nav-link:focus-visible::after, .ds-nav-link[data-active=\"true\"]::after { transform: scaleX(1); }"
+    },
+    {
+      "name": "Year Band Head",
+      "kind": "custom",
+      "refersTo": "year-band",
+      "description": "The archive's spine: the terracotta rule that opens a year, the monumental year mark in ink, and the terracotta work count beside it.",
+      "html": "<section class=\"ds-band\"><div class=\"ds-band-mark\"><h2 class=\"ds-year\">2025</h2><p class=\"ds-count\">4 opere</p></div></section>",
+      "css": ".ds-band { border-top: 1px solid var(--color-accent, #b4552f); padding-top: 1.25rem; } .ds-band-mark { display: flex; align-items: baseline; gap: 0.75rem; } .ds-year { margin: 0; font-family: Fraunces, ui-serif, Georgia, serif; font-size: clamp(2.5rem, 6vw, 5.25rem); font-weight: 400; line-height: 0.85; letter-spacing: -0.05em; font-variation-settings: \"opsz\" 144, \"SOFT\" 0, \"WONK\" 1; font-variant-numeric: tabular-nums lining-nums; color: var(--color-ink, #1c1a16); } .ds-count { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.6875rem; letter-spacing: 0.18em; text-transform: uppercase; font-variant-numeric: tabular-nums lining-nums; color: var(--color-accent, #b4552f); }"
+    },
+    {
+      "name": "Work Tile",
+      "kind": "card",
+      "refersTo": "work-plate",
+      "description": "A work in the archive grid: uncropped image on a deep-paper plate, title in Fraunces, category as a small-caps label on the same baseline, client and medium beneath. Scales to 1.03 on hover.",
+      "html": "<a class=\"ds-work\" href=\"#\"><span class=\"ds-work-plate\"><span class=\"ds-work-image\"></span></span><span class=\"ds-work-line\"><span class=\"ds-work-title\">Jardín nocturno</span><span class=\"ds-work-cat\">Botánica</span></span><span class=\"ds-work-meta\">Acuarela y tinta</span></a>",
+      "css": ".ds-work { display: block; text-decoration: none; color: var(--color-ink, #1c1a16); transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1); } .ds-work-plate { display: block; overflow: hidden; background-color: var(--color-paper-deep, #f2ece3); } .ds-work-image { display: block; width: 100%; aspect-ratio: 4 / 5; background-color: var(--color-paper-deep, #f2ece3); transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-work:hover .ds-work-image { transform: scale(1.03); } .ds-work-line { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-top: 0.75rem; } .ds-work-title { font-family: Fraunces, ui-serif, Georgia, serif; font-size: 1rem; letter-spacing: -0.025em; } .ds-work-cat { flex-shrink: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.6875rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-ink-faint, #6f6861); } .ds-work-meta { display: block; margin-top: 0.125rem; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; color: var(--color-ink-soft, #55504a); } .ds-work:focus-visible { outline: 2px solid var(--color-accent, #b4552f); outline-offset: 3px; border-radius: 2px; }"
+    },
+    {
+      "name": "Archive Dimming",
+      "kind": "custom",
+      "refersTo": "year-band",
+      "description": "The signature interaction, pure CSS and no client JavaScript: hovering or focusing one work drops every other work to 30% opacity. One work held at a time, keyboard-equivalent.",
+      "html": "<div class=\"ds-archive\"><a class=\"ds-archive-work\" href=\"#\"><span class=\"ds-archive-plate\"></span><span class=\"ds-archive-title\">Tallos</span></a><a class=\"ds-archive-work\" href=\"#\"><span class=\"ds-archive-plate\"></span><span class=\"ds-archive-title\">Herbario</span></a><a class=\"ds-archive-work\" href=\"#\"><span class=\"ds-archive-plate\"></span><span class=\"ds-archive-title\">Marea</span></a></div>",
+      "css": ".ds-archive { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; } .ds-archive-work { display: block; text-decoration: none; color: var(--color-ink, #1c1a16); transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1); } .ds-archive-plate { display: block; width: 100%; aspect-ratio: 4 / 5; background-color: var(--color-paper-deep, #f2ece3); } .ds-archive-title { display: block; margin-top: 0.75rem; font-family: Fraunces, ui-serif, Georgia, serif; font-size: 1rem; letter-spacing: -0.025em; } .ds-archive:has(.ds-archive-work:hover) .ds-archive-work:not(:hover), .ds-archive:has(.ds-archive-work:focus-visible) .ds-archive-work:not(:focus-visible) { opacity: 0.3; }"
+    },
+    {
+      "name": "Specification List",
+      "kind": "custom",
+      "refersTo": "spec-row",
+      "description": "The work page's data block: small-caps field names on the left, tabular values right-aligned, every row separated by a hairline. No background, no box.",
+      "html": "<dl class=\"ds-spec\"><div class=\"ds-spec-row\"><dt class=\"ds-spec-label\">Anno</dt><dd class=\"ds-spec-value\">2025</dd></div><div class=\"ds-spec-row\"><dt class=\"ds-spec-label\">Categoria</dt><dd class=\"ds-spec-value\">Botánica</dd></div><div class=\"ds-spec-row\"><dt class=\"ds-spec-label\">Tecnica</dt><dd class=\"ds-spec-value\">Acuarela y tinta</dd></div></dl>",
+      "css": ".ds-spec { margin: 0; border-top: 1px solid var(--color-line, #e2dad0); } .ds-spec-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1.5rem; padding: 0.75rem 0; border-bottom: 1px solid var(--color-line, #e2dad0); } .ds-spec-label { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.6875rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-ink-faint, #6f6861); } .ds-spec-value { margin: 0; text-align: right; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-variant-numeric: tabular-nums lining-nums; color: var(--color-ink, #1c1a16); }"
+    },
+    {
+      "name": "Closing Statement",
+      "kind": "custom",
+      "refersTo": "display-statement",
+      "description": "The page-closing invitation: a hairline, a Fraunces statement measured to 68ch, and one underlined link. No label above it.",
+      "html": "<section class=\"ds-close\"><p class=\"ds-close-text\">Tomo encargos de editoriales, revistas y estudios.</p><a class=\"ds-close-link\" href=\"/contatti\" data-active=\"true\">Escribime</a></section>",
+      "css": ".ds-close { border-top: 1px solid var(--color-line, #e2dad0); padding-top: 3rem; } .ds-close-text { max-width: 68ch; margin: 0; font-family: Fraunces, ui-serif, Georgia, serif; font-size: clamp(1.75rem, 3.6vw, 2.75rem); font-weight: 400; line-height: 1.15; letter-spacing: -0.01em; font-variation-settings: \"opsz\" 72, \"SOFT\" 25, \"WONK\" 1; text-wrap: balance; color: var(--color-ink, #1c1a16); } .ds-close-link { position: relative; display: inline-block; margin-top: 2rem; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: var(--color-ink, #1c1a16); text-decoration: none; } .ds-close-link::after { content: \"\"; position: absolute; left: 0; bottom: -0.15em; height: 1px; width: 100%; background-color: currentColor; transform: scaleX(1); transform-origin: left; transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); }"
+    },
+    {
+      "name": "Section Head",
+      "kind": "custom",
+      "refersTo": "label-rule",
+      "description": "A small-caps label heading a list, closed by a hairline; or a Fraunces section title with an external link on the same baseline.",
+      "html": "<div class=\"ds-sect\"><h2 class=\"ds-sect-title\">Instagram</h2><a class=\"ds-sect-link\" href=\"#\"><span class=\"ds-sect-label\">@illustrando</span><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M7 17 17 7M9 7h8v8\"/></svg></a></div>",
+      "css": ".ds-sect { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 1rem; border-bottom: 1px solid var(--color-line, #e2dad0); } .ds-sect-title { margin: 0; font-family: Fraunces, ui-serif, Georgia, serif; font-size: 1.25rem; font-weight: 400; letter-spacing: -0.025em; font-variation-settings: \"opsz\" 32, \"SOFT\" 20, \"WONK\" 1; color: var(--color-ink, #1c1a16); } .ds-sect-link { display: inline-flex; align-items: center; gap: 0.375rem; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: var(--color-ink-soft, #55504a); text-decoration: none; transition: color 0.3s; } .ds-sect-link:hover { color: var(--color-ink, #1c1a16); } .ds-sect-label { position: relative; display: inline-block; } .ds-sect-label::after { content: \"\"; position: absolute; left: 0; bottom: -0.15em; height: 1px; width: 100%; background-color: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); } .ds-sect-link:hover .ds-sect-label::after { transform: scaleX(1); }"
+    },
+    {
+      "name": "Mobile Menu Button",
+      "kind": "button",
+      "refersTo": "header",
+      "description": "Two hairlines at the same weight as the icon stroke. No unicode glyph stands in for it; the close state is the drawn X icon.",
+      "html": "<button class=\"ds-menu\" type=\"button\" aria-expanded=\"false\"><span class=\"ds-menu-bars\" aria-hidden=\"true\"><span class=\"ds-menu-bar\"></span><span class=\"ds-menu-bar\"></span></span></button>",
+      "css": ".ds-menu { display: flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; background: none; border: none; color: var(--color-ink, #1c1a16); cursor: pointer; padding: 0; } .ds-menu-bars { position: relative; display: block; width: 1.25rem; height: 0.625rem; } .ds-menu-bar { position: absolute; left: 0; display: block; width: 100%; height: 1px; background-color: currentColor; } .ds-menu-bar:first-child { top: 0; } .ds-menu-bar:last-child { bottom: 0; } .ds-menu:focus-visible { outline: 2px solid var(--color-accent, #b4552f); outline-offset: 3px; border-radius: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El archivo sobre la mesa",
+    "overview": "This is a working archive laid out on warm paper, not a gallery with a foyer. The first viewport is the body of work itself: a thin nav, then the year band, then illustration. There is no hero sentence, no curated \"selection\", no button asking to be pressed. The site's only saturated colour is the colour inside the illustrations; every surface the system owns is paper, ink, a hairline rule, and one terracotta mark that earns its rarity.\n\nDensity is editorial rather than dashboard: a wide 82rem shell with generous gutters, a two-part grid of a sticky year spine on the left and a breathing three-column masonry on the right, and horizontal hairlines doing all the separating that boxes would otherwise do. Nothing is carded, nothing floats, nothing is cropped — a work's own proportion is never overridden by the layout.\n\nMaterial is flat and honest. Light mode only: a ground that changes colour changes how an illustration reads, so there is no dark theme and no imitation paper texture. Depth comes from hierarchy of rule colour and from one behaviour — hover or focus a work and the rest of the archive recedes to 30% opacity, one work held at a time.",
+    "keyCharacteristics": [
+      "Warm paper ground (#faf7f2), light only, no dark mode.",
+      "Terracotta as rule and mark, never as a field.",
+      "Fraunces on the optical axes it actually needs; Inter for everything read.",
+      "Hairline rules instead of cards, borders, or shadows.",
+      "Zero corner radius on content; nothing is a container.",
+      "The archive dims around the work you are holding, in pure CSS."
+    ],
+    "rules": [
+      { "name": "The Rule-and-Mark Rule", "body": "Terracotta is applied to rules, marks, and single words of state. It never becomes a background, a button fill, a badge, or a block. The only full-colour field on any page is an illustration.", "section": "colors" },
+      { "name": "The Two-Rank Rule Rule", "body": "Hierarchy among hairlines is carried by colour, not weight: every rule on the site is 1px, the year rule is terracotta, everything else is {colors.line}. A new separator inherits {colors.line} unless it opens a year.", "section": "colors" },
+      { "name": "The Ground-Is-Constant Rule", "body": "One ground colour, light only. No dark mode, no per-page tint, no gradient — a ground that shifts changes how the artwork reads.", "section": "colors" },
+      { "name": "The Optical-Ladder Rule", "body": "Fraunces ships variable and every display size states its own opsz/SOFT/WONK. A new display size picks the ladder rung nearest its scale rather than inheriting one instance sitewide.", "section": "typography" },
+      { "name": "The One-Weight Rule", "body": "Both faces ship at a single weight and font-synthesis-weight: none. Emphasis is scale, colour, and space — never a bolder cut.", "section": "typography" },
+      { "name": "The Tabular-Figures Rule", "body": "Years, dates, dimensions, and any aligned numeral carry tabular-nums lining-nums.", "section": "typography" },
+      { "name": "The No-Lift Rule", "body": "Nothing casts a shadow, hard or soft. If a surface needs to read as separate, give it a hairline or a tonal step; if it needs to read as foregrounded, dim what surrounds it.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep terracotta to rules and marks, and let the illustration be the only full-colour field on the page.",
+      "Do give every new small text colour ≥4.5:1 on {colors.paper} before it ships; {colors.ink-faint} is the floor value, not a starting point.",
+      "Do separate with a 1px {colors.line} hairline and space. Terracotta rules are reserved for opening a year band.",
+      "Do state the Fraunces optical axes for any new display size, picking the rung (144 / 72 / 32) nearest that scale.",
+      "Do carry tabular lining figures on years, dates, and measurements.",
+      "Do cap long-form prose at 68ch and set the page in the 82rem shell.",
+      "Do draw new icons as SVG at stroke 1.25 in the 24-unit box.",
+      "Do theme browser surfaces from the palette — selection, caret, scrollbars, focus ring — rather than leaving them at browser defaults.",
+      "Do honour prefers-reduced-motion in any new motion."
+    ],
+    "donts": [
+      "Don't fill anything with terracotta — no accent buttons, badges, chips, or blocks.",
+      "Don't add a dark mode or tint the ground per page.",
+      "Don't use a box-shadow, a faked lift, or a border on all four sides. Depth is rules, one tonal step, and opacity.",
+      "Don't scaffold a page in cards. This world separates with rules and space.",
+      "Don't crop an illustration to a fixed ratio; the grid adapts to the work.",
+      "Don't put a kicker or eyebrow label above a heading. The small-caps label heads a list or names a field; a heading stands on its own.",
+      "Don't use gradient text, or imitate paper grain in CSS. If grain is wanted it arrives as a real texture asset.",
+      "Don't stand a unicode glyph in for an icon — not the arrow, not the menu, not the close.",
+      "Don't reach for a heavier weight for emphasis; both faces ship one weight and weight synthesis is off.",
+      "Don't require JavaScript for a visual state that :has(), :hover(), and :focus-visible can carry."
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Fraunces, Inter, Yellowtail } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { site } from "@/data/site";
@@ -19,15 +19,24 @@ const sans = Inter({
   variable: "--font-inter",
 });
 
+// La firma de la marca: pincel con grueso y fino, dibujada a mano.
+// Se usa sólo en el logotipo — en ningún texto corrido.
+const mark = Yellowtail({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+  variable: "--font-yellowtail",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} · ${site.role}`,
+    default: `${site.name} · ${site.author}, ${site.role}`,
     template: `%s · ${site.name}`,
   },
   description: site.description,
   openGraph: {
-    title: `${site.name} · ${site.role}`,
+    title: `${site.name} · ${site.author}, ${site.role}`,
     description: site.description,
     url: site.url,
     siteName: site.name,
@@ -42,7 +51,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     // Las variables de next/font van en <html> para que los tokens de @theme,
     // que se emiten en :root, puedan resolverlas.
-    <html lang="es" className={`${display.variable} ${sans.variable}`}>
+    //
+    // lang sigue en "es" a propósito: la navegación ya está en italiano pero
+    // el cuerpo de texto todavía es el heredado en español. Cambiar a "it"
+    // con texto en español haría que los lectores de pantalla lo pronuncien
+    // mal. Pasa a "it" en el mismo commit que la traducción del contenido.
+    <html lang="es" className={`${display.variable} ${sans.variable} ${mark.variable}`}>
       <body className="flex min-h-screen flex-col">
         <a
           href="#contenido"

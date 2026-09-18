@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Herramientas del agente de diseño
+# Las capturas de revisión se regeneran solas y pesan ~75MB.
+.impeccable/review/
+.impeccable/questions/
+# Binario propio de cada plataforma (12MB); se baja solo en el primer uso.
+.claude/skills/impeccable/scripts/bin/
+# Configuración local de la máquina, no del proyecto.
+.claude/settings.local.json
