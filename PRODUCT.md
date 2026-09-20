@@ -49,14 +49,18 @@ en digital.
 ## Capabilities and Constraints
 
 - **Stack heredado:** Next.js 16 (App Router, Turbopack) + React 19 + Tailwind v4 y
-  TypeScript. Rutas: `/` (el archivo), `/opera/<slug>`, `/studio`, `/diario`,
-  `/diario/<slug>` y `/contatti`. Todo estático —22 páginas en el build— y publicable
+  TypeScript. Rutas: `/` (el archivo), `/opera/<slug>`, `/studio` y `/contatti`.
+  El diario y el portfolio se eliminaron por pedido del cliente; el diario es
+  recuperable del commit `6db3fb9`. Todo estático —16 páginas en el build— y publicable
   en cualquier hosting sin configuración extra.
 - **Tienda: planeada, no descartada.** Hoy las impresiones se consultan por mail y no
-  hay precios, stock ni pasarela. El carrito del header ya está puesto y lleva a
-  contacto, así que por ahora promete una función que todavía no existe. Cuando la
-  tienda entre de verdad hay que definir precios, stock, pago, envíos y devoluciones:
-  es otro alcance, no un ajuste.
+  hay precios, stock ni pasarela. El carrito que describía este archivo ya no está en
+  el header: lo sacó el rediseño. En su lugar hay un menú **Shop** con cinco
+  categorías, pedido por el cliente; las categorías son inventadas y cada una abre un
+  mail con el asunto puesto, no una página de tienda. Es decir, el menú promete una
+  sección que todavía no existe, y eso es deliberado y reversible en un solo lugar
+  (`shopHref` en `src/data/shop.ts`). Cuando la tienda entre de verdad hay que definir
+  precios, stock, pago, envíos y devoluciones: es otro alcance, no un ajuste.
 - **Contenido centralizado** en `src/data/site.ts`, `illustrations.ts`, `journal.ts`
   e `instagram.ts`.
 - **Idioma:** el cuerpo de texto sigue íntegramente en español rioplatense ("contame",
@@ -75,7 +79,10 @@ en digital.
   —el logotipo dice Illustrando y el nombre propio aparece en el footer y en About— pero
   nadie lo decidió explícitamente.
 - **Alcance de la tienda.** Qué se vende (láminas, originales, ambas), en qué formatos
-  y a qué precios. Sin esto el carrito no puede pasar de ícono.
+  y a qué precios. Sin esto el menú Shop no puede pasar de mail. Las cinco categorías
+  que hay hoy —Stampe fine art, Originali, Biglietti, Quaderni, Poster— las inventé yo
+  a pedido del cliente: son un recorte plausible, no una línea de producto que alguien
+  haya decidido.
 
 ## Brand Commitments
 

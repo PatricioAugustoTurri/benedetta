@@ -18,7 +18,7 @@ export default function ContactClose({
     <section className="shell mt-24 md:mt-32">
       <Reveal>
         <div className="border-t border-line pt-12 md:pt-14">
-          <p className="display-lead prose-measure font-display text-[clamp(1.75rem,3.6vw,2.75rem)] leading-[1.15] tracking-[-0.01em] text-balance">
+          <p className="display-lead prose-measure font-display text-[clamp(1.75rem,3.6vw,2.75rem)] leading-[1.15] text-balance">
             {children}
           </p>
           <Link

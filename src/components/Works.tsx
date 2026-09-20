@@ -13,24 +13,19 @@ import { illustrations } from "@/data/illustrations";
  * Movimiento: cada pieza entra desde su columna —la izquierda desde la
  * izquierda, la del medio desde abajo, la derecha desde la derecha— y se
  * asienta con el desenfoque saliendo. La dirección la da la posición en la
- * grilla, no el azar.
+ * grilla, no el azar, y la resuelve `globals.css` con los mismos cortes que
+ * arman la grilla: acá no se puede saber en qué columna cae una pieza sin
+ * saber el ancho de la pantalla, y este componente corre en el servidor.
  */
 export default function Works() {
   return (
     <div className="shell pt-8 pb-8 md:pt-14">
       <ul className="grid gap-6 sm:grid-cols-2 md:gap-8 lg:grid-cols-3">
         {illustrations.map((item, i) => {
-          // Tres columnas en escritorio: izquierda, centro, derecha.
-          const column = i % 3;
-          const enterX = column === 0 ? "-3rem" : column === 2 ? "3rem" : "0rem";
           const eager = i < 3;
 
           return (
-            <li
-              key={item.slug}
-              className="rivista-piece"
-              style={{ "--enter-x": enterX } as React.CSSProperties}
-            >
+            <li key={item.slug} className="rivista-piece">
               <Link href={`/opera/${item.slug}`} className="group block focus-visible:outline-none">
                 {/* El foco se dibuja sobre la imagen, que es lo que el visitante mira. */}
                 <span className="block overflow-hidden bg-paper-deep group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-[3px] group-focus-visible:outline-accent">
@@ -47,7 +42,7 @@ export default function Works() {
                 </span>
 
                 <span className="mt-3 flex items-baseline justify-between gap-4">
-                  <span className="font-display text-base tracking-tight transition-colors group-hover:text-accent">
+                  <span className="display-title font-display text-base transition-colors group-hover:text-accent">
                     {item.title}
                   </span>
                   <span className="label figures shrink-0">{item.year}</span>

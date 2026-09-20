@@ -66,20 +66,51 @@ export function Instagram({ className, size = 20 }: Props) {
   );
 }
 
-export function Cart({ className, size = 20 }: Props) {
-  return (
-    <svg {...base(size)} className={className}>
-      <path d="M3 5h2.2l1.9 9.5a1.5 1.5 0 0 0 1.5 1.2h7.7a1.5 1.5 0 0 0 1.5-1.2L19.5 8H6.3" />
-      <circle cx="9.5" cy="19" r="1.3" />
-      <circle cx="16.5" cy="19" r="1.3" />
-    </svg>
-  );
-}
-
 export function Close({ className, size = 20 }: Props) {
   return (
     <svg {...base(size)} className={className}>
       <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  );
+}
+
+/**
+ * El signo de los desplegables: Shop en la barra y Shop en el cajón usan
+ * éste y sólo éste, girado 180° cuando están abiertos. Va más chico que el
+ * resto (16 como la flecha diagonal) porque acompaña a una palabra de 15px,
+ * no a una fila; el trazo sigue siendo el mismo 1.25 del cuadro de 24.
+ */
+export function ChevronDown({ className, size = 16 }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="m7 10 5 5 5-5" />
+    </svg>
+  );
+}
+
+/**
+ * Copiar: dos hojas corridas. Se dibuja porque la acción no es "mandar un
+ * mail" y usar el sobre para las dos cosas haría que el sobre no signifique
+ * ninguna.
+ */
+export function Copy({ className, size = 18 }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <rect x="9" y="9" width="11" height="11" rx="1" />
+      <path d="M15 6.5V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1.5" />
+    </svg>
+  );
+}
+
+/**
+ * Volver arriba. Lleva asta, como la flecha diagonal de los links externos y
+ * a diferencia de las de paginado, que son cabezas sueltas: ésta no dice
+ * "siguiente", dice "hasta el principio", y esa distancia es el asta.
+ */
+export function ArrowUp({ className, size = 16 }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M12 19V5m-7 7 7-7 7 7" />
     </svg>
   );
 }

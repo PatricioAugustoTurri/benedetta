@@ -1,31 +1,27 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, Yellowtail } from "next/font/google";
+import localFont from "next/font/local";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { site } from "@/data/site";
 import "./globals.css";
 
-// Serif suave para títulos, sans neutra para el resto.
-const display = Fraunces({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-fraunces",
-  axes: ["SOFT", "WONK", "opsz"],
-});
+/*
+  Una sola familia para todo el sitio: títulos y texto. Geist es variable en
+  el eje de peso, así que de un archivo de 29 KB salen las dos voces que el
+  sistema necesita —texto en 400, títulos en 500— sin una segunda descarga.
 
-const sans = Inter({
-  subsets: ["latin"],
+  Va self-hosted con next/font/local y no desde Google: esta versión de Next
+  todavía no trae Geist en su lista de next/font/google. El archivo es el
+  subconjunto latino que publica Google Fonts (Geist es OFL).
+*/
+const geist = localFont({
+  src: "../fonts/Geist-Variable.woff2",
+  weight: "100 900",
+  style: "normal",
   display: "swap",
-  variable: "--font-inter",
-});
-
-// La firma de la marca: pincel con grueso y fino, dibujada a mano.
-// Se usa sólo en el logotipo — en ningún texto corrido.
-const mark = Yellowtail({
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-  variable: "--font-yellowtail",
+  variable: "--font-geist",
+  fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
+  adjustFontFallback: "Arial",
 });
 
 export const metadata: Metadata = {
@@ -56,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // el cuerpo de texto todavía es el heredado en español. Cambiar a "it"
     // con texto en español haría que los lectores de pantalla lo pronuncien
     // mal. Pasa a "it" en el mismo commit que la traducción del contenido.
-    <html lang="es" className={`${display.variable} ${sans.variable} ${mark.variable}`}>
+    <html lang="es" className={geist.variable}>
       <body className="flex min-h-screen flex-col">
         <a
           href="#contenido"
@@ -65,7 +61,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Saltar al contenido
         </a>
         <Header />
-        <main id="contenido" className="flex-1">
+        {/*
+          El sitio no se corre de costado. Nada acá se lee a lo ancho, así que
+          un desborde horizontal nunca es contenido: es el sobrante de algo que
+          se movió —una pieza entrando desde su columna, un filete de más— y
+          deja la página arrastrable un par de centímetros. En el escritorio
+          casi no se nota; en el teléfono se siente como un sitio flojo.
+
+          Va acá y no en `html` ni en `body`: el overflow de esos dos se
+          propaga al viewport, y ahí `clip` se ignora. Medido, no supuesto.
+          `main` es un elemento común, así que corta de verdad, y cubre todo
+          lo que dibuja una página sin tocar la cabecera ni las capas fijas,
+          que son hermanas suyas.
+
+          `clip` y no `hidden`: `hidden` haría de esto un contenedor de scroll
+          —adiós `position: sticky` de lo que viva adentro— y `clip` corta sin
+          crearlo. El par vertical queda en `visible` y la página sigue
+          bajando normalmente.
+        */}
+        <main id="contenido" className="flex-1 overflow-x-clip">
           {children}
         </main>
         <Footer />

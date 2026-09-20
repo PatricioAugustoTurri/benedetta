@@ -20,10 +20,14 @@
   --color-line: #e2dad0;
   --color-accent: #b4552f;
 
-  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  /* Sólo para el logotipo. */
-  --font-mark: var(--font-yellowtail), ui-serif, cursive;
+  /*
+    Una sola familia. --font-display y --font-sans apuntan al mismo sitio a
+    propósito: lo que separa un título de un párrafo ya no es la familia, es
+    el peso. Los dos tokens siguen existiendo porque nombran roles, no
+    archivos, y el día que vuelva una segunda familia sólo cambia uno.
+  */
+  --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -94,6 +98,46 @@
     border-radius: 2px;
   }
 
+  /*
+    El mismo anillo, pero en escuadra, para los controles de formulario.
+
+    Alrededor de una palabra el anillo redondeado es una pastilla y no molesta
+    a nadie. Alrededor de un campo que ocupa siete columnas es un rectángulo
+    redondeado a tamaño completo, y acá el radio de contenido es cero y los
+    bordes son de un lado. Se queda el anillo —es el indicador de foco que ya
+    conoce quien tabula, y tener dos sería peor que tener uno imperfecto— y se
+    le saca lo único que peleaba con el sistema, que era la curva. El offset
+    baja a 2px para que abrace el renglón en vez de flotar alrededor.
+  */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    border-radius: 0;
+    outline-offset: 2px;
+  }
+
+  /*
+    El autorrelleno del navegador también es papel.
+
+    Chrome pinta un celeste propio sobre el campo autocompletado y no se lo
+    saca con `background-color`: el único modo es taparlo con una sombra
+    interior enorme. No es profundidad y no rompe la regla de que acá no hay
+    sombras —es pintura, no relieve—, pero queda escrito para que nadie la
+    lea como el permiso de empezar a levantar cosas.
+
+    La transición larguísima es el segundo cerrojo: Chrome vuelve a aplicar su
+    color al enfocar, y un retardo que nunca llega hace que nunca se pinte.
+  */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-ink);
+    box-shadow: 0 0 0 100px var(--color-paper) inset;
+    transition: background-color 0s 600000s;
+  }
+
   /* Subrayados con aire, no pegados a la línea de base. */
   a {
     text-underline-offset: 0.18em;
@@ -137,22 +181,40 @@
   }
 
   /*
-    Fraunces es variable y el layout ya descarga opsz, SOFT y WONK.
-    Sin esto se usaría una sola instancia en todo el sitio: el tamaño
-    óptico existe justamente para que una cifra a 7rem no tenga la misma
-    modulación que un título a 1rem.
+    La escalera óptica, rehecha para Geist.
+
+    Fraunces traía ejes ópticos (opsz/SOFT/WONK) y cada tamaño pedía su
+    instancia. Geist no tiene eje óptico: lo único que se puede modular es el
+    peso y el rastreo. Así que la escalera pasa a ser de rastreo, y la regla
+    de fondo no cambia —un número a 5rem no puede espaciarse como un título a
+    1rem—, cambia el instrumento: cuanto más grande el tamaño, más cerrado el
+    rastreo, porque el espacio entre letras crece con el cuerpo y a tamaño de
+    titular sobra.
+
+    El peso 500 es lo que distingue un título de un párrafo ahora que los dos
+    son la misma familia. A 400 el título de una obra y su ficha se leen como
+    el mismo texto; a 600 el archivo entero grita. 500 separa y no levanta la voz.
   */
   .display-mark {
-    font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 1;
+    font-weight: 500;
+    letter-spacing: -0.035em;
   }
 
   .display-lead {
-    font-variation-settings: "opsz" 72, "SOFT" 25, "WONK" 1;
+    font-weight: 500;
+    letter-spacing: -0.025em;
   }
 
-  /* Títulos de sección: tamaño de texto, así que opsz de texto. */
+  /* Títulos de sección: tamaño de texto, así que corrección de texto. */
   .display-section {
-    font-variation-settings: "opsz" 32, "SOFT" 20, "WONK" 1;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+
+  /* Títulos de obra dentro de la grilla: el escalón más chico de la escalera. */
+  .display-title {
+    font-weight: 500;
+    letter-spacing: -0.01em;
   }
 
   /* Medida de lectura acotada a 68ch para el cuerpo de texto largo. */
@@ -182,6 +244,22 @@
   .link-underline:hover::after,
   .link-underline:focus-visible::after,
   .link-underline[data-active="true"]::after {
+    transform: scaleX(1);
+  }
+
+  /*
+    Cuando el subrayado no puede ir en el elemento que recibe el mouse y el
+    foco —el rótulo Shop, que son dos controles pegados, el link a /shop y el
+    chevron que asoma las categorías— el envoltorio reparte el estado hacia
+    la palabra. Es el mismo dibujo, movido un nodo, y es lo que hace que los
+    dos se lean como un rótulo: tocar el chevron subraya "Shop".
+
+    `:has(:focus-visible)` y no `:focus-within` porque el envoltorio no es
+    focalizable y porque el foco de mouse no debe dibujar nada: el subrayado
+    de foco es para quien está tabulando.
+  */
+  .link-underline-host:hover .link-underline::after,
+  .link-underline-host:has(:focus-visible) .link-underline::after {
     transform: scaleX(1);
   }
 }
@@ -251,11 +329,48 @@
    con el desenfoque saliendo. La dirección la da la posición en la
    grilla, no el azar.
 
+   Y por eso vive acá y no en una variable en línea: en línea la ponía
+   React contando de a tres, que es la grilla de escritorio. Con una
+   columna y con dos la cuenta no correspondía a ninguna columna real, y
+   una pieza que en el teléfono ocupa todo el ancho entraba desde la
+   derecha porque su índice era múltiplo de tres. Acá la dirección la
+   deciden los mismos cortes que deciden la grilla, y no hay forma de
+   que se desincronicen.
+
    Va con animación ligada al scroll, que corre el compositor: sin
    listeners ni recálculo por frame. El estado por defecto es el
    visible, así que un navegador sin soporte muestra la página quieta
    y completa, nunca vacía.
    --------------------------------------------------------------- */
+
+/* Una columna: no hay costado del que venir, así que suben y nada más. */
+.rivista-piece {
+  --enter-x: 0rem;
+}
+
+/* Dos columnas. */
+@media (min-width: 40rem) {
+  .rivista-piece:nth-child(odd) {
+    --enter-x: -3rem;
+  }
+  .rivista-piece:nth-child(even) {
+    --enter-x: 3rem;
+  }
+}
+
+/* Tres columnas: la del medio sigue subiendo. */
+@media (min-width: 64rem) {
+  .rivista-piece:nth-child(3n + 1) {
+    --enter-x: -3rem;
+  }
+  .rivista-piece:nth-child(3n + 2) {
+    --enter-x: 0rem;
+  }
+  .rivista-piece:nth-child(3n) {
+    --enter-x: 3rem;
+  }
+}
+
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .rivista-piece {
@@ -297,5 +412,43 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+/*
+  El cajón de teléfono bajo movimiento reducido: se va el desplazamiento y
+  queda la aparición. Menos movimiento, no ausencia de movimiento —la misma
+  regla que ya sigue la entrada de la grilla de obra. Va después de la
+  colapsada general de arriba, que si no lo dejaría en 0.01ms.
+*/
+@media (prefers-reduced-motion: reduce) {
+  [data-drawer],
+  [data-drawer-scrim],
+  [data-drawer-item] {
+    /*
+      Tailwind v4 desplaza con la propiedad `translate`, alimentada por sus
+      propias variables. Se neutraliza en la variable y no en la propiedad
+      porque el minificador descarta un `translate` que valga la identidad.
+    */
+    --tw-translate-x: 0px !important;
+    --tw-translate-y: 0px !important;
+    transition: opacity 160ms linear !important;
+  }
+
+  /*
+    Las categorías de la hoja de Shop, por la misma razón. El escalonado vive
+    en un `transition-delay` en línea, y la colapsada general de arriba sólo
+    toca la duración: sin esto las filas seguirían entrando de a una durante
+    medio segundo, instantáneas pero en fila india. La abreviada `transition`
+    lo pone en cero de paso.
+  */
+  [data-shop-item] {
+    --tw-translate-y: 0px !important;
+    transition: opacity 160ms linear !important;
+  }
+
+  [data-drawer][data-open="false"] {
+    opacity: 0;
+    pointer-events: none;
   }
 }

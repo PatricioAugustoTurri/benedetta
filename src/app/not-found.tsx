@@ -4,7 +4,7 @@ import { ArrowLeft } from "@/components/Icon";
 export default function NotFound() {
   return (
     <section className="shell flex min-h-[60vh] flex-col justify-center py-24">
-      <h1 className="display-lead max-w-2xl font-display text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] tracking-[-0.02em] text-balance">
+      <h1 className="display-lead max-w-2xl font-display text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance">
         Esta página no existe.
       </h1>
       <p className="prose-measure mt-6 text-ink-soft">
