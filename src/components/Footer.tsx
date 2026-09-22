@@ -4,7 +4,6 @@ import { ArrowUp, ArrowUpRight, Mail } from "@/components/Icon";
 import NewsletterForm from "@/components/NewsletterForm";
 import Reveal from "@/components/Reveal";
 import { footerNav, site } from "@/data/site";
-import { shopCategories, shopHref } from "@/data/shop";
 import { posts } from "@/data/instagram";
 
 /**
@@ -13,7 +12,7 @@ import { posts } from "@/data/instagram";
  * Tres franjas separadas por filetes:
  *
  *   1. El canal       — la cinta de Instagram, para quien todavía no escribe.
- *   2. El índice      — marca, dirección, rutas, tienda, alta al correo.
+ *   2. El índice      — marca, dirección, rutas, alta al correo.
  *   3. La letra chica — copyright y volver arriba.
  *
  * **El pie no cierra el sitio con un pedido.** Hubo una franja de apertura
@@ -23,6 +22,12 @@ import { posts } from "@/data/instagram";
  * abajo —es la única que queda fuera de /contatti—, y por eso va en la
  * columna de la firma con el sobre dibujado, que es el mismo gesto del
  * "Chiedi info" de cada obra.
+ *
+ * El aire que lo separa del contenido se acortó a pedido del cliente: eran
+ * 7rem y 9rem, quedaron en 5rem y 7rem. El pie suma los suyos —la primera
+ * franja abre con `py-10 md:py-12`— así que del último renglón de la página
+ * al primero del pie sigue habiendo aire de sobra; lo que se sacó es el vacío
+ * que hacía dudar de si la página había terminado.
  *
  * El filete de apertura vive en cada franja y no en el `<footer>`: si la
  * cinta se queda sin publicaciones no se dibuja, y un borde en el elemento
@@ -36,13 +41,18 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-28 md:mt-36">
+    <footer className="mt-20 md:mt-28">
       {/*
         La cinta de Instagram: las tres piezas que eligió ella, en fila. No es
-        una segunda galería y por eso no se parece a la grilla de obra —ahí
-        cada pieza guarda su proporción 3:4 y tiene título y ficha; acá son
-        cuadrados mudos, que es lo que son en Instagram. La cinta dice "hay
-        más y sigue en otro lado", no "mirá estas tres".
+        una segunda galería, y lo que la separa de la grilla de obra ya no es
+        la proporción —las dos son cuadradas desde que la grilla dejó de
+        recortar en vertical— sino todo lo demás: acá las piezas van mudas,
+        sin título ni año ni ficha, más chicas, y en una sola fila contra la
+        columna del rótulo. La cinta dice "hay más y sigue en otro lado", no
+        "mirá estas tres".
+
+        Si algún día las dos se confunden, lo que hay que separar es el
+        tamaño y el silencio, no volver a torcer una de las dos.
 
         El número de columnas sale de la lista y no está escrito a mano: con
         tres piezas la fila es de tres, y si mañana entra una cuarta se
@@ -130,10 +140,10 @@ export default function Footer() {
       */}
       <div className="shell border-t border-line py-12 md:py-16">
         {/*
-          Dos columnas ya en el teléfono, no recién a 640px: Sito y Shop son
-          listas de cuatro y cinco renglones cortos y apiladas obligaban a
-          recorrer medio pie para llegar al final. La firma y el alta al
-          correo sí toman el ancho entero, porque las dos llevan una frase.
+          La grilla de 12 del sitio, que en el teléfono se reparte en dos
+          medias columnas. Hoy todos los bloques toman el ancho entero ahí
+          —son una firma, una lista corta y un formulario— y la partición
+          queda disponible para cuando el índice vuelva a tener dos listas.
         */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-12">
           <div className="col-span-2 md:col-span-3">
@@ -186,7 +196,7 @@ export default function Footer() {
             </a>
           </div>
 
-          <nav className="md:col-span-2 md:col-start-5" aria-labelledby="footer-sito">
+          <nav className="col-span-2 md:col-span-3 md:col-start-5" aria-labelledby="footer-sito">
             <h2 id="footer-sito" className="label">
               Sito
             </h2>
@@ -203,29 +213,6 @@ export default function Footer() {
               ))}
             </ul>
           </nav>
-
-          {/*
-            Las categorías de tienda, enteras. En la cabecera son un
-            desplegable que hay que provocar; acá quedan escritas, que es para
-            lo que sirve un pie. Cada una sale por `shopHref`, la misma función
-            que usan la barra y la página: el día que la tienda exista, esas
-            cinco filas dejan de abrir un mail sin que este archivo se entere.
-          */}
-          <div className="md:col-span-2 md:col-start-7">
-            <h2 className="label">Shop</h2>
-            <ul className="mt-4 space-y-2.5 text-sm">
-              {shopCategories.map((c) => (
-                <li key={c.slug}>
-                  <a
-                    href={shopHref(c)}
-                    className="link-underline text-ink-soft transition-colors hover:text-ink"
-                  >
-                    {c.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
 
           <div className="col-span-2 md:col-span-3 md:col-start-10">
             <h2 className="label">Newsletter</h2>

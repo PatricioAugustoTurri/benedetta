@@ -17,9 +17,10 @@ Tres audiencias confirmadas, todas llegan al mismo sitio:
 3. **Quien compra impresiones** — público que llega por Instagram y quiere una lámina
    o un original.
 
-Hoy las tres terminan en el mismo lugar: un mail. El sitio todavía no cierra ventas ni
-contratos. La tienda está planeada y cuando entre va a partir esa audiencia en dos: el
-editor va a seguir escribiendo, el que compra una lámina va a querer comprarla ahí mismo.
+Hoy las tres terminan en el mismo lugar: un mail. El sitio no vende: el cliente decidió
+que por ahora sólo muestra obra (**Works**), y la tienda queda fuera de alcance. Si algún
+día entra, va a partir esa audiencia en dos: el editor va a seguir escribiendo, el que
+compra una lámina va a querer comprarla ahí mismo.
 
 ## Product Purpose
 
@@ -44,25 +45,44 @@ en digital.
   revistas y estudios de ahí.
 - Instagram es hoy su canal de descubrimiento real y activo: la mayoría del público de
   impresiones va a llegar desde ahí.
-- La consulta se resuelve por mail, fuera del sitio.
+- La consulta se resuelve por mail, fuera del sitio. El formulario de Contatti no
+  envía: arma el mensaje y se lo pasa al programa de correo del visitante, con una
+  copia a mano por si ese programa no existe. **El «Chiedi info» de cada obra ya no
+  abre un mail**: lleva al formulario con el asunto —el título de la obra— ya puesto,
+  porque un `mailto:` en un teléfono o en un webmail muchas veces no abre nada y
+  tampoco avisa.
 
 ## Capabilities and Constraints
 
-- **Stack heredado:** Next.js 16 (App Router, Turbopack) + React 19 + Tailwind v4 y
-  TypeScript. Rutas: `/` (el archivo), `/opera/<slug>`, `/studio` y `/contatti`.
+- **Stack:** Next.js 16 (App Router, Turbopack) + React 19 + Tailwind v4 y
+  TypeScript. Rutas públicas: `/` (el archivo), `/opera/<slug>`, `/studio` y
+  `/contatti`; más `/admin`, que es la pantalla de trabajo y no se indexa.
   El diario y el portfolio se eliminaron por pedido del cliente; el diario es
-  recuperable del commit `6db3fb9`. Todo estático —16 páginas en el build— y publicable
-  en cualquier hosting sin configuración extra.
-- **Tienda: planeada, no descartada.** Hoy las impresiones se consultan por mail y no
-  hay precios, stock ni pasarela. El carrito que describía este archivo ya no está en
-  el header: lo sacó el rediseño. En su lugar hay un menú **Shop** con cinco
-  categorías, pedido por el cliente; las categorías son inventadas y cada una abre un
-  mail con el asunto puesto, no una página de tienda. Es decir, el menú promete una
-  sección que todavía no existe, y eso es deliberado y reversible en un solo lugar
-  (`shopHref` en `src/data/shop.ts`). Cuando la tienda entre de verdad hay que definir
-  precios, stock, pago, envíos y devoluciones: es otro alcance, no un ajuste.
-- **Contenido centralizado** en `src/data/site.ts`, `illustrations.ts`, `journal.ts`
-  e `instagram.ts`.
+  recuperable del commit `6db3fb9`.
+- **El sitio dejó de ser estático puro.** La obra vive en PostgreSQL (base
+  `illustrando`, tabla `works`) y `/admin` es lo que escribe en ella. Consecuencia
+  directa: `npm run build` ya no termina sin la base levantada, porque la portada y
+  las páginas de obra se generan leyendo la tabla. Publicarlo ahora pide un hosting
+  con Node y una base, no una carpeta de archivos. Ver `db/README.md`.
+- **Tienda: fuera de alcance por pedido del cliente.** Hubo un menú **Shop** con cinco
+  categorías inventadas que abrían un mail, y una página `/shop` que declaraba que la
+  tienda no existía todavía. Se eliminó entero —menú de barra y de cajón, página,
+  columna del pie y `src/data/shop.ts`—: el cliente por ahora no quiere vender nada,
+  sólo mostrar sus trabajos. Es recuperable del commit `c57ec93`. El día que la tienda
+  vuelva a estar sobre la mesa hay que definir precios, stock, pago, envíos y
+  devoluciones: es otro alcance, no un ajuste.
+- **El orden del archivo lo decide ella.** Qué obra abre el sitio y cuál va al
+  lado de cuál se arrastra en `/admin` y vive en la columna `works.position`.
+  Antes el orden salía del año y, a igual año, del número de fila: nadie lo
+  había elegido. **El año dejó de ordenar nada** —quedó como dato de la ficha,
+  al lado del título—, y el paginado de cada página de obra sigue el mismo
+  orden que la grilla. Es el cambio de producto de este trabajo: el archivo de
+  una ilustradora es una secuencia curada, no una cronología.
+- **Dónde vive el contenido.** La obra, en la tabla `works` de PostgreSQL, y se
+  carga por `/admin`. El resto sigue en archivos: `src/data/site.ts` (marca, redes,
+  navegación), `src/data/instagram.ts` (la cinta del pie) y `src/data/studio.ts`.
+  `src/data/illustrations.ts` ya no existe: era donde vivían las doce obras y lo
+  reemplazó la base.
 - **Idioma:** el cuerpo de texto sigue íntegramente en español rioplatense ("contame",
   "tenés", "escribime"). Hay que reescribirlo en italiano. Esto no es una traducción
   mecánica: la voz actual es de otro país. Las rutas ya están en italiano; los rótulos
@@ -78,11 +98,11 @@ en digital.
 - **Jerarquía entre "Illustrando" y "Benedetta".** En la práctica el sitio ya la resolvió
   —el logotipo dice Illustrando y el nombre propio aparece en el footer y en About— pero
   nadie lo decidió explícitamente.
-- **Alcance de la tienda.** Qué se vende (láminas, originales, ambas), en qué formatos
-  y a qué precios. Sin esto el menú Shop no puede pasar de mail. Las cinco categorías
-  que hay hoy —Stampe fine art, Originali, Biglietti, Quaderni, Poster— las inventé yo
-  a pedido del cliente: son un recorte plausible, no una línea de producto que alguien
-  haya decidido.
+- **Alcance de la tienda.** Cerrada por ahora: el cliente no quiere vender. Si se
+  reabre, lo primero es qué se vende (láminas, originales, ambas), en qué formatos y a
+  qué precios. Las cinco categorías que llegó a haber —Stampe fine art, Originali,
+  Biglietti, Quaderni, Poster— las inventé yo y no las decidió nadie: no darlas por
+  válidas si la sección vuelve.
 
 ## Brand Commitments
 
@@ -105,14 +125,14 @@ por ella, la lista verdadera de clientes, y el dominio.
 
 | Qué | Dónde | Estado |
 | --- | --- | --- |
-| 12 ilustraciones SVG | `public/ilustraciones/` | Generadas para la maqueta por `scripts/generate-placeholders.mjs`. No son obra de nadie. |
+| 12 ilustraciones SVG | `public/ilustraciones/` | Generadas para la maqueta por `scripts/generate-placeholders.mjs`. No son obra de nadie. Ya no las muestra el sitio: quedaron huérfanas al vaciarse la tabla, y se pueden borrar. La carpeta es también donde `/admin` deja lo que ella sube. |
 | Retrato | `public/retrato.svg` | Placeholder. |
 | `https://illustrando.it` | `src/data/site.ts` | Dominio inventado por mí como relleno. No está comprado. |
 | Lista "Trabajé con" (Revista Campo, Ediciones Sur, La Nube, Cuadernos del Este, Estudio Pampa, Fundación Raíz) | `src/app/studio/page.tsx` | Clientes inventados. El riesgo más alto de la lista. |
 | Los tres servicios ("Editorial", "Libro infantil", "Series botánicas") | `src/app/studio/page.tsx` | Descripciones de relleno. |
 | Bio ("Estudié diseño…", "colecciones privadas") | `src/app/studio/page.tsx` | Texto de relleno. |
-| Clientes por obra (`client:`) | `src/data/illustrations.ts` | Inventados. |
-| Contexto de cada obra (`story:`) | `src/data/illustrations.ts` | Escritos por mí para que se vieran las páginas de obra. Ninguno es un encargo real. |
+| La tabla `works` | base `illustrando` | **Arranca vacía, por pedido del cliente.** Las doce obras de maqueta no se migraron: ella carga las suyas por `/admin`. Mientras esté vacía, la portada dice que el archivo está en preparación. |
+| Cliente y medidas por obra | — | Ya no existen: la tabla `works` no tiene esas columnas, y la ficha de una obra quedó en dos filas, Anno y Tecnica. Si vuelven a hacer falta, vuelven como columnas y como campos del admin. |
 | Las tres entradas del diario | `src/data/journal.ts` | Inventadas enteras, con fechas incluidas. |
 | El feed de Instagram | `src/data/instagram.ts` | Lista escrita a mano que reusa las imágenes de la maqueta. No lee la cuenta real. |
 | Todo el cuerpo de texto | todas las páginas | Español rioplatense, no italiano. |
@@ -131,11 +151,10 @@ se pide; no se completa.
    de maqueta.
 2. **La obra decide, el sitio acompaña.** Quien contrata ilustración contrata la mano,
    no la interfaz. Todo lo que compite con la imagen resta.
-3. **Hoy una consulta, mañana quizá una venta.** El final del recorrido es un mail bien
-   escrito: no hay checkout que optimizar, hay una fricción que bajar y un contexto que
-   pedir. La tienda está planeada, y el día que entre este principio se revisa en vez de
-   estirarse: una consulta y una compra son recorridos distintos, no el mismo con un
-   botón más.
+3. **Una consulta, no una venta.** El final del recorrido es un mail bien escrito: no
+   hay checkout que optimizar, hay una fricción que bajar y un contexto que pedir. Si
+   alguna vez entra una tienda, este principio se revisa en vez de estirarse: una
+   consulta y una compra son recorridos distintos, no el mismo con un botón más.
 4. **Un solo sitio para tres audiencias.** Un editor y alguien que quiere una lámina
    necesitan cosas distintas del mismo material. Se resuelve con orden y jerarquía, no
    duplicando secciones.

@@ -10,6 +10,12 @@ colors:
   line: "#e2dad0"
   accent: "#b4552f"
 typography:
+  display-h1:
+    fontFamily: "Caprasimo, Georgia, 'Times New Roman', serif"
+    fontSize: "clamp(2rem, 4.4vw, 3.25rem)"
+    fontWeight: 400
+    lineHeight: 1.1
+    letterSpacing: "0"
   display-mark:
     fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
     fontSize: "clamp(2.5rem, 6vw, 5.25rem)"
@@ -49,7 +55,7 @@ typography:
     letterSpacing: "normal"
   nav-drawer:
     fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "clamp(0.625rem, 3vw, 0.875rem)"
+    fontSize: "clamp(0.875rem, 4vw, 1.125rem)"
     fontWeight: 500
     lineHeight: 1.25
     letterSpacing: "normal"
@@ -86,6 +92,7 @@ typography:
 rounded:
   none: "0"
   focus: "2px"
+  action: "6px"
   scrollbar: "99px"
 spacing:
   gutter: "1.5rem"
@@ -127,14 +134,6 @@ components:
     textColor: "{colors.ink-faint}"
     typography: "{typography.label}"
     padding: "0 0 1rem"
-  year-band:
-    backgroundColor: "{colors.paper}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.none}"
-    padding: "1.25rem 0 0"
-  year-count:
-    textColor: "{colors.accent}"
-    typography: "{typography.label}"
   work-plate:
     backgroundColor: "{colors.paper-deep}"
     rounded: "{rounded.none}"
@@ -143,6 +142,31 @@ components:
     textColor: "{colors.ink}"
     typography: "{typography.body-small}"
     padding: "0.75rem 0"
+  field-label:
+    textColor: "{colors.ink-faint}"
+    typography: "{typography.label}"
+    padding: "0"
+  field-label-focus:
+    textColor: "{colors.ink}"
+    typography: "{typography.label}"
+  field-control:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink}"
+    typography: "{typography.body}"
+    rounded: "{rounded.none}"
+    padding: "0.625rem 0"
+  button-commit:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.paper}"
+    typography: "{typography.body-small}"
+    rounded: "{rounded.none}"
+    padding: "0.75rem 1.5rem"
+  empty-slot:
+    backgroundColor: "rgb(242 236 227 / 0.4)"
+    textColor: "{colors.ink-faint}"
+    typography: "{typography.label}"
+    rounded: "{rounded.none}"
+    width: "100%"
 ---
 
 # Design System: Illustrando
@@ -174,9 +198,11 @@ at a time.
 - Warm paper ground (#faf7f2), light only, no dark mode.
 - Terracotta as rule and mark, never as a field.
 - One neutral grotesque, Geist, at two weights: 500 displays, 400 everything read.
+- One display face, Caprasimo, on page titles only — every `h1` a visitor sees.
 - The wordmark is her own lettering, scanned — not a typeface.
 - Hairline rules instead of cards, borders, or shadows.
-- Zero corner radius on content; nothing is a container.
+- Zero corner radius on content; nothing is a container. One control is the
+  exception and it is named — see The One Loud Thing.
 - The archive dims around the work you are holding, in pure CSS.
 
 ## Colors
@@ -188,7 +214,9 @@ illustrations are the only fully saturated thing on screen.
 - **Terracotta Rule** (`{colors.accent}`): The one accent. It appears exactly twice
   per year band — as the top rule that opens the band and as the small uppercase
   work count under the year — and as hover ink on a work title in the diary and
-  pager lists, the focus ring, and the text caret. It is never a fill.
+  pager lists, the focus ring, and the text caret. It draws one outline and one
+  fill, both on the same control — the `Chiedi info` button on a work page, whose
+  1px terracotta edge fills on hover. See The One Loud Thing.
 
 ### Neutral
 - **Warm Paper** (`{colors.paper}`): The page ground everywhere, including the
@@ -208,8 +236,41 @@ illustrations are the only fully saturated thing on screen.
 
 ### Named Rules
 **The Rule-and-Mark Rule.** Terracotta is applied to rules, marks, and single words
-of state. It never becomes a background, a button fill, a badge, or a block. The
-only full-colour field on any page is an illustration.
+of state. It never becomes a background, a badge, or a block, and the only
+full-colour field on any page is an illustration — with one named exception below,
+which spends its colour on an outline and only fills under a pointer.
+
+**The One Loud Thing.** There is exactly one closed shape on the site: the
+`Chiedi info` button on a work page. It is the only thing bordered on four sides,
+the only corner radius on any content, and the only place terracotta becomes a
+fill. Everywhere else the Rule-and-Mark Rule holds without exception.
+
+It exists because the site has exactly one action. Nothing is sold, there is no
+checkout, and every path a visitor can take ends in an email about a specific
+piece — so the one control that starts that email is allowed to be the one loud
+thing, and no second control ever earns the same permission.
+
+**At rest it is a line, not a block.** A 1px `{colors.accent}` edge at
+`{rounded.action}`, with the word and the drawn mail icon in terracotta on paper,
+`0.625rem 1.25rem` of padding. Terracotta on paper and paper on terracotta both
+measure 4.59:1, so either state clears the floor.
+
+**Three forms were built before this one stuck**, and the order matters to anyone
+who inherits this file. A solid terracotta block came first and was too much: a
+saturated rectangle beside an illustration competes with it. The original mail icon
+and underlined word came back for a turn and was too little for what the client
+wanted this control to do. The outline is the settled answer — the fill did not
+disappear, it moved to hover, where weight costs nothing because someone is already
+pointing at it. The 6px radius is deliberately the gentlest step that still
+registers: past it the shape starts reading as a pill, and this world owns none.
+
+Its focus ring is **ink, not accent** — the one place in the system where it is.
+An accent ring three pixels off a terracotta edge reads as a halo of itself rather
+than as a ring.
+
+An exception that can be named in a sentence is still a system; two are a habit.
+This one does not travel: the contact page's action, the footer's address and
+every future call to action stay as they are.
 
 **The Two-Rank Rule Rule.** Hierarchy among hairlines is carried by colour, not
 weight: every rule on the site is 1px, the year rule is terracotta, everything else
@@ -225,9 +286,26 @@ fallback), self-hosted via `next/font/local` from the Google Fonts latin subset 
 this Next version does not carry Geist in `next/font/google`. One 29 KB file sets
 every word on the site: headings, body, metadata, labels.
 
-**There is no second family.** The wordmark is not set in a typeface at all — it
-is Benedetta's own lettering, scanned (see Assets). That is why one 29 KB file is
-the entire type payload, down from three families.
+**Title Font:** Caprasimo, from `next/font/google` with the latin and latin-ext
+subsets, on every `h1` a visitor sees — the work page, Studio, Contatti and the 404 —
+through `.display-h1`. It is the site's only second family and it stays on that one
+element. Everything else, including the `display-lead` step it replaces there and
+every heading inside `/admin`, remains Geist: a display face at this weight on a
+working screen is noise.
+
+It carries **one weight, 400**, and that decides how it is used. Titles cannot take
+the 500 the rest of the system spends to separate a heading from its text, because
+asking a family for a weight it does not have makes the browser invent one by
+thickening the strokes — and this system has weight synthesis off. Here the family
+does the separating: beside Geist, this face needs no weight to be told apart.
+
+Its tracking is **0, not the -0.025em of `display-lead`**. That negative step exists
+because a grotesque opens up at display sizes; Caprasimo is already fitted for them,
+and tightening it closes the contours that make it recognisable.
+
+**The wordmark is still not a typeface.** It is Benedetta's own lettering, scanned
+(see Assets), so the page can carry a title, a wordmark and a body voice while only
+two font files ship.
 
 **Character:** Geist is a neutral grotesque and makes no argument of its own. That
 is the trade this system accepted: it reads as current and gets out of the way of
@@ -262,9 +340,11 @@ now the first place a visitor meets it, before a single illustration has loaded.
 - **Display Section** (`{typography.display-section}`): section headings and list
   item titles (Instagram, journal entries, service names), the work and journal
   pagers, and the routes in the mobile drawer.
-- **Display Title** (`{typography.display-title}`): work titles inside the archive
-  grid. The tightest hierarchy in the system — it sits directly above its own
-  client-and-medium line at 0.875rem, and only the weight step separates them.
+- **Display Title** (`{typography.display-title}`): work titles in the grid that
+  edits the archive, sharing a baseline with the year in small caps to their right
+  and heading a working line at 0.75rem, where the weight step alone separates the
+  two. It no longer appears on the public archive, which shows no words at all; the
+  step survives because `/admin` still needs to name what it is editing.
 - **Body Lead** (`{typography.body-lead}`): long-form prose in soft ink, capped at
   68ch.
 - **Body / Body Small / Caption**: metadata, nav, links, footnotes.
@@ -335,8 +415,10 @@ The archive is the spatial signature: a 12-column grid at ≥768px where columns
 hold the year spine (sticky at `top: 7rem`, so the year stays with its band and
 changes by cut, never by interpolation) and columns 3–12 hold a CSS multi-column
 masonry — one column on phones, two at 640px, three at 1280px, gaps 1.5rem rising
-to 2rem. Multi-column is chosen so every work keeps its true aspect ratio with no
-crop and no gap between unequal heights. Bands pack greedily by aspect ratio and
+to 2rem. Cells are square: what a visitor compares between one piece and the next is
+the work, not the shape of its frame, and the work this archive holds is square, so
+`object-cover` crops nothing. It stays in place for the landscape or very tall piece
+that may arrive later. Bands pack greedily by aspect ratio and
 emit their runs longest-first, so the ragged bottom edge falls against the outer
 margin rather than opening a hole beside the year; the band's designated anchor
 work is placed unshifted at the head of the leading run, so the author, not the
@@ -376,11 +458,24 @@ rectangle of artwork over paper, separated from its neighbours by a 1px rule and
 white space. Borders exist only as single-edge hairlines (`border-t`, `border-b`);
 a four-sided border around content is not part of this language.
 
+The one four-sided border in the build is not around content: an **empty slot** —
+the cell where the next work goes, and the image picker in the editor — is drawn
+with a 1px *dashed* `{colors.line}` rectangle over `{colors.paper-deep}` at 40%.
+Dashed carries the whole distinction: a solid rule separates things that exist, and
+a solid box here would read as a work that failed to load; a dashed one outlines a
+place where something can be put. It keeps a piece's proportion where the grid has
+one (`4:5` from 640px) and goes landscape (`2:1`) on a single-column phone, where a
+full-height cell would fill more than the screen before the first work appeared. On hover the
+dashes and the ground warm toward terracotta at 50% — the slot is the only place a
+dashed line exists, and the only place terracotta touches a four-sided border.
+
 ## Components
 
-The system has no buttons, no chips, no cards, and no form inputs — the only action
-is a link, and the primary action is a `mailto:` on a work page. Documenting what
-exists rather than inventing primitives.
+The public site has no buttons, no chips, and no cards: its only action is a link,
+and its primary action is the `Chiedi info` control on a work page, which carries the
+visitor to the contact form with the subject already written. Fields and one filled
+button exist, and only on the two surfaces that write something down — the contact
+form and the archive editor. Documenting what exists rather than inventing primitives.
 
 ### Links
 - **Character:** a line that grows, not a control that lights up.
@@ -390,10 +485,130 @@ exists rather than inventing primitives.
 - **Hover / Focus:** underline sweeps in on hover, `:focus-visible`, and
   `[data-active="true"]` — the active state is the same drawing as the hover, so a
   current nav item reads as already-hovered.
-- **Primary action ("Chiedi info"):** a drawn mail icon in faint ink beside a link
-  held permanently underlined; the icon turns terracotta on hover. No fill, no box,
-  no padding — it is a sentence you can click.
+- **Primary action ("Chiedi info"):** the one exception to everything in this
+  section — a bordered, rounded, terracotta control. See The One Loud Thing.
+
+  **It navigates; it does not open a mail client.** It goes to
+  `/contatti?opera=<slug>`, and that page reads the slug, looks the work up and
+  hands the contact form its title as the subject. It used to be a `mailto:`, which
+  asked the visitor to have a mail client configured — on a phone, or in webmail,
+  that link often opens nothing and says nothing, so the single most important
+  control on the site failed silently. A form is always visible. The slug travels
+  rather than the title so the subject is the one she loaded, not text anybody can
+  put in a URL, and so a saved link still names the work correctly after a rename;
+  a slug that no longer resolves simply leaves the field empty.
 - **External links:** the label plus the drawn diagonal-arrow icon, 16px, inline.
+
+### Buttons
+- **Character:** one weight of commit, and only where something is actually written
+  down.
+- **Shape:** a square block of ink — `{colors.ink}` ground, `{colors.paper}` label,
+  zero radius, 0.75rem × 1.5rem of padding, at `{typography.body-small}`.
+- **Where:** the commit action of a form and nowhere else — "Entrar", "Cargar la
+  obra", "Guardar cambios". A form's secondary action ("Cancelar") stays an
+  underlined link, so the two never look like a pair of buttons.
+- **Hover / Disabled:** opacity to 85% on hover; 50% while the action is in flight,
+  with the label in the present tense ("Guardando…"). No colour change, no lift.
+
+**The Ink-Not-Terracotta Rule.** The one filled control in this system is filled with
+ink. Terracotta stays a rule, a mark, and a word of state — a filled accent button
+would make the loudest thing on screen something that is not an illustration.
+
+**The Button-Earns-Its-Box Rule.** A filled block is the only box in a world that
+separates with rules, so it is spent once per form, on the action that changes
+something. Anything that only navigates is a link. A public page has no button.
+
+### Inputs / Fields
+- **Character:** a line you write on, not a box you fill in.
+- **Style:** a small-caps label in faint ink (`{typography.label}`) above a
+  transparent control carried on a single `{colors.line}` bottom rule, 0.625rem of
+  vertical padding, no box, no fill, no radius, no four-sided border. The rule is the
+  control's own `border-b`, so it measures exactly the field.
+- **Size:** `{typography.body}` (1rem) is a floor, not a preference — under 16px
+  Safari on iPhone zooms the page on focus and leaves it displaced.
+- **Focus:** the bottom rule goes to full ink and the label follows it, through
+  `group-has-[:focus]` on the field wrapper. The site's focus ring is otherwise
+  untouched; it only squares off (radius 0, offset 2px) on `input`, `textarea`, and
+  `select`, because a rounded ring around a seven-column field is a pill.
+- **Error:** the bottom rule goes terracotta and the reason appears beneath it in
+  terracotta at `{typography.caption}`. Error outranks focus by specificity — a field
+  with a problem keeps saying so while the cursor is in it.
+- **Hint:** an optional faint-ink `{typography.caption}` line between label and
+  control. A hint is never a placeholder: a placeholder disappears exactly when it is
+  needed.
+- **Multiline:** `field-sizing-content` so the box grows with the text instead of
+  scrolling inside itself; `resize-y` stays enabled for browsers without it.
+
+**The One Field Rule.** There is one field drawing in this system, and both forms use
+it verbatim — the contact form and the archive editor declare the same label and
+control strings character for character. A third form does not invent a third
+drawing; it lifts these two into a shared module and uses them.
+
+### The Control Layer (Operate surfaces)
+Editing sits on top of the published archive rather than beside it: `/admin` renders
+the site's own grid — same three columns, same 4:5 plate, same 1.03 hover scale, same
+title-and-year baseline — and adds exactly one layer, the controls. It also keeps
+a caption line the public grid no longer has: technique, image count, and whether
+the text is still missing. That is not drift to be tidied away — those are the
+three things she needs while loading, and none of them is the visitor's business. The reason is
+that the judgement being made while loading a work is how the piece reads next to the
+others, and a list of text rows hides it. The one thing deliberately not inherited is
+the entrance animation: on a working screen, a grid that re-stages itself after every
+save puts half a second of choreography between her and the next thing she was doing.
+
+**The Resting-Place Rule.** Any affordance revealed by hover must declare where it
+sits when there is no pointer. Both the per-piece controls and the terracotta hover
+hairline are scoped in `[@media(hover:hover)]`: with a pointer they ride over the
+plate at zero opacity and appear on `group-hover` or `group-focus-within`; without
+one they fall into flow on the caption line and are always visible. The query asks
+about the device, not the width — a tablet is wide and still touched. This is not a
+nicety: on a touch screen `:hover` latches after a tap, so an unscoped rule leaves a
+piece at rest wearing terracotta, and terracotta here means state.
+
+**The Confirm-In-Place Rule.** A destructive action asks in the row it belongs to,
+never in a modal. The delete question takes the caption band beneath its own image —
+solid paper over a `{colors.accent}` top rule, the work still visible above it — and
+sets "Borrar" in terracotta against "Dejarla" in soft ink. That accent rule is the
+only terracotta border outside a year band, and it is spent here because this is the
+one action that cannot be undone.
+
+- **Per-piece controls:** 2rem square targets on 95% paper, faint-ink icons at 16px;
+  move and edit go to ink on hover, delete goes to terracotta. The grip is first in
+  the group, because it is the one of the three that is held rather than tapped —
+  the hand goes to it, not to it after passing the other two. The pencil duplicates
+  the destination of the plate itself, so it carries `aria-hidden` and `tabIndex={-1}`
+  rather than announcing the same work twice in a row.
+- **Hover hairline:** a 1px `{colors.accent}` border drawn `inset-0` inside the
+  plate, never as a `border` on it — a real border would shift the image one pixel on
+  appearance and give the layer away.
+- **Status mark:** the admin bar's state is a 4px dot, faint ink when the database
+  answers and terracotta when it does not. Never green: in this system colour marks
+  what wants attention, and "working" wants none.
+
+**The Held-Piece Rule.** The order of the archive is hers, and she sets it by
+dragging inside the grid it publishes to. Three drawings carry the whole gesture
+and none of them is new to the system:
+
+- **The piece in hand** is the same plate, lifted: solid `{colors.paper}` behind
+  it, the `{colors.accent}` hairline at full strength instead of on hover, and the
+  title in terracotta. This system owns no shadow to say "above", so opaque paper
+  plus the state colour says it. It follows the pointer on `translate3d`, never on
+  `left`/`top`.
+- **The landing place** is a dashed `{colors.line}` square over the vacated cell,
+  at the size of a piece. It is the second legitimate dashed line here and it
+  means what the first one means: nothing is in this slot, and something can go in.
+- **The others** slide one slot on `transform` over 260ms on the soft ease — not
+  the archive's 900ms, which is the speed of looking rather than of working.
+  Nothing changes place in the document until she lets go: the cell boxes are
+  measured once at pickup, and a layout that reflowed mid-gesture would drop the
+  piece in the wrong square.
+
+The grip is held, not toggled: there is no "reorder mode" to enter and leave,
+because the ask was to reorder whenever and as often as she likes, and a mode
+turns one move into three gestures. Everything the pointer does the keyboard does
+too — space lifts, arrows move, space drops, Escape returns the piece — and every
+interrupted gesture (`pointercancel`, a resize, an archive that changed
+underneath) lands on *cancel*, never on save.
 
 ### Navigation
 - **Header:** transparent, sticky, 4rem tall (5rem at 768px). Nav labels in soft ink
@@ -406,25 +621,20 @@ exists rather than inventing primitives.
   `priority` in the header because it sits in the first viewport. In the header
   the `<img>` takes `alt=""` and the accessible name comes from the link's
   `aria-label`; in the footer, where there is no link, the `alt` is "Illustrando".
-- **Shop dropdown:** the one nav item that is a `button`, not a link — it has no
-  page. Hovering or activating it unrolls a band from the bottom edge of the
-  header, edge to edge. Full width is not a taste for scale, it is what the rest
-  of the system leaves available: with no shadows and no four-sided borders, a
-  narrow panel floating over artwork has nothing to draw its left and right
-  edges with. Edge to edge there are no side edges to draw, and the band can
-  borrow the material the header already uses when work passes beneath it —
-  `{colors.paper}` at 95%, a blur, and one `{colors.line}` hairline along the
-  bottom. It overlays rather than pushes: a menu that shifts the page down on
-  hover is a trap, not a transition. Inside, the categories lay out 2 / 3 / 5
-  across, each a name at `{typography.nav}` over a `{typography.caption}` line
-  of material, with a terracotta dot appearing at the left on hover. **No
-  scrim** — a scrim reads as modal, and this menu is not.
 - **Mobile:** a two-hairline menu button (the hairlines match the icon stroke
   weight), opening a half-screen paper panel beside the header with routes at
   `{typography.nav-drawer}`, each on its own `{colors.line}` rule, and the address
   at the foot. Escape closes it; body scroll locks while open. The rows keep
-  1rem of vertical padding whatever the type does, so the tappable target stays
-  the same size as the words shrink.
+  1rem of vertical padding whatever the type does, so the tappable target is set
+  by the padding and not by the word: it measured the same when these labels were
+  a headline, when they were halved to 10px, and now at 14–18px. That is what
+  makes the size a free decision for the client rather than an accessibility one.
+
+> **Removed:** the Shop dropdown — a full-width band unrolling from the header
+> edge, with five categories inside — and its mobile accordion. The client is not
+> selling anything for now, so the site only shows Works; every nav item is a
+> route again, and nothing in the header is a `button` except the mobile menu
+> toggle. See PRODUCT.md, "Tienda: fuera de alcance".
 
 ### Specification List
 - **Style:** a definition list opened and closed by `{colors.line}` hairlines, one
@@ -447,17 +657,138 @@ grain, which is the only thing separating this signature from a script font.
 ### Icons
 Authored SVG only, in `src/components/Icon.tsx`: a 24-unit box, `currentColor`
 stroke at 1.25, round caps and joins, default 20px (16px for the external arrow).
-Six shapes exist — arrow left, arrow right, arrow up-right, mail, Instagram, close.
+Twelve shapes exist — arrow left, arrow right, arrow up, arrow up-right, mail,
+Instagram, close, copy, and the four the admin added: plus, pencil, trash, move.
+The admin's four live in the same file on purpose: a second icon set at another
+stroke weight is exactly what this file exists to prevent, and the loading
+screen has to look drawn by the same hand as the site.
 
-### The Archive (signature)
-The homepage is a stack of year bands. Each band opens on a terracotta rule, carries
-its year in the sticky spine with the terracotta work count beside it, and lays its
-works in a balanced masonry. Each work is an image on a deep-paper plate that scales
-to 1.03 over 900ms on hover, its title at `{typography.display-title}`, its category as a small-caps
-label at the right of the same baseline, and its client and medium below in soft
-ink. The signature behaviour is pure CSS with no client JavaScript: when any work is
-hovered or focused, every other work and every other band's year mark falls to 30%
-opacity over 550ms. Keyboard reaches the same state through `:focus-visible`.
+**Move** is a four-way arrow, not the three stacked rules a list handle usually
+wears — those rules are already the mobile menu button, and one drawing for
+"open the navigation" and "pick up this piece" is how someone taps one meaning
+the other. It is also truer: the archive is a grid, and a piece moves on two
+axes. Its cross stops at 13 of the 24 units so the glyph carries the same
+optical weight as the pencil and the trash beside it; reaching the frame made
+it the heaviest of the three and broke the group.
+
+### The Archive
+The homepage is one flat grid, three across from 1024px and two everywhere below
+it, phones included. No grouping, no spine. It is never one across: a single-column
+archive on a phone costs a gesture per work to see the next, and what makes this read
+as an archive rather than as one piece after another is seeing several at once. Each
+work is an image on a deep-paper plate that scales to 1.03 over 900ms on hover.
+
+**The grid holds no words.** No title, no year, no medium, at any width. They left one
+at a time, each at the client's request, until nothing was left but the work. What a
+piece is, the visitor reads by opening it; here they look at it.
+
+The white between cells follows the words out, and that is one decision rather than
+two. With a caption under each cell the surrounding white was what made a cell a
+record, separate from its neighbour; with the caption gone that same white leaves the
+works floating loose on the paper. So the gap is set in proportion and not in pixels —
+about 2% of the cell's width at every size, 4px against a phone's 169px cell and 8px
+against a desktop's 389px one. That is the least that keeps two light-ground works from
+fusing into one blur, and it is what makes the page read as a wall of work.
+
+Nothing is lost by the silence: the work page is one tap away, and each link carries
+`aria-label="<title>, <year>"`, so the grid names its works to a screen reader at every
+width even though it shows no words to anyone else.
+
+**The cell is 4:5 at every width, and the crop is the decision.** The work in this
+archive is square, so a square cell would crop nothing; 4:5 takes a fifth of each
+piece's width, on a phone and on a 27-inch monitor alike. The client chose vertical
+knowing that, first on phones and then everywhere, and the reason it stays at 4:5
+rather than 3:4 is exactly this: 3:4 would take a quarter. Anyone who wants a piece
+whole opens it, where the plate runs at its true proportion and crops nothing.
+
+It is one ratio and not a seam at 640px, because a seam meant the same work was
+framed two different ways depending on which screen it was met on.
+
+**The ratio is one object in three places.** The archive cell, the work pager's
+neighbour plates and the grid inside `/admin` all draw it, and they move together. The
+editor's case is the strongest: that screen exists so she can judge how a piece will
+look published, and showing her a crop the site does not ship would leave it doing the
+opposite of what its whole shape is for.
+
+> **Removed, in three passes:** first the medium, which repeated "Digitale" down a
+> page where most pieces share a technique and so told nobody anything; then the
+> title and year on phones; then the title and year everywhere. Each went at the
+> client's request. All three still live on the work page — the title as its
+> heading, the year and the medium in its spec list — which is where someone goes
+> to ask what a piece is. The markup went with them rather than being hidden by a
+> media query: a caption kept alive behind `hidden` is the same dormant code this
+> file has had to delete once already.
+
+**The sequence is authored, not computed.** Which piece opens the archive, and
+which sits beside which, is a curatorial decision and it is hers: she makes it by
+dragging in `/admin`, and it is stored per work. The year is a fact on the caption
+line and orders nothing. It used to — the grid ran newest-year-first and, within a
+year, by whichever row number the table had handed out. That is an order nobody
+chose, on a page whose whole job is the order in which the work is met.
+
+Cells share one shape because what a visitor compares between one piece and the next
+is the work, not the frame around it; `object-cover` keeps that true for the landscape
+or very tall piece that may arrive later. With no caption to carry it, hover is the whole of
+the grid's feedback: the plate holds still and the image inside it scales to 1.03 over
+900ms, clipped by the plate so a piece never spills into the 8px beside it.
+
+> **Removed:** the year-band archive — a stack of bands each opening on a terracotta
+> rule, its year in a sticky spine, and every other work plus every other band's year
+> mark falling to 30% opacity while one work was hovered. It was specified here and
+> its CSS sat in `globals.css` for three commits without a component ever using it;
+> it was built once, shown to the client, and taken out at their request. The rules
+> (`.archive`, `.year-band`, `.year-mark`, `.work`) were deleted with it rather than
+> left dormant a second time. Git holds both the stylesheet and the component.
+
+### The Work Page
+The order is a decision and it reads in one line: back to the archive, the name, the
+work, the text, the neighbours. Name before work, because the visitor arrives from a
+grid that shows no words — they tapped an image without knowing what it was called, and
+a title that appears only after a screenful of plates leaves them nowhere. Text after
+work, because it is context for something already seen rather than an introduction to
+something coming.
+
+The title is the page's `h1` at `{typography.display-lead}`, left-aligned on the
+shell's edge like the back link, the text and the pager beneath it. It is not centred
+on the plate below it: the plate is the one element on the page whose left edge moves,
+since its width follows each work's own proportion, so the shell's edge is the only
+axis a title can hold from one work to the next. It carries more air above than below —
+the space over it presents it, the space under it ties it to the work it names — and a
+30ch cap so a long title that has not been loaded yet cannot one day run a single
+1300px line at 3.25rem.
+
+Beneath the plates, the text sits in seven of twelve columns and the spec list in the
+lateral four from `col-start-9`. **The text column is not drawn when there is no text.**
+A work can be loaded without its description — the archive editor accepts that and
+flags it — and since the title moved out of this block, that case now empties the
+column. The spec list does not move to fill the gap: its place is fixed by
+`col-start-9`, not by whether it has a neighbour, so it is found in the same place on
+every work.
+
+### The Work Pager
+The foot of a work page offers the two neighbours in the archive's own order,
+one per side, and each of them shows the piece: label, title, and beneath it the
+same 4:5 deep-paper plate the grid uses, at 7rem wide on a phone and 9rem from
+768px, scaling to 1.03 over 900ms on hover with the title going terracotta
+alongside it. A name alone is not an offer — the visitor came for the work, and
+"Carnevale andino" tells someone who has not seen it nothing. With the piece
+visible, going on is a decision rather than a guess.
+
+The plate crops like the grid and unlike the work above it, and the two are not
+in conflict: the page's own plate is where the piece is looked at, so it runs at
+its true proportion, uncropped; the pager is where one is chosen, and choosing
+compares the work rather than the shape of its frame. It follows the archive's
+ratio whenever that changes — a neighbour framed differently from the grid would
+not be recognised as the piece the visitor is about to arrive at.
+
+The pair sits in a 48rem band centred under a full-width hairline. Split across
+the 82rem shell it was two objects pinned to opposite edges with eight hundred
+pixels of paper between them — read as two stray things sharing a line, not as
+two options. Both columns are full-height flex with the plate pushed to the
+bottom, so a title that wraps to three lines on a phone does not drop its plate
+below its neighbour's; the difference is absorbed in the air above the plate,
+where it does not read as an error. The empty side is still drawn at the ends of
+the archive, so "Successiva" never slides to the centre.
 
 ### Reveal
 Content enters by rising 1.25rem and fading in over 900ms on the soft ease, staged
@@ -469,7 +800,8 @@ animation and transition on the site collapses to 0.01ms.
 
 ### Do:
 - **Do** keep terracotta to rules and marks, and let the illustration be the only
-  full-colour field on the page.
+  full-colour field on the page. The single exception is named in The One Loud
+  Thing, and naming it is what keeps it an exception.
 - **Do** give every new small text colour ≥4.5:1 on `{colors.paper}` before it
   ships; `{colors.ink-faint}` is the floor value, not a starting point.
 - **Do** separate with a 1px `{colors.line}` hairline and space. Terracotta rules
@@ -486,15 +818,35 @@ animation and transition on the site collapses to 0.01ms.
 - **Do** theme browser surfaces from the palette — selection, caret, scrollbars,
   focus ring — rather than leaving them at browser defaults.
 - **Do** honour `prefers-reduced-motion` in any new motion.
+- **Do** give every hover-revealed control a no-pointer resting place under
+  `[@media(hover:hover)]`, and test it where `:hover` latches.
+- **Do** land every interrupted gesture on cancel. A drag the browser took away, a
+  window that resized mid-move, a list that changed underneath — none of those is
+  a decision, and writing one down produces an archive she did not arrange and
+  cannot tell she has.
+- **Do** build a screen that edits the archive out of the archive's own drawing —
+  same grid, same plate, same caption line — and add only the control layer.
+- **Do** let an empty collection say what will fill it, in the language and voice of
+  the surface it sits on: Italian to the visitor ("L'archivio è in preparazione"),
+  working Spanish on the editor screens.
+- **Do** keep a form's commit action a filled ink block and its escape an underlined
+  link, so the two never read as a pair of buttons.
 
 ### Don't:
-- **Don't** fill anything with terracotta — no accent buttons, badges, chips, or
-  blocks.
+- **Don't** fill anything with terracotta at rest. One control fills on hover and
+  it is already built; a second accent button, badge, chip or block is the thing
+  this rule exists to stop, because the first one only works while it is the only
+  one.
 - **Don't** add a dark mode or tint the ground per page.
-- **Don't** use a box-shadow, a faked lift, or a border on all four sides. Depth is
-  rules, one tonal step, and opacity.
+- **Don't** use a box-shadow, a faked lift, or a border on all four sides — the one
+  bordered control is named in The One Loud Thing, and it carries no shadow either.
+  Depth is rules, one tonal step, and opacity.
 - **Don't** scaffold a page in cards. This world separates with rules and space.
-- **Don't** crop an illustration to a fixed ratio; the grid adapts to the work.
+- **Don't** crop an illustration to a fixed ratio without saying what the crop buys.
+  The archive's 4:5 takes a fifth of each piece's width — the work is square, so a
+  square cell would take nothing — and that is written down as a decision, at the
+  gentlest ratio that still reads as vertical. A crop nobody argued for is the one
+  this rule is against.
 - **Don't** let a full-width plate be taller than the screen. Where a work runs
   at the width of the spread, its own proportion decides how much of the spread
   it takes: at 1.2 and wider it reaches both margins, and below that it is
@@ -509,3 +861,14 @@ animation and transition on the site collapses to 0.01ms.
   two steps by decision and weight synthesis is off.
 - **Don't** require JavaScript for a visual state that `:has()`, `:hover`, and
   `:focus-visible` can carry.
+- **Don't** open a modal to confirm a destructive action; ask in the row, under the
+  thing being destroyed, where it can still be seen.
+- **Don't** put a filled button on a public page beyond the one that starts an
+  enquiry about a work — and that one is filled only under a pointer — or give a
+  form more than one.
+- **Don't** box a field. A field is a label over a single bottom rule, and its size
+  does not go below 16px.
+- **Don't** use a dashed line for anything but an empty slot, and never a solid
+  four-sided border around content. There are exactly two empty slots: the
+  new-work cell and the place a dragged piece will land. A third use has to mean
+  the same thing or it is not this line.

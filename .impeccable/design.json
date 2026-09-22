@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-18T00:00:00.000Z",
+  "generatedAt": "2026-09-22T00:00:00.000Z",
   "title": "Design System: Illustrando",
   "extensions": {
     "colorMeta": {
@@ -8,71 +8,201 @@
         "role": "neutral",
         "displayName": "Warm Paper",
         "canonical": "#faf7f2",
-        "tonalRamp": ["#1a1713", "#332d26", "#4d453a", "#6b6155", "#8f867a", "#b8b0a4", "#ddd6cc", "#faf7f2"]
+        "tonalRamp": [
+          "#1a1713",
+          "#332d26",
+          "#4d453a",
+          "#6b6155",
+          "#8f867a",
+          "#b8b0a4",
+          "#ddd6cc",
+          "#faf7f2"
+        ]
       },
       "paper-deep": {
         "role": "neutral",
         "displayName": "Deep Paper",
         "canonical": "#f2ece3",
-        "tonalRamp": ["#1a150f", "#332a20", "#4d4032", "#6b5c4a", "#8f8070", "#b8ab9b", "#ddd3c6", "#f2ece3"]
+        "tonalRamp": [
+          "#1a150f",
+          "#332a20",
+          "#4d4032",
+          "#6b5c4a",
+          "#8f8070",
+          "#b8ab9b",
+          "#ddd3c6",
+          "#f2ece3"
+        ]
       },
       "ink": {
         "role": "neutral",
         "displayName": "Ink",
         "canonical": "#1c1a16",
-        "tonalRamp": ["#0e0d0b", "#1c1a16", "#332f28", "#4d473d", "#6b6456", "#918a7b", "#bcb5a7", "#e6e1d8"]
+        "tonalRamp": [
+          "#0e0d0b",
+          "#1c1a16",
+          "#332f28",
+          "#4d473d",
+          "#6b6456",
+          "#918a7b",
+          "#bcb5a7",
+          "#e6e1d8"
+        ]
       },
       "ink-soft": {
         "role": "neutral",
         "displayName": "Soft Ink",
         "canonical": "#55504a",
-        "tonalRamp": ["#14120f", "#26231f", "#3b3732", "#55504a", "#6f6961", "#8d867c", "#b5aea4", "#ddd8d0"]
+        "tonalRamp": [
+          "#14120f",
+          "#26231f",
+          "#3b3732",
+          "#55504a",
+          "#6f6961",
+          "#8d867c",
+          "#b5aea4",
+          "#ddd8d0"
+        ]
       },
       "ink-faint": {
         "role": "neutral",
         "displayName": "Faint Ink",
         "canonical": "#6f6861",
-        "tonalRamp": ["#171512", "#2a2723", "#403c36", "#57524b", "#6f6861", "#938c83", "#bab3aa", "#e0dad2"]
+        "tonalRamp": [
+          "#171512",
+          "#2a2723",
+          "#403c36",
+          "#57524b",
+          "#6f6861",
+          "#938c83",
+          "#bab3aa",
+          "#e0dad2"
+        ]
       },
       "line": {
         "role": "neutral",
         "displayName": "Line",
         "canonical": "#e2dad0",
-        "tonalRamp": ["#1a1610", "#332c20", "#4d4231", "#6b5d47", "#8f7f66", "#b5a794", "#cfc4b5", "#e2dad0"]
+        "tonalRamp": [
+          "#1a1610",
+          "#332c20",
+          "#4d4231",
+          "#6b5d47",
+          "#8f7f66",
+          "#b5a794",
+          "#cfc4b5",
+          "#e2dad0"
+        ]
       },
       "accent": {
         "role": "primary",
         "displayName": "Terracotta Rule",
         "canonical": "#b4552f",
-        "tonalRamp": ["#2b1409", "#4a2311", "#6b331a", "#8d4323", "#b4552f", "#cf7550", "#e0a385", "#f1d2c3"]
+        "tonalRamp": [
+          "#2b1409",
+          "#4a2311",
+          "#6b331a",
+          "#8d4323",
+          "#b4552f",
+          "#cf7550",
+          "#e0a385",
+          "#f1d2c3"
+        ]
       }
     },
     "typographyMeta": {
-      "display-mark": { "displayName": "Display Mark", "purpose": "The year on the archive spine. Optical size 144, SOFT 0, WONK 1, tabular figures. Nothing else uses it." },
-      "display-lead": { "displayName": "Display Lead", "purpose": "The h1 of every interior page: work title, studio, contact, journal entry, 404." },
-      "display-statement": { "displayName": "Display Statement", "purpose": "The closing invitation at the foot of the archive and the studio page, measured to 68ch." },
-      "display-section": { "displayName": "Display Section", "purpose": "Section headings and list item titles. Text-size type gets text-size optical modulation (opsz 32)." },
-      "title": { "displayName": "Title", "purpose": "Work titles inside the archive grid." },
-      "body-lead": { "displayName": "Body Lead", "purpose": "Long-form prose in soft ink, capped at 68ch." },
-      "body": { "displayName": "Body", "purpose": "Default running text and list items." },
-      "body-small": { "displayName": "Body Small", "purpose": "Nav labels, links, metadata rows." },
-      "caption": { "displayName": "Caption", "purpose": "Footnotes, credit line, work metadata under a title." },
-      "label": { "displayName": "Label", "purpose": "Uppercase small caps that head a list or name a field. Never an eyebrow above a heading." }
+      "display-mark": {
+        "displayName": "Display Mark",
+        "purpose": "The year on the archive spine. Optical size 144, SOFT 0, WONK 1, tabular figures. Nothing else uses it."
+      },
+      "display-lead": {
+        "displayName": "Display Lead",
+        "purpose": "The h1 of every interior page: work title, studio, contact, journal entry, 404."
+      },
+      "display-statement": {
+        "displayName": "Display Statement",
+        "purpose": "The closing invitation at the foot of the archive and the studio page, measured to 68ch."
+      },
+      "display-section": {
+        "displayName": "Display Section",
+        "purpose": "Section headings and list item titles. Text-size type gets text-size optical modulation (opsz 32)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Work titles inside the archive grid."
+      },
+      "body-lead": {
+        "displayName": "Body Lead",
+        "purpose": "Long-form prose in soft ink, capped at 68ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default running text and list items."
+      },
+      "body-small": {
+        "displayName": "Body Small",
+        "purpose": "Nav labels, links, metadata rows."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Footnotes, credit line, work metadata under a title."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase small caps that head a list or name a field. Never an eyebrow above a heading."
+      }
     },
     "shadows": [],
     "motion": [
-      { "name": "ease-out-soft", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "The only easing in the system. Every transition and reveal uses it." },
-      { "name": "duration-reveal", "value": "900ms", "purpose": "Scroll reveal (opacity + 1.25rem rise) and the image scale on work hover." },
-      { "name": "duration-dim", "value": "550ms", "purpose": "The archive dimming to 30% around the held work, and the year marks following it." },
-      { "name": "duration-underline", "value": "400ms", "purpose": "The link underline scaling in from the left." },
-      { "name": "duration-header", "value": "300ms", "purpose": "The header taking paper and rule past scrollY > 8." },
-      { "name": "stagger", "value": "70-90ms", "purpose": "Delay step between successive Reveal elements down a list." },
-      { "name": "reduced-motion", "value": "animation-duration: 0.01ms; transition-duration: 0.01ms", "purpose": "Under prefers-reduced-motion everything collapses and reveals render shown." }
+      {
+        "name": "ease-out-soft",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "The only easing in the system. Every transition and reveal uses it."
+      },
+      {
+        "name": "duration-reveal",
+        "value": "900ms",
+        "purpose": "Scroll reveal (opacity + 1.25rem rise) and the image scale on work hover."
+      },
+      {
+        "name": "duration-dim",
+        "value": "550ms",
+        "purpose": "The archive dimming to 30% around the held work, and the year marks following it."
+      },
+      {
+        "name": "duration-underline",
+        "value": "400ms",
+        "purpose": "The link underline scaling in from the left."
+      },
+      {
+        "name": "duration-header",
+        "value": "300ms",
+        "purpose": "The header taking paper and rule past scrollY > 8."
+      },
+      {
+        "name": "stagger",
+        "value": "70-90ms",
+        "purpose": "Delay step between successive Reveal elements down a list."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation-duration: 0.01ms; transition-duration: 0.01ms",
+        "purpose": "Under prefers-reduced-motion everything collapses and reveals render shown."
+      }
     ],
     "breakpoints": [
-      { "name": "sm", "value": "640px" },
-      { "name": "md", "value": "768px" },
-      { "name": "xl", "value": "1280px" }
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
     ]
   },
   "components": [
@@ -88,9 +218,9 @@
       "name": "Primary Action (Chiedi info)",
       "kind": "button",
       "refersTo": "action-primary",
-      "description": "The site's primary action, on each work page: a mailto link with a drawn mail icon that turns terracotta on hover. No fill, no box.",
-      "html": "<a class=\"ds-action\" href=\"mailto:\"><svg class=\"ds-action-icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"1.5\"/><path d=\"m3.5 6.5 8.5 6 8.5-6\"/></svg><span class=\"ds-action-label\">Chiedi info</span></a>",
-      "css": ".ds-action { display: inline-flex; align-items: center; gap: 0.625rem; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: var(--color-ink, #1c1a16); text-decoration: none; } .ds-action-icon { flex-shrink: 0; color: var(--color-ink-faint, #6f6861); transition: color 0.3s cubic-bezier(0.22, 1, 0.36, 1); } .ds-action:hover .ds-action-icon { color: var(--color-accent, #b4552f); } .ds-action-label { position: relative; display: inline-block; } .ds-action-label::after { content: \"\"; position: absolute; left: 0; bottom: -0.15em; height: 1px; width: 100%; background-color: currentColor; transform: scaleX(1); transform-origin: left; transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); } .ds-action:focus-visible { outline: 2px solid var(--color-accent, #b4552f); outline-offset: 3px; border-radius: 2px; }"
+      "description": "The site's one action, on each work page, and its only closed shape: a 1px terracotta edge at 6px radius with the word and a drawn mail icon in terracotta on paper, filling with terracotta under a pointer. It navigates to the contact form with the work's subject already written rather than opening a mail client, which on a phone or in webmail often opens nothing and says nothing. Only four-sided border, only corner radius, only accent fill, and the only focus ring in ink — an accent ring beside a terracotta edge reads as a halo of itself. Both states measure 4.59:1.",
+      "html": "<a class=\"ds-action\" href=\"/contatti\"><svg class=\"ds-action-icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"1.5\"/><path d=\"m3.5 6.5 8.5 6 8.5-6\"/></svg>Chiedi info</a>",
+      "css": ".ds-action { display: inline-flex; align-items: center; gap: 0.625rem; padding: 0.625rem 1.25rem; border: 1px solid var(--color-accent, #b4552f); border-radius: 6px; text-decoration: none; font-size: 0.875rem; color: var(--color-accent, #b4552f); background: transparent; transition: background-color 0.3s, color 0.3s; } .ds-action:hover { background: var(--color-accent, #b4552f); color: var(--color-paper, #faf7f2); } .ds-action:focus-visible { outline: 2px solid var(--color-ink, #1c1a16); outline-offset: 3px; } .ds-action-icon { flex-shrink: 0; }"
     },
     {
       "name": "Header Navigation",
@@ -101,28 +231,12 @@
       "css": ".ds-header { display: flex; align-items: center; justify-content: space-between; height: 4rem; padding-inline: 1.5rem; border-bottom: 1px solid transparent; transition: background-color 0.3s, border-color 0.3s; } .ds-header[data-scrolled=\"true\"] { background-color: color-mix(in srgb, var(--color-paper, #faf7f2) 85%, transparent); border-bottom-color: color-mix(in srgb, var(--color-line, #e2dad0) 70%, transparent); backdrop-filter: blur(12px); } .ds-wordmark { font-family: Fraunces, ui-serif, Georgia, serif; font-size: 1.25rem; letter-spacing: -0.025em; text-transform: lowercase; color: var(--color-ink, #1c1a16); text-decoration: none; } .ds-nav { display: flex; align-items: center; gap: 2.5rem; } .ds-nav-link { position: relative; display: inline-block; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: var(--color-ink-soft, #55504a); text-decoration: none; transition: color 0.3s; } .ds-nav-link:hover, .ds-nav-link[data-active=\"true\"] { color: var(--color-ink, #1c1a16); } .ds-nav-link::after { content: \"\"; position: absolute; left: 0; bottom: -0.15em; height: 1px; width: 100%; background-color: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); } .ds-nav-link:hover::after, .ds-nav-link:focus-visible::after, .ds-nav-link[data-active=\"true\"]::after { transform: scaleX(1); }"
     },
     {
-      "name": "Year Band Head",
-      "kind": "custom",
-      "refersTo": "year-band",
-      "description": "The archive's spine: the terracotta rule that opens a year, the monumental year mark in ink, and the terracotta work count beside it.",
-      "html": "<section class=\"ds-band\"><div class=\"ds-band-mark\"><h2 class=\"ds-year\">2025</h2><p class=\"ds-count\">4 opere</p></div></section>",
-      "css": ".ds-band { border-top: 1px solid var(--color-accent, #b4552f); padding-top: 1.25rem; } .ds-band-mark { display: flex; align-items: baseline; gap: 0.75rem; } .ds-year { margin: 0; font-family: Fraunces, ui-serif, Georgia, serif; font-size: clamp(2.5rem, 6vw, 5.25rem); font-weight: 400; line-height: 0.85; letter-spacing: -0.05em; font-variation-settings: \"opsz\" 144, \"SOFT\" 0, \"WONK\" 1; font-variant-numeric: tabular-nums lining-nums; color: var(--color-ink, #1c1a16); } .ds-count { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.6875rem; letter-spacing: 0.18em; text-transform: uppercase; font-variant-numeric: tabular-nums lining-nums; color: var(--color-accent, #b4552f); }"
-    },
-    {
       "name": "Work Tile",
       "kind": "card",
       "refersTo": "work-plate",
-      "description": "A work in the archive grid: uncropped image on a deep-paper plate, title in Fraunces, category as a small-caps label on the same baseline, client and medium beneath. Scales to 1.03 on hover.",
-      "html": "<a class=\"ds-work\" href=\"#\"><span class=\"ds-work-plate\"><span class=\"ds-work-image\"></span></span><span class=\"ds-work-line\"><span class=\"ds-work-title\">Jardín nocturno</span><span class=\"ds-work-cat\">Botánica</span></span><span class=\"ds-work-meta\">Acuarela y tinta</span></a>",
-      "css": ".ds-work { display: block; text-decoration: none; color: var(--color-ink, #1c1a16); transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1); } .ds-work-plate { display: block; overflow: hidden; background-color: var(--color-paper-deep, #f2ece3); } .ds-work-image { display: block; width: 100%; aspect-ratio: 4 / 5; background-color: var(--color-paper-deep, #f2ece3); transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-work:hover .ds-work-image { transform: scale(1.03); } .ds-work-line { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-top: 0.75rem; } .ds-work-title { font-family: Fraunces, ui-serif, Georgia, serif; font-size: 1rem; letter-spacing: -0.025em; } .ds-work-cat { flex-shrink: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.6875rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-ink-faint, #6f6861); } .ds-work-meta { display: block; margin-top: 0.125rem; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; color: var(--color-ink-soft, #55504a); } .ds-work:focus-visible { outline: 2px solid var(--color-accent, #b4552f); outline-offset: 3px; border-radius: 2px; }"
-    },
-    {
-      "name": "Archive Dimming",
-      "kind": "custom",
-      "refersTo": "year-band",
-      "description": "The signature interaction, pure CSS and no client JavaScript: hovering or focusing one work drops every other work to 30% opacity. One work held at a time, keyboard-equivalent.",
-      "html": "<div class=\"ds-archive\"><a class=\"ds-archive-work\" href=\"#\"><span class=\"ds-archive-plate\"></span><span class=\"ds-archive-title\">Tallos</span></a><a class=\"ds-archive-work\" href=\"#\"><span class=\"ds-archive-plate\"></span><span class=\"ds-archive-title\">Herbario</span></a><a class=\"ds-archive-work\" href=\"#\"><span class=\"ds-archive-plate\"></span><span class=\"ds-archive-title\">Marea</span></a></div>",
-      "css": ".ds-archive { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; } .ds-archive-work { display: block; text-decoration: none; color: var(--color-ink, #1c1a16); transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1); } .ds-archive-plate { display: block; width: 100%; aspect-ratio: 4 / 5; background-color: var(--color-paper-deep, #f2ece3); } .ds-archive-title { display: block; margin-top: 0.75rem; font-family: Fraunces, ui-serif, Georgia, serif; font-size: 1rem; letter-spacing: -0.025em; } .ds-archive:has(.ds-archive-work:hover) .ds-archive-work:not(:hover), .ds-archive:has(.ds-archive-work:focus-visible) .ds-archive-work:not(:focus-visible) { opacity: 0.3; }"
+      "description": "A work in the public archive grid: an image on a deep-paper plate and nothing else — no title, no year, no medium, at any width. The plate holds still on hover and the image inside scales to 1.03 over 900ms, clipped so a piece never spills into the gap beside it. The link carries aria-label=\"<title>, <year>\", so the grid names its works to a screen reader although it shows no words. Cells are 4:5 at every width, a crop of a fifth of each piece's width chosen over the square that would crop nothing; the same ratio is drawn by the work pager's neighbour plates and by the grid in /admin.",
+      "html": "<a class=\"ds-tile\" href=\"#\" aria-label=\"Amalfi, 2026\"><span class=\"ds-tile-plate\"><img src=\"\" alt=\"\"></span></a>",
+      "css": ".ds-tile { display: block; } .ds-tile-plate { display: block; overflow: hidden; background-color: var(--color-paper-deep, #f2ece3); } .ds-tile-plate img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-tile:hover .ds-tile-plate img { scale: 1.03; } .ds-tile:focus-visible .ds-tile-plate { outline: 2px solid var(--color-accent, #b4552f); outline-offset: 3px; }"
     },
     {
       "name": "Specification List",
@@ -155,6 +269,53 @@
       "description": "Two hairlines at the same weight as the icon stroke. No unicode glyph stands in for it; the close state is the drawn X icon.",
       "html": "<button class=\"ds-menu\" type=\"button\" aria-expanded=\"false\"><span class=\"ds-menu-bars\" aria-hidden=\"true\"><span class=\"ds-menu-bar\"></span><span class=\"ds-menu-bar\"></span></span></button>",
       "css": ".ds-menu { display: flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; background: none; border: none; color: var(--color-ink, #1c1a16); cursor: pointer; padding: 0; } .ds-menu-bars { position: relative; display: block; width: 1.25rem; height: 0.625rem; } .ds-menu-bar { position: absolute; left: 0; display: block; width: 100%; height: 1px; background-color: currentColor; } .ds-menu-bar:first-child { top: 0; } .ds-menu-bar:last-child { bottom: 0; } .ds-menu:focus-visible { outline: 2px solid var(--color-accent, #b4552f); outline-offset: 3px; border-radius: 2px; }"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "field-control",
+      "description": "The system's one field drawing: small-caps label over a control on a single bottom rule. Used verbatim by the contact form and the archive editor.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-f1\">Tecnica</label><input class=\"ds-field-control\" id=\"ds-f1\" value=\"Acquerello e inchiostro\"></div>",
+      "css": ".ds-field { display: block; } .ds-field-label { display: block; font-size: 0.6875rem; line-height: 1.4; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-ink-faint); transition: color 0.2s; } .ds-field:has(:focus) .ds-field-label { color: var(--color-ink); } .ds-field-control { display: block; width: 100%; margin-top: 0.5rem; padding: 0.625rem 0; border: 0; border-bottom: 1px solid var(--color-line); border-radius: 0; background: transparent; font-family: inherit; font-size: 1rem; color: var(--color-ink); transition: border-color 0.2s; } .ds-field-control:focus { border-bottom-color: var(--color-ink); outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 0; } .ds-field-control[aria-invalid=\"true\"], .ds-field-control[aria-invalid=\"true\"]:focus { border-bottom-color: var(--color-accent); }"
+    },
+    {
+      "name": "Commit Button",
+      "kind": "button",
+      "refersTo": "button-commit",
+      "description": "The only filled control in the system. Ink block, zero radius, one per form, on the action that writes something down.",
+      "html": "<button class=\"ds-btn-commit\">Cargar la obra</button>",
+      "css": ".ds-btn-commit { background: var(--color-ink); color: var(--color-paper); border: none; border-radius: 0; padding: 0.75rem 1.5rem; font-family: inherit; font-size: 0.875rem; line-height: 1.5; transition: opacity 0.2s; } .ds-btn-commit:hover { opacity: 0.85; } .ds-btn-commit:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; border-radius: 2px; } .ds-btn-commit:disabled { opacity: 0.5; }"
+    },
+    {
+      "name": "Empty Slot",
+      "kind": "custom",
+      "refersTo": "empty-slot",
+      "description": "A dashed rectangle marking a place where content can be added — the next work in the grid, or the image picker. The only dashed line and the only four-sided border in the system.",
+      "html": "<a class=\"ds-slot\" href=\"#\"><svg class=\"ds-slot-icon\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg><span class=\"ds-slot-label\">Nueva obra</span></a>",
+      "css": ".ds-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem; aspect-ratio: 3 / 4; width: 100%; border: 1px dashed var(--color-line); border-radius: 0; background: color-mix(in srgb, var(--color-paper-deep) 40%, transparent); color: var(--color-ink-faint); text-decoration: none; transition: border-color 0.3s, background-color 0.3s, color 0.3s; } .ds-slot:hover { border-color: color-mix(in srgb, var(--color-accent) 50%, transparent); background: color-mix(in srgb, var(--color-paper-deep) 70%, transparent); color: var(--color-accent); } .ds-slot:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; } .ds-slot-label { font-size: 0.6875rem; letter-spacing: 0.18em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Piece Control Layer",
+      "kind": "custom",
+      "description": "Per-piece edit and delete controls over an archive plate. With a pointer they hide until hover or focus; with no pointer they sit in flow on the caption line, always visible.",
+      "html": "<div class=\"ds-piece\"><span class=\"ds-piece-plate\"><span class=\"ds-piece-ring\" aria-hidden=\"true\"></span></span><span class=\"ds-piece-caption\"><span class=\"ds-piece-title\">Giardino notturno</span><span class=\"ds-piece-year\">2024</span></span><div class=\"ds-piece-controls\"><button class=\"ds-piece-btn\" title=\"Editar\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M14.5 5.5 18.5 9.5 9 19H5v-4z\"/><path d=\"m13 7 4 4\"/></svg></button><button class=\"ds-piece-btn ds-piece-btn--danger\" title=\"Borrar\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4.5 7h15\"/><path d=\"M9.5 7V5.5A1 1 0 0 1 10.5 4.5h3a1 1 0 0 1 1 1V7\"/><path d=\"M6.5 7l.8 11a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4L17.5 7\"/></svg></button></div></div>",
+      "css": ".ds-piece { position: relative; } .ds-piece-plate { position: relative; display: block; aspect-ratio: 3 / 4; background: var(--color-paper-deep); overflow: hidden; } .ds-piece-ring { position: absolute; inset: 0; border: 1px solid transparent; pointer-events: none; transition: border-color 0.3s; } .ds-piece-caption { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-top: 0.75rem; } .ds-piece-title { font-size: 1rem; font-weight: 500; letter-spacing: -0.01em; color: var(--color-ink); transition: color 0.2s; } .ds-piece-year { font-size: 0.6875rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-ink-faint); font-variant-numeric: tabular-nums lining-nums; } .ds-piece-controls { display: flex; justify-content: flex-end; gap: 0.25rem; margin-top: 0.5rem; } .ds-piece-btn { display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border: none; border-radius: 0; background: color-mix(in srgb, var(--color-paper) 95%, transparent); color: var(--color-ink-soft); transition: color 0.2s; } .ds-piece-btn:hover { color: var(--color-ink); } .ds-piece-btn--danger:hover { color: var(--color-accent); } @media (hover: hover) { .ds-piece-controls { position: absolute; top: 0.5rem; right: 0.5rem; margin-top: 0; opacity: 0; transition: opacity 0.3s; } .ds-piece:hover .ds-piece-controls, .ds-piece:focus-within .ds-piece-controls { opacity: 1; } .ds-piece:hover .ds-piece-ring, .ds-piece:focus-within .ds-piece-ring { border-color: color-mix(in srgb, var(--color-accent) 60%, transparent); } .ds-piece:hover .ds-piece-title { color: var(--color-accent); } }"
+    },
+    {
+      "name": "Piece Grip",
+      "kind": "button",
+      "refersTo": "piece-grip",
+      "description": "The handle a work is dragged by, first of the three per-piece controls because it is held rather than tapped. Same 2rem paper square and 16px stroke as the pencil and the trash; goes terracotta while the piece is lifted. touch-action is none so a finger drag is not taken by the scroller.",
+      "html": "<button class=\"ds-grip\" type=\"button\" aria-pressed=\"false\" title=\"Mover\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5.5v13M5.5 12h13\"/><path d=\"m10 7.5 2-2 2 2\"/><path d=\"m10 16.5 2 2 2-2\"/><path d=\"M7.5 10l-2 2 2 2\"/><path d=\"m16.5 10 2 2-2 2\"/></svg></button>",
+      "css": ".ds-grip { display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; padding: 0; border: 0; touch-action: none; cursor: grab; background-color: color-mix(in srgb, var(--color-paper, #faf7f2) 95%, transparent); color: var(--color-ink-soft, #55504a); transition: color 0.2s ease; } .ds-grip:hover { color: var(--color-ink, #1c1a16); } .ds-grip[aria-pressed=\"true\"] { color: var(--color-accent, #b4552f); cursor: grabbing; } .ds-grip:focus-visible { outline: 2px solid var(--color-accent, #b4552f); outline-offset: 1px; }"
+    },
+    {
+      "name": "Work Pager Neighbour",
+      "kind": "nav",
+      "refersTo": "pager-neighbour",
+      "description": "One side of the work page's prev/next pager: label, title, and the archive's own 4:5 deep-paper plate beneath it. The plate is the grid cell, not a new thumbnail, so the visitor recognises what they are being offered. Full-height flex with the plate pushed to the bottom, so a wrapped title does not drop it below its neighbour's.",
+      "html": "<a class=\"ds-pager\" href=\"#\"><span class=\"ds-pager-label\">Precedente</span><span class=\"ds-pager-title\">Buon viaggio</span><span class=\"ds-pager-plate\"><img src=\"\" alt=\"\"></span></a>",
+      "css": ".ds-pager { display: flex; flex-direction: column; align-items: flex-start; height: 100%; text-decoration: none; color: var(--color-ink, #1c1a16); } .ds-pager-label { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-ink-faint, #6f6861); } .ds-pager-title { margin-top: 0.375rem; font-size: 1.125rem; font-weight: 500; letter-spacing: -0.015em; transition: color 0.2s ease; } .ds-pager:hover .ds-pager-title { color: var(--color-accent, #b4552f); } .ds-pager-plate { margin-top: auto; padding-top: 1rem; } .ds-pager-plate img { display: block; width: 9rem; aspect-ratio: 4 / 5; object-fit: cover; background-color: var(--color-paper-deep, #f2ece3); transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-pager:hover .ds-pager-plate img { scale: 1.03; }"
     }
   ],
   "narrative": {
@@ -169,13 +330,86 @@
       "The archive dims around the work you are holding, in pure CSS."
     ],
     "rules": [
-      { "name": "The Rule-and-Mark Rule", "body": "Terracotta is applied to rules, marks, and single words of state. It never becomes a background, a button fill, a badge, or a block. The only full-colour field on any page is an illustration.", "section": "colors" },
-      { "name": "The Two-Rank Rule Rule", "body": "Hierarchy among hairlines is carried by colour, not weight: every rule on the site is 1px, the year rule is terracotta, everything else is {colors.line}. A new separator inherits {colors.line} unless it opens a year.", "section": "colors" },
-      { "name": "The Ground-Is-Constant Rule", "body": "One ground colour, light only. No dark mode, no per-page tint, no gradient — a ground that shifts changes how the artwork reads.", "section": "colors" },
-      { "name": "The Optical-Ladder Rule", "body": "Fraunces ships variable and every display size states its own opsz/SOFT/WONK. A new display size picks the ladder rung nearest its scale rather than inheriting one instance sitewide.", "section": "typography" },
-      { "name": "The One-Weight Rule", "body": "Both faces ship at a single weight and font-synthesis-weight: none. Emphasis is scale, colour, and space — never a bolder cut.", "section": "typography" },
-      { "name": "The Tabular-Figures Rule", "body": "Years, dates, dimensions, and any aligned numeral carry tabular-nums lining-nums.", "section": "typography" },
-      { "name": "The No-Lift Rule", "body": "Nothing casts a shadow, hard or soft. If a surface needs to read as separate, give it a hairline or a tonal step; if it needs to read as foregrounded, dim what surrounds it.", "section": "elevation" }
+      {
+        "name": "The Rule-and-Mark Rule",
+        "body": "Terracotta is applied to rules, marks, and single words of state. It never becomes a background, a button fill, a badge, or a block. The only full-colour field on any page is an illustration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Rank Rule Rule",
+        "body": "Hierarchy among hairlines is carried by colour, not weight: every rule on the site is 1px, the year rule is terracotta, everything else is {colors.line}. A new separator inherits {colors.line} unless it opens a year.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ground-Is-Constant Rule",
+        "body": "One ground colour, light only. No dark mode, no per-page tint, no gradient — a ground that shifts changes how the artwork reads.",
+        "section": "colors"
+      },
+      {
+        "name": "The Optical-Ladder Rule",
+        "body": "Fraunces ships variable and every display size states its own opsz/SOFT/WONK. A new display size picks the ladder rung nearest its scale rather than inheriting one instance sitewide.",
+        "section": "typography"
+      },
+      {
+        "name": "The One-Weight Rule",
+        "body": "Both faces ship at a single weight and font-synthesis-weight: none. Emphasis is scale, colour, and space — never a bolder cut.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular-Figures Rule",
+        "body": "Years, dates, dimensions, and any aligned numeral carry tabular-nums lining-nums.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Lift Rule",
+        "body": "Nothing casts a shadow, hard or soft. If a surface needs to read as separate, give it a hairline or a tonal step; if it needs to read as foregrounded, dim what surrounds it.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Ink-Not-Terracotta Rule",
+        "body": "The one filled control in this system is filled with ink. Terracotta stays a rule, a mark, and a word of state — a filled accent button would make the loudest thing on screen something that is not an illustration.",
+        "section": "components"
+      },
+      {
+        "name": "The Button-Earns-Its-Box Rule",
+        "body": "A filled block is the only box in a world that separates with rules, so it is spent once per form, on the action that changes something. Anything that only navigates is a link. A public page has no button.",
+        "section": "components"
+      },
+      {
+        "name": "The One Field Rule",
+        "body": "There is one field drawing in this system, and both forms use it verbatim — the contact form and the archive editor declare the same label and control strings character for character. A third form does not invent a third drawing; it lifts these two into a shared module and uses them.",
+        "section": "components"
+      },
+      {
+        "name": "The Resting-Place Rule",
+        "body": "Any affordance revealed by hover must declare where it sits when there is no pointer. Both the per-piece controls and the terracotta hover hairline are scoped in [@media(hover:hover)]: with a pointer they ride over the plate at zero opacity and appear on group-hover or group-focus-within; without one they fall into flow on the caption line and are always visible. The query asks about the device, not the width — a tablet is wide and still touched. This is not a nicety: on a touch screen :hover latches after a tap, so an unscoped rule leaves a piece at rest wearing terracotta, and terracotta here means state.",
+        "section": "components"
+      },
+      {
+        "name": "The Confirm-In-Place Rule",
+        "body": "A destructive action asks in the row it belongs to, never in a modal. The delete question takes the caption band beneath its own image — solid paper over a terracotta top rule, the work still visible above it — and sets «Borrar» in terracotta against «Dejarla» in soft ink. That accent rule is the only terracotta border outside a year band, and it is spent here because this is the one action that cannot be undone.",
+        "section": "components"
+      },
+      {
+        "name": "The Held-Piece Rule",
+        "body": "The order of the archive is hers, and she sets it by dragging inside the grid it publishes to. The piece in hand is the same plate, lifted: solid paper behind it, the terracotta hairline at full strength instead of on hover, and the title in terracotta — this system owns no shadow to say 'above', so opaque paper plus the state colour says it. Its landing place is a dashed line square over the vacated cell, the second legitimate dashed line here and meaning what the first one means. The other pieces slide one slot on transform over 260ms, not the archive's 900ms, which is the speed of looking rather than of working; nothing changes place in the document until she lets go. The grip is held, not toggled: no reorder mode to enter and leave. Everything the pointer does the keyboard does too, and every interrupted gesture lands on cancel, never on save."
+      },
+      {
+        "name": "The Wordless Grid Rule",
+        "body": "The public archive shows work and nothing else — no title, year or medium at any width. The white between cells leaves with the words rather than staying behind: a caption is what made a cell a record, and without one the same white leaves the pieces floating loose. So the gap is set in proportion, about 2% of the cell's width at every size, which is the least that keeps two light-ground works from fusing. A grid that shows no words still has to name itself, so each link carries aria-label=\"<title>, <year>\"; and a caption removed is removed from the markup, never hidden behind a media query. The cell is 4:5 at every width and that ratio is one object in three places — the archive, the pager's neighbour plates and the editor's grid — which move together, because a screen that shows her a crop the site does not ship cannot be judged against."
+      },
+      {
+        "name": "The Name-First Rule",
+        "body": "A work page runs back link, name, work, text, neighbours. The name comes before the plates because the visitor arrives from a grid that shows no words: they tapped an image without knowing what it was called, and a title that appears only after a screenful of plates leaves them nowhere. The text comes after the plates because it is context for something already seen. The title holds the shell's left edge rather than centring on the plate below it — the plate's left edge moves with each work's proportion, so it is not an axis a title can hold from one work to the next."
+      },
+      {
+        "name": "The One Loud Thing",
+        "body": "There is exactly one closed shape on the site: the Chiedi info button on a work page. It is the only four-sided border, the only corner radius on content, and the only place terracotta becomes a fill. It navigates to /contatti?opera=<slug>, which resolves the slug and hands the form its subject; it is not a mailto, because a mail link asks the visitor to have a client configured and fails silently when they do not. At rest it is a line, not a block: a 1px terracotta edge at 6px radius with the word in terracotta on paper. Three forms were built before this one stuck — a solid block was too much beside an illustration, the plain underlined word too little — and the fill settled on hover, where weight costs nothing because someone is already pointing. Both states measure 4.59:1, the focus ring is ink rather than accent, and this exception does not travel."
+      },
+      {
+        "name": "The Title Face Rule",
+        "body": "Caprasimo sets every h1 a visitor sees, and nothing else — not the display-lead step it replaces there, not any heading inside /admin, where a display face at this weight would be noise on a working screen. It carries one weight, 400, so titles cannot take the 500 the rest of the system spends separating a heading from its text; asking a family for a weight it does not have makes the browser thicken the strokes, and weight synthesis is off here. Beside Geist the family does the separating on its own. Its tracking is 0, not the -0.025em of display-lead, because that negative step corrects a grotesque opening up at display sizes and this face is already fitted for them."
+      }
     ],
     "dos": [
       "Do keep terracotta to rules and marks, and let the illustration be the only full-colour field on the page.",
@@ -186,19 +420,28 @@
       "Do cap long-form prose at 68ch and set the page in the 82rem shell.",
       "Do draw new icons as SVG at stroke 1.25 in the 24-unit box.",
       "Do theme browser surfaces from the palette — selection, caret, scrollbars, focus ring — rather than leaving them at browser defaults.",
-      "Do honour prefers-reduced-motion in any new motion."
+      "Do honour prefers-reduced-motion in any new motion.",
+      "Do give every hover-revealed control a no-pointer resting place under [@media(hover:hover)], and test it where :hover latches.",
+      "Do build a screen that edits the archive out of the archive's own drawing — same grid, same plate, same caption line — and add only the control layer.",
+      "Do let an empty collection say what will fill it, in the language and voice of the surface it sits on: Italian to the visitor («L'archivio è in preparazione»), working Spanish on the editor screens.",
+      "Do keep a form's commit action a filled ink block and its escape an underlined link, so the two never read as a pair of buttons.",
+      "Do land every interrupted gesture on cancel. A drag the browser took away, a window that resized mid-move, a list that changed underneath — none of those is a decision, and writing one down produces an archive she did not arrange and cannot tell she has."
     ],
     "donts": [
-      "Don't fill anything with terracotta — no accent buttons, badges, chips, or blocks.",
+      "Don't fill anything with terracotta at rest. One control fills on hover and it is already built; a second accent button, badge, chip or block is the thing this rule exists to stop, because the first one only works while it is the only one.",
       "Don't add a dark mode or tint the ground per page.",
       "Don't use a box-shadow, a faked lift, or a border on all four sides. Depth is rules, one tonal step, and opacity.",
       "Don't scaffold a page in cards. This world separates with rules and space.",
-      "Don't crop an illustration to a fixed ratio; the grid adapts to the work.",
+      "Don't crop an illustration to a fixed ratio without saying what the crop buys. The archive's 4:5 takes a fifth of each piece's width — the work is square, so a square cell would take nothing — and that is written down as a decision, at the gentlest ratio that still reads as vertical.",
       "Don't put a kicker or eyebrow label above a heading. The small-caps label heads a list or names a field; a heading stands on its own.",
       "Don't use gradient text, or imitate paper grain in CSS. If grain is wanted it arrives as a real texture asset.",
       "Don't stand a unicode glyph in for an icon — not the arrow, not the menu, not the close.",
       "Don't reach for a heavier weight for emphasis; both faces ship one weight and weight synthesis is off.",
-      "Don't require JavaScript for a visual state that :has(), :hover(), and :focus-visible can carry."
+      "Don't require JavaScript for a visual state that :has(), :hover(), and :focus-visible can carry.",
+      "Don't open a modal to confirm a destructive action; ask in the row, under the thing being destroyed, where it can still be seen.",
+      "Don't put a filled button on a public page, or give a form more than one.",
+      "Don't box a field. A field is a label over a single bottom rule, and its size does not go below 16px.",
+      "Don't use a dashed line for anything but an empty slot, and never a solid four-sided border around content. There are exactly two empty slots: the new-work cell and the place a dragged piece will land. A third use has to mean the same thing or it is not this line."
     ]
   }
 }

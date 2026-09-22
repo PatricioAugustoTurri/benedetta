@@ -27,6 +27,13 @@
     archivos, y el día que vuelva una segunda familia sólo cambia uno.
   */
   --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  /*
+    La cara de los títulos de página. Es la única familia que no es Geist, y
+    llega sólo a los `h1` del sitio público: el escalón `display-lead` que usan
+    otros elementos —y los títulos del admin— sigue en Geist, porque una cara
+    de display con este peso sobre una pantalla de trabajo es ruido.
+  */
+  --font-title: var(--font-caprasimo), Georgia, "Times New Roman", serif;
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -205,6 +212,25 @@
     letter-spacing: -0.025em;
   }
 
+  /*
+    El título de una página. Reemplaza a `display-lead` en los `h1` del sitio
+    público, y no lo acompaña: las dos cosas que ese escalón corrige —el peso
+    500 y el rastreo negativo— son correcciones para Geist y acá sobran.
+
+    El peso queda en 400 porque es el único que la familia tiene; pedirle 500
+    haría que el navegador lo invente engrosando los trazos.
+
+    El rastreo vuelve a cero. El -0.025em de `display-lead` existe porque una
+    grotesca de palo seco se abre de más en cuerpos grandes; esta cara ya
+    viene ajustada para leerse a este tamaño, y apretarla le cierra los
+    contornos que la hacen reconocible.
+  */
+  .display-h1 {
+    font-family: var(--font-title);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
   /* Títulos de sección: tamaño de texto, así que corrección de texto. */
   .display-section {
     font-weight: 500;
@@ -246,58 +272,22 @@
   .link-underline[data-active="true"]::after {
     transform: scaleX(1);
   }
-
-  /*
-    Cuando el subrayado no puede ir en el elemento que recibe el mouse y el
-    foco —el rótulo Shop, que son dos controles pegados, el link a /shop y el
-    chevron que asoma las categorías— el envoltorio reparte el estado hacia
-    la palabra. Es el mismo dibujo, movido un nodo, y es lo que hace que los
-    dos se lean como un rótulo: tocar el chevron subraya "Shop".
-
-    `:has(:focus-visible)` y no `:focus-within` porque el envoltorio no es
-    focalizable y porque el foco de mouse no debe dibujar nada: el subrayado
-    de foco es para quien está tabulando.
-  */
-  .link-underline-host:hover .link-underline::after,
-  .link-underline-host:has(:focus-visible) .link-underline::after {
-    transform: scaleX(1);
-  }
 }
 
 /*
-  El filete que abre cada año es el único en terracota de todo el sitio.
-  Los demás filetes —ficha, footer, separadores— son de --color-line, así
-  que la jerarquía se lee: esto abre un tramo, aquello separa una fila.
-  El año va en tinta: si fuera terracota, lo más grande y lo más saturado
-  de la pantalla serían la misma cosa, y el único color pleno de la página
-  tiene que ser el de la ilustración.
+  `code` sin la familia del navegador.
+
+  El sistema tiene una sola tipografía y el agente de usuario le mete una
+  monoespaciada al elemento `code` por defecto: la del sistema operativo, que
+  no la eligió nadie acá y cambia de máquina en máquina. Lo que marca que una
+  palabra es literal —un comando, el nombre de una variable— es el papel
+  hondo de atrás, no una segunda familia.
+
+  Queda el ancho fijo de las cifras, que sí es medida y no disfraz.
 */
-.year-band {
-  border-top-color: var(--color-accent);
-}
-
-/* ---------------------------------------------------------------
-   El archivo
-   Una obra sostenida por vez: al apoyarse sobre una pieza, el resto
-   del archivo se atenúa en lugar de taparse, y el año de esa pieza
-   queda como el único legible.
-   --------------------------------------------------------------- */
-.work {
-  transition: opacity 0.55s var(--ease-out-soft);
-}
-
-.archive:has(.work:hover) .work:not(:hover),
-.archive:has(.work:focus-visible) .work:not(:focus-visible) {
-  opacity: 0.3;
-}
-
-.year-mark {
-  transition: opacity 0.55s var(--ease-out-soft);
-}
-
-.archive:has(.work:hover) .year-band:not(:has(.work:hover)) .year-mark,
-.archive:has(.work:focus-visible) .year-band:not(:has(.work:focus-visible)) .year-mark {
-  opacity: 0.3;
+code {
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Aparición al hacer scroll — la activa <Reveal/>. */
@@ -325,9 +315,16 @@
    La entrada de la obra
 
    Cada pieza entra desde su columna —la izquierda desde la izquierda,
-   la del medio desde abajo, la derecha desde la derecha— y se asienta
-   con el desenfoque saliendo. La dirección la da la posición en la
-   grilla, no el azar.
+   la del medio desde abajo, la derecha desde la derecha— subiendo y
+   escalando de 0.965 a 1. La dirección la da la posición en la grilla,
+   no el azar.
+
+   Llegó a entrar además con un desenfoque de 8px saliendo, y se sacó a
+   pedido del cliente: sobre ilustración, desenfocar la obra mientras
+   aparece deja medio segundo en que la pieza se ve mal hecha, y es la
+   primera impresión de cada una. Que la animación corra más barata
+   —`filter` obliga a rasterizar de nuevo en cada cuadro, `transform` y
+   `opacity` no— es consecuencia, no el motivo.
 
    Y por eso vive acá y no en una variable en línea: en línea la ponía
    React contando de a tres, que es la grilla de escritorio. Con una
@@ -343,12 +340,31 @@
    y completa, nunca vacía.
    --------------------------------------------------------------- */
 
-/* Una columna: no hay costado del que venir, así que suben y nada más. */
+/*
+  El valor por omisión, para cualquier pieza a la que no la alcance ninguna
+  de las reglas de abajo: sube y nada más.
+*/
 .rivista-piece {
   --enter-x: 0rem;
 }
 
-/* Dos columnas. */
+/*
+  Dos columnas, que es la grilla desde el teléfono: la de la izquierda entra
+  desde la izquierda y la de la derecha desde la derecha.
+
+  El recorrido lateral es más corto acá y crece con el ancho, porque lo que
+  se percibe no son los píxeles sino qué proporción de su propia celda
+  recorre la pieza: 3rem sobre una celda de 373px es medio paso, y sobre la
+  de 159px del teléfono sería casi un tercio del ancho, que se ve como si la
+  obra entrara de otra columna.
+*/
+.rivista-piece:nth-child(odd) {
+  --enter-x: -1.25rem;
+}
+.rivista-piece:nth-child(even) {
+  --enter-x: 1.25rem;
+}
+
 @media (min-width: 40rem) {
   .rivista-piece:nth-child(odd) {
     --enter-x: -3rem;
@@ -381,8 +397,8 @@
   }
 
   /*
-    Movimiento reducido no es ausencia de movimiento: se va el
-    desplazamiento, la escala y el desenfoque; queda la aparición.
+    Movimiento reducido no es ausencia de movimiento: se van el
+    desplazamiento y la escala; queda la aparición.
   */
   @media (prefers-reduced-motion: reduce) {
     .rivista-piece {
@@ -397,12 +413,10 @@
   from {
     opacity: 0;
     transform: translate3d(var(--enter-x, 0), 3rem, 0) scale(0.965);
-    filter: blur(8px);
   }
   to {
     opacity: 1;
     transform: none;
-    filter: blur(0);
   }
 }
 
@@ -431,18 +445,6 @@
       porque el minificador descarta un `translate` que valga la identidad.
     */
     --tw-translate-x: 0px !important;
-    --tw-translate-y: 0px !important;
-    transition: opacity 160ms linear !important;
-  }
-
-  /*
-    Las categorías de la hoja de Shop, por la misma razón. El escalonado vive
-    en un `transition-delay` en línea, y la colapsada general de arriba sólo
-    toca la duración: sin esto las filas seguirían entrando de a una durante
-    medio segundo, instantáneas pero en fila india. La abreviada `transition`
-    lo pone en cero de paso.
-  */
-  [data-shop-item] {
     --tw-translate-y: 0px !important;
     transition: opacity 160ms linear !important;
   }

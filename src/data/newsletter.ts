@@ -7,8 +7,8 @@ import { site } from "@/data/site";
  * servicio de envío contratado —Buttondown, Mailchimp, Resend— ni base donde
  * guardar una dirección, y montar un campo que no guarda nada sería prometer
  * una lista que no existe. Así que mientras `endpoint` sea `null`, el
- * formulario hace exactamente lo que ya hacen el Shop y el formulario de
- * contacto: arma un mail y se lo pasa al programa de correo del visitante.
+ * formulario hace exactamente lo que ya hace el formulario de contacto:
+ * arma un mail y se lo pasa al programa de correo del visitante.
  *
  * La diferencia importa: la dirección llega igual, a su bandeja, y ella la
  * anota a mano. Es una lista de correo administrada a mano, que es una cosa

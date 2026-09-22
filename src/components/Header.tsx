@@ -2,44 +2,29 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import ShopMenu from "@/components/ShopMenu";
-import { ArrowRight, ChevronDown } from "@/components/Icon";
 import { usePathname } from "next/navigation";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { nav, site } from "@/data/site";
-import { shopCategories, shopHref } from "@/data/shop";
 
 /*
-  La clase del renglón del cajón vive acá para que el rótulo Shop, que es un
-  botón y no un link, no tenga que repetirla y pueda desincronizarse.
+  La clase del renglón del cajón.
 
   Los rótulos entran escalonados desde el borde derecho, en el mismo sentido
   en que llega el cajón. Al cerrar se van juntos y rápido: salir no es un
   momento, volver a la obra sí.
-
-  No declara `display`: una ruta es `block` y Shop es `flex`, y si la clase
-  compartida trajera uno de los dos, cuál gana lo decidiría el orden del CSS
-  y no el que escribe el componente.
 */
 const ITEM_DRAWER =
-  "relative translate-x-5 border-b border-line py-4 font-display text-[clamp(0.625rem,3vw,0.875rem)] font-medium leading-tight text-ink-soft opacity-0 transition-[translate,opacity,color] duration-500 ease-[var(--ease-out-soft)] hover:text-ink data-[active=true]:text-ink group-data-[open=true]/drawer:translate-x-0 group-data-[open=true]/drawer:opacity-100";
-
-/* Las filas de adentro del desplegable: sangradas, más chicas de tinta. */
-const SUBITEM_DRAWER =
-  "border-b border-line py-3 pl-3 text-[clamp(0.625rem,3vw,0.875rem)] leading-tight transition-colors hover:text-ink";
+  "relative block translate-x-5 border-b border-line py-4 font-display text-[clamp(0.875rem,4vw,1.125rem)] font-medium leading-tight text-ink-soft opacity-0 transition-[translate,opacity,color] duration-500 ease-[var(--ease-out-soft)] hover:text-ink data-[active=true]:text-ink group-data-[open=true]/drawer:translate-x-0 group-data-[open=true]/drawer:opacity-100";
 
 /*
-  El escalonado del cajón, con el paso de 70ms del resto del sitio. Se numera
-  a mano y no por índice de `nav` porque Shop se intercala después de Work sin
-  estar en la lista: por índice, Shop y About compartían los 210ms y entraban
-  pisadas. Al cerrar, todos a cero: salir no es un momento.
+  El escalonado del cajón, con el paso de 70ms del resto del sitio. Al cerrar,
+  todos a cero: salir no es un momento.
 */
 const stagger = (open: boolean, n: number) => (open ? `${140 + n * 70}ms` : "0ms");
 
 export default function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [shopOpen, setShopOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -131,24 +116,14 @@ export default function Header() {
   return (
     <>
       {/*
-        La cabecera toma material en dos casos, y `:has()` cubre el segundo sin
-        una sola variable de estado más:
-
-        - Con obra pasando por debajo (`data-scrolled`) toma papel al 85% y
-          desenfoque: es una barra, y una barra deja ver lo que pasa detrás.
-        - Con la hoja de Shop abierta toma papel pleno. No es decoración: la
-          hoja cuelga del filete de abajo del cartel —ése es el borde que le
-          hace de tapa— así que arriba del todo, con la barra transparente,
-          colgaría de nada. Y va plena, no al 85%, porque la hoja es plena y
-          un escalón de tono en la juntura delataría que son dos cosas.
-
-        El `!` es necesario: los dos selectores pesan lo mismo y sin él el
-        orden del CSS decidiría cuál gana, que es exactamente lo que no se
-        quiere que decida.
+        La cabecera toma material sólo con obra pasando por debajo
+        (`data-scrolled`): papel al 85% y desenfoque. Es una barra, y una
+        barra deja ver lo que pasa detrás. Arriba del todo no hay nada que
+        tapar, así que arranca limpia sobre el papel.
       */}
       <header
         data-scrolled={scrolled}
-        className="sticky top-0 z-40 border-b border-transparent transition-[background-color,border-color,backdrop-filter] duration-300 has-[[data-shop-open=true]]:border-line/70 has-[[data-shop-open=true]]:bg-paper! data-[scrolled=true]:border-line/70 data-[scrolled=true]:bg-paper/85 data-[scrolled=true]:backdrop-blur-md"
+        className="sticky top-0 z-40 border-b border-transparent transition-[background-color,border-color,backdrop-filter] duration-300 data-[scrolled=true]:border-line/70 data-[scrolled=true]:bg-paper/85 data-[scrolled=true]:backdrop-blur-md"
       >
         {/*
           Cartel centrado: el logotipo manda y el menú se apoya justo debajo.
@@ -186,21 +161,15 @@ export default function Header() {
             aria-label="Navigazione principale"
           >
             {nav.map((item) => (
-              <Fragment key={item.href}>
-                <Link
-                  href={item.href}
-                  data-active={isActive(item.href)}
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                  className="link-underline text-[0.9375rem] text-ink-soft transition-colors hover:text-ink data-[active=true]:text-ink"
-                >
-                  {item.label}
-                </Link>
-                {/*
-                  Shop va después de Work y no sale de `nav` porque no es una
-                  ruta: es un disparador sin página propia.
-                */}
-                {item.href === "/" && <ShopMenu />}
-              </Fragment>
+              <Link
+                key={item.href}
+                href={item.href}
+                data-active={isActive(item.href)}
+                aria-current={isActive(item.href) ? "page" : undefined}
+                className="link-underline text-[0.9375rem] text-ink-soft transition-colors hover:text-ink data-[active=true]:text-ink"
+              >
+                {item.label}
+              </Link>
             ))}
           </nav>
 
@@ -268,25 +237,31 @@ export default function Header() {
 
         <nav className="border-t border-line" aria-label="Navigazione principale">
           {nav.map((item, i) => (
-            <Fragment key={item.href}>
             <Link
+              key={item.href}
               href={item.href}
               onClick={() => close(false)}
               data-drawer-item
               data-active={isActive(item.href)}
               aria-current={isActive(item.href) ? "page" : undefined}
               /*
-                El cuerpo va chico a pedido: la mitad exacta de lo que medía
-                (10px en el teléfono más angosto, 14px al borde del cajón). Ya
-                no lleva `display-section` porque a este tamaño dejó de ser un
-                titular: el rastreo negativo de ese peldaño es corrección para
-                cuerpos grandes y acá perjudicaría la lectura. Queda el peso
-                500, que es lo que sostiene la legibilidad a 10px.
-                El `py-4` no se toca: el área que se toca sigue midiendo lo
-                mismo aunque la palabra sea más chica.
+                El cuerpo lo fija el cliente, y se movió dos veces: llegó a ser
+                un titular, se pidió la mitad exacta (10px en el teléfono más
+                angosto, 14px al borde del cajón) y ahora un peldaño para
+                arriba, 14px a 18px. Ese es el punto donde se lee sin esfuerzo
+                y todavía no vuelve a ser un titular que compita con el
+                logotipo que tiene encima.
+
+                Sigue sin `display-section`: el rastreo negativo de ese peldaño
+                es corrección para cuerpos grandes y a este tamaño
+                perjudicaría la lectura. Queda el peso 500.
+
+                El `py-4` no se toca. El área que se toca la fija el padding y
+                no la palabra, así que ya medía bien a 10px y mide igual acá:
+                agrandar el rótulo mejora la lectura sin mover el blanco.
               */
-              style={{ transitionDelay: stagger(open, i === 0 ? 0 : i + 1) }}
-              className={`block ${ITEM_DRAWER}`}
+              style={{ transitionDelay: stagger(open, i) }}
+              className={ITEM_DRAWER}
             >
               {/*
                 La marca del lugar donde está, en el margen para no comerle
@@ -300,98 +275,13 @@ export default function Header() {
               )}
               {item.label}
             </Link>
-
-            {/*
-              En el cajón Shop no se parte como en la barra: el renglón entero
-              despliega. Acá no hay hover que separe los dos gestos, así que un
-              renglón partido pondría dos blancos de toque de 11px de alto uno
-              al lado del otro —el que quiere ver las categorías y el que quiere
-              la página— y errarle sería normal. Un solo control ancho abre, y
-              la salida a /shop es la última fila de lo que abre.
-
-              Y no se asoma una hoja: se abre en el sitio y empuja al resto
-              hacia abajo. Mismo contenido, el gesto que el dedo sí tiene.
-            */}
-            {item.href === "/" && (
-              <>
-                <button
-                  type="button"
-                  data-drawer-item
-                  aria-expanded={shopOpen}
-                  aria-controls="shop-cajon"
-                  data-open={shopOpen}
-                  data-active={isActive("/shop")}
-                  onClick={() => setShopOpen((v) => !v)}
-                  style={{ transitionDelay: stagger(open, 1) }}
-                  className={`group/shop flex w-full items-center justify-between gap-2 ${ITEM_DRAWER}`}
-                >
-                  <span>Shop</span>
-                  {/*
-                    El mismo chevron que el rótulo Shop de la barra, girado
-                    180° al abrir. Es el mismo control diciendo lo mismo en
-                    dos anchos de pantalla: dos signos distintos para eso
-                    serían dos idiomas en la misma cabecera.
-                  */}
-                  <ChevronDown className="shrink-0 transition-transform duration-[380ms] ease-[var(--ease-out-soft)] group-data-[open=true]/shop:rotate-180" />
-                </button>
-
-                <ul
-                  id="shop-cajon"
-                  data-open={shopOpen}
-                  className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-[380ms] ease-[var(--ease-out-soft)] data-[open=true]:grid-rows-[1fr]"
-                >
-                  <li className="min-h-0 overflow-hidden">
-                    <ul>
-                      {shopCategories.map((c) => (
-                        <li key={c.slug}>
-                          <a
-                            href={shopHref(c)}
-                            onClick={() => close(false)}
-                            className={`block text-ink-faint ${SUBITEM_DRAWER}`}
-                          >
-                            {c.label}
-                          </a>
-                        </li>
-                      ))}
-
-                      {/*
-                        La última fila cierra la lista y sale de ella: es la
-                        única del grupo que lleva a una página —las categorías
-                        abren el mail— y en el cajón es la única puerta a
-                        /shop, porque acá el rótulo Shop despliega en vez de
-                        navegar.
-
-                        Se distingue por dos cosas y ninguna es color: la tinta
-                        sube un escalón, de `ink-faint` a `ink-soft`, y lleva
-                        la flecha dibujada al margen. La flecha hereda
-                        `currentColor`, así que viaja con el renglón al pasar
-                        por encima en vez de tener un estado propio.
-                      */}
-                      <li>
-                        <Link
-                          href="/shop"
-                          onClick={() => close(false)}
-                          data-active={isActive("/shop")}
-                          aria-current={isActive("/shop") ? "page" : undefined}
-                          className={`flex items-center justify-between gap-2 text-ink-soft data-[active=true]:text-ink ${SUBITEM_DRAWER}`}
-                        >
-                          <span>All</span>
-                          <ArrowRight size={16} className="shrink-0" />
-                        </Link>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </>
-            )}
-            </Fragment>
           ))}
         </nav>
 
         <div
           data-drawer-item
           className="translate-x-5 opacity-0 transition-[translate,opacity] duration-500 ease-[var(--ease-out-soft)] group-data-[open=true]/drawer:translate-x-0 group-data-[open=true]/drawer:opacity-100"
-          style={{ transitionDelay: stagger(open, nav.length + 1) }}
+          style={{ transitionDelay: stagger(open, nav.length) }}
         >
           <p className="label">Scrivimi</p>
           <a

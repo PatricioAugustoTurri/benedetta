@@ -48,11 +48,6 @@ export const site = {
  *
  * Las rutas NO cambian: siguen siendo `/studio` y `/contatti`. Un rótulo se
  * reescribe gratis; una URL que ya se compartió, no.
- *
- * "Shop" no sale de esta lista aunque ya tenga página (`/shop`): en la barra
- * es un rótulo doble —un link al índice de categorías y, al lado, un botón
- * que asoma el desplegable— y eso no se arma recorriendo un array de rutas.
- * El menú lo intercala a mano después de Works. Ver `ShopMenu`.
  */
 export const nav = [
   { label: "Works", href: "/" },
@@ -63,12 +58,10 @@ export const nav = [
 /**
  * Footer: por ahora repite el menú principal. Sigue existiendo separado
  * porque el pie llegó a listar rutas que no estaban arriba, y puede volver
- * a pasar cuando entren la tienda o el diario.
+ * a pasar el día que entre una sección más.
  */
 export const footerNav = [
   { label: "Works", href: "/" },
-  // Shop sí sale de la lista acá: en el pie es una ruta más, sin desplegable.
-  { label: "Shop", href: "/shop" },
   { label: "About me", href: "/studio" },
   { label: "Contatti", href: "/contatti" },
 ] as const;

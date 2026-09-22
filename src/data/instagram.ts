@@ -25,7 +25,19 @@
  * Están servidas desde `public/instagram/` y no desde el CDN de Instagram, y
  * eso no es preferencia: las URL de `scontent-*.cdninstagram.com` vienen
  * firmadas y con vencimiento, así que un link directo se rompe solo en
- * cuestión de días. Son las de las publicaciones, 640×640, ~45 KB cada una.
+ * cuestión de días.
+ *
+ * Son los archivos que mandó ella, numerados `1`, `2` y `3`, y el número es
+ * el orden en que quiere verlos. Reemplazaron a un recorte anterior de las
+ * mismas tres ilustraciones: éstos vienen en el encuadre completo —se ve el
+ * pie del mapamundi, la nube entera, el chaleco a cuadros— y a resolución de
+ * original, entre 2048 y 2953 px de lado. Cuadradas las tres, que es lo que
+ * la cinta necesita: se muestran en un recorte 1:1 y ninguna pierde nada.
+ *
+ * **Pesan mucho más de lo que se descarga.** Entre las tres suman unos 4,5 MB
+ * en el repositorio, pero el visitante no los recibe: `next/image` las sirve
+ * redimensionadas al tamaño de la cinta —unos 200 px— y en el formato que
+ * acepte su navegador. El costo es de disco y de build, no de carga.
  */
 export type Post = {
   id: string;
@@ -50,26 +62,26 @@ export const handle = "@illustrando.adocchichiusi";
 export const posts: Post[] = [
   {
     id: "C7g1uUIs3ab",
-    src: "/instagram/mondo.jpg",
-    width: 640,
-    height: 640,
-    alt: "Una donna seduta sul mondo, con gli occhi chiusi, in un cielo viola punteggiato di stelle.",
+    src: "/instagram/1.jpg",
+    width: 2126,
+    height: 2126,
+    alt: "Una donna seduta su un mappamondo di legno, con gli occhi chiusi, in un cielo viola punteggiato di stelle.",
     href: "https://www.instagram.com/p/C7g1uUIs3ab/",
   },
   {
     id: "Cqa5QjTuWXc",
-    src: "/instagram/libellula.jpg",
-    width: 640,
-    height: 640,
-    alt: "Una ragazza con ali da libellula seduta fra le nuvole, con un fiorellino fra i capelli.",
+    src: "/instagram/2.jpg",
+    width: 2953,
+    height: 2953,
+    alt: "Una ragazza con ali da libellula seduta su una nuvola, con un fiorellino fra i capelli.",
     href: "https://www.instagram.com/p/Cqa5QjTuWXc/",
   },
   {
     id: "ClTZU26NRSh",
-    src: "/instagram/stella.jpg",
-    width: 640,
-    height: 640,
-    alt: "Una ragazza che tiene una stella luminosa sul palmo della mano, su fondo bruno.",
+    src: "/instagram/3.jpg",
+    width: 2048,
+    height: 2048,
+    alt: "Una ragazza dai capelli lunghi che tiene una stella luminosa sul palmo della mano, su fondo bruno.",
     href: "https://www.instagram.com/p/ClTZU26NRSh/",
   },
 ];

@@ -11,9 +11,8 @@ import { site } from "@/data/site";
  * de formularios contratado: la consulta se resuelve por mail y afuera del
  * sitio. Así que esto no "envía" nada — arma el mensaje y se lo pasa al
  * programa de correo del visitante, con el asunto y el cuerpo ya escritos.
- * Es exactamente lo que ya hacen el botón "Chiedi info" de cada obra y las
- * categorías del Shop, con la diferencia de que acá el mensaje llega armado
- * en vez de vacío.
+ * Es exactamente lo que ya hace el botón "Chiedi info" de cada obra, con la
+ * diferencia de que acá el mensaje llega armado en vez de vacío.
  *
  * Eso tiene una falla conocida y la pantalla de confirmación existe por ella:
  * si el visitante no tiene programa de correo configurado, `mailto:` no hace
@@ -39,7 +38,7 @@ import { site } from "@/data/site";
  *   este sistema usa la terracota.
  */
 
-type Field = "nome" | "email" | "messaggio";
+type Field = "nome" | "email" | "oggetto" | "messaggio";
 type Errors = Partial<Record<Field, string>>;
 
 const LABEL = "label block text-ink-faint transition-colors";
@@ -63,7 +62,7 @@ const CONTROL =
   con el cursor adentro sigue siendo un campo con error.
 */
 
-export default function ContactForm() {
+export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string }) {
   const id = useId();
   const [errors, setErrors] = useState<Errors>({});
   const [sent, setSent] = useState<string | null>(null);
@@ -87,6 +86,7 @@ export default function ContactForm() {
     return {
       nome: String(fd.get("nome") ?? ""),
       email: String(fd.get("email") ?? ""),
+      oggetto: String(fd.get("oggetto") ?? ""),
       messaggio: String(fd.get("messaggio") ?? ""),
     };
   };
@@ -109,8 +109,16 @@ export default function ContactForm() {
     const cuerpo = `${data.messaggio.trim()}\n\n—\n${data.nome.trim()}\n${data.email.trim()}`;
     setSent(cuerpo);
     setCopied(false);
+
+    /*
+      El asunto lo escribe quien consulta, y cuando llega desde una obra ya
+      viene puesto. Si lo dejó vacío vuelve el de antes, con su nombre: un mail
+      sin asunto se pierde en cualquier bandeja, y dejarlo en blanco porque el
+      campo es opcional sería trasladarle a ella ese costo.
+    */
+    const asunto = data.oggetto.trim() || `Contatto — ${data.nome.trim()}`;
     window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(
-      `Contatto — ${data.nome.trim()}`,
+      asunto,
     )}&body=${encodeURIComponent(cuerpo)}`;
   };
 
@@ -214,6 +222,25 @@ export default function ContactForm() {
           error={errors.email}
           onInput={() => revalidate("email")}
         />
+        {/*
+          El asunto va entre el mail y el mensaje, y no es un campo más: es el
+          que llega ya escrito cuando alguien toca «Chiedi info» en una obra.
+          Ahí el visitante ve, antes de escribir una palabra, que el formulario
+          sabe de qué obra viene — que es lo que antes intentaba hacer el asunto
+          de un `mailto:` que muchas veces no llegaba a abrirse.
+
+          Opcional a propósito: quien entra por el menú, sin venir de una obra,
+          no tiene por qué completar un campo más para escribir.
+        */}
+        <Campo
+          id={`${id}-oggetto`}
+          name="oggetto"
+          label="Oggetto"
+          hint="El título de la obra, o de qué querés hablar."
+          defaultValue={asuntoInicial}
+          error={errors.oggetto}
+          onInput={() => revalidate("oggetto")}
+        />
         <Campo
           id={`${id}-messaggio`}
           name="messaggio"
@@ -258,6 +285,7 @@ function Campo({
   type = "text",
   multiline = false,
   autoComplete,
+  defaultValue,
   onInput,
 }: {
   id: string;
@@ -268,6 +296,13 @@ function Campo({
   type?: string;
   multiline?: boolean;
   autoComplete?: string;
+  /*
+    Valor inicial y no valor: el campo queda sin controlar a propósito, para
+    que lo que llega puesto se pueda corregir, ampliar o borrar como cualquier
+    otra cosa que se escriba acá. Un asunto que el visitante no puede tocar
+    sería decirle de qué tiene permitido hablar.
+  */
+  defaultValue?: string;
   onInput: () => void;
 }) {
   const hintId = hint ? `${id}-hint` : undefined;
@@ -278,6 +313,7 @@ function Campo({
     id,
     name,
     autoComplete,
+    defaultValue,
     onInput,
     "aria-invalid": error ? (true as const) : undefined,
     "aria-describedby": describedBy,

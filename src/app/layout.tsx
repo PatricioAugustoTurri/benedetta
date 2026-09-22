@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
+import { Caprasimo } from "next/font/google";
 import localFont from "next/font/local";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { site } from "@/data/site";
 import "./globals.css";
 
 /*
-  Una sola familia para todo el sitio: títulos y texto. Geist es variable en
+  La familia del cuerpo y de casi todo lo demás. Geist es variable en
   el eje de peso, así que de un archivo de 29 KB salen las dos voces que el
   sistema necesita —texto en 400, títulos en 500— sin una segunda descarga.
 
@@ -22,6 +21,28 @@ const geist = localFont({
   variable: "--font-geist",
   fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
   adjustFontFallback: "Arial",
+});
+
+/*
+  La voz de los títulos, y la única segunda familia del sitio.
+
+  Caprasimo trae un solo peso, el 400, y eso decide cómo se usa: los títulos
+  no pueden llevar el 500 que el resto del sistema usa para separar un titular
+  de su texto, porque pedirle 500 a una familia que no lo tiene hace que el
+  navegador lo invente engrosando los trazos. Acá la separación ya la hace la
+  familia: al lado de Geist, esta cara no necesita peso para distinguirse.
+
+  Viene de Google y no self-hosted como Geist porque next/font/google la trae
+  en su lista: la descarga en el build, la sirve desde este dominio y arma el
+  fallback con las métricas ajustadas. Geist tuvo que ir a mano justamente
+  porque no está en esa lista.
+*/
+const caprasimo = Caprasimo({
+  weight: "400",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+  variable: "--font-caprasimo",
+  fallback: ["Georgia", "Times New Roman", "serif"],
 });
 
 export const metadata: Metadata = {
@@ -52,38 +73,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // el cuerpo de texto todavía es el heredado en español. Cambiar a "it"
     // con texto en español haría que los lectores de pantalla lo pronuncien
     // mal. Pasa a "it" en el mismo commit que la traducción del contenido.
-    <html lang="es" className={geist.variable}>
-      <body className="flex min-h-screen flex-col">
-        <a
-          href="#contenido"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
-        >
-          Saltar al contenido
-        </a>
-        <Header />
-        {/*
-          El sitio no se corre de costado. Nada acá se lee a lo ancho, así que
-          un desborde horizontal nunca es contenido: es el sobrante de algo que
-          se movió —una pieza entrando desde su columna, un filete de más— y
-          deja la página arrastrable un par de centímetros. En el escritorio
-          casi no se nota; en el teléfono se siente como un sitio flojo.
-
-          Va acá y no en `html` ni en `body`: el overflow de esos dos se
-          propaga al viewport, y ahí `clip` se ignora. Medido, no supuesto.
-          `main` es un elemento común, así que corta de verdad, y cubre todo
-          lo que dibuja una página sin tocar la cabecera ni las capas fijas,
-          que son hermanas suyas.
-
-          `clip` y no `hidden`: `hidden` haría de esto un contenedor de scroll
-          —adiós `position: sticky` de lo que viva adentro— y `clip` corta sin
-          crearlo. El par vertical queda en `visible` y la página sigue
-          bajando normalmente.
-        */}
-        <main id="contenido" className="flex-1 overflow-x-clip">
-          {children}
-        </main>
-        <Footer />
-      </body>
+    //
+    // Acá abajo no hay ni cabecera ni pie: los tiene `(sitio)/layout.tsx`.
+    // El admin es la otra mitad del árbol y no los quiere, y una cabecera que
+    // se dibuja siempre y se tapa a veces es peor que dos layouts hermanos.
+    <html lang="es" className={`${geist.variable} ${caprasimo.variable}`}>
+      <body className="flex min-h-screen flex-col">{children}</body>
     </html>
   );
 }
