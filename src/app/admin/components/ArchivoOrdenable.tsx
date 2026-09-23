@@ -17,56 +17,58 @@ import PlacaObra from "./PlacaObra";
 import type { Work } from "@/lib/works";
 
 /**
- * La grilla del admin, ordenable.
+ * La griglia dell'admin, riordinabile.
  *
- * El orden de estas celdas es el orden del sitio, y hasta acá no lo decidía
- * nadie: salía del año de cada obra. Ahora se arrastra.
+ * L'ordine di queste celle è l'ordine del sito, e fino a qui non lo decideva
+ * nessuno: usciva dall'anno di ogni opera. Adesso si trascina.
  *
- * **Por qué la pieza se agarra de una manija y no de cualquier parte.** La
- * celda entera ya es un link al editor —ése es el gesto que tenía, y sacarlo
- * para poner el arrastre sería cambiar una cosa por otra—. Con la manija
- * conviven: se toca la obra para editarla, se sostiene la manija para
- * moverla. La manija entra al grupo de controles que ya existía, así que no
- * agrega una capa nueva a la pantalla: agrega un botón a una capa que ya
- * estaba, y aparece y desaparece con los otros dos.
+ * **Perché il pezzo si afferra da una maniglia e non da un punto qualsiasi.**
+ * La cella intera è già un link all'editor —quello è il gesto che aveva, e
+ * toglierlo per metterci il trascinamento sarebbe cambiare una cosa con
+ * un'altra—. Con la maniglia convivono: si tocca l'opera per modificarla, si
+ * tiene premuta la maniglia per spostarla. La maniglia entra nel gruppo di
+ * controlli che già esisteva, quindi non aggiunge uno strato nuovo alla
+ * schermata: aggiunge un pulsante a uno strato che c'era già, e compare e
+ * sparisce insieme agli altri due.
  *
- * **Por qué no hay un modo «ordenar».** Un modo obliga a entrar y salir, y lo
- * que se pidió es poder ordenar cuando sea y las veces que sean. Un botón que
- * hay que apagar después convierte «moví una obra» en tres gestos.
+ * **Perché non c'è una modalità «riordina».** Una modalità obbliga a entrare e
+ * uscire, e quello che è stato chiesto è poter riordinare quando si vuole e
+ * quante volte si vuole. Un pulsante da spegnere dopo trasforma «ho spostato
+ * un'opera» in tre gesti.
  *
- * **Por qué la grilla no se rehace mientras se arrastra.** Al agarrar una
- * pieza se anota dónde está cada celda, y de ahí en más nadie se mueve de
- * lugar en el documento: las demás se corren con `transform`, que no rehace
- * la página. Si en cambio se reordenara el arreglo en cada movimiento, cada
- * celda cambiaría de lugar real, las medidas anotadas dejarían de valer y la
- * pieza que se está por soltar bailaría entre dos lugares. Al soltar, y sólo
- * ahí, el arreglo se reordena de verdad.
+ * **Perché la griglia non si ricostruisce mentre si trascina.** Quando si
+ * afferra un pezzo si annota dove sta ogni cella, e da lì in poi nessuno si
+ * sposta di posto nel documento: le altre si spostano con `transform`, che non
+ * ricostruisce la pagina. Se invece si riordinasse l'array a ogni movimento,
+ * ogni cella cambierebbe posto davvero, le misure annotate smetterebbero di
+ * valere e il pezzo che si sta per lasciare ballerebbe fra due posti. Al
+ * rilascio, e solo lì, l'array si riordina davvero.
  */
 
 /*
-  El foco tiene que volver a la manija en la misma fase en que React movió el
-  nodo, antes de pintar: con `useEffect` el foco queda en el `body` hasta
-  después del pintado, y una ráfaga de flechas pierde los pasos que caen en esa
-  ventana. En el servidor no hay nada que enfocar, y `useLayoutEffect` avisa si
-  se lo llama ahí, así que del lado del servidor se usa el otro.
+  Il fuoco deve tornare alla maniglia nella stessa fase in cui React ha spostato
+  il nodo, prima del disegno: con `useEffect` il fuoco resta sul `body` fino a
+  dopo il disegno, e una raffica di frecce perde i passi che cadono in quella
+  finestra. Sul server non c'è niente da mettere a fuoco, e `useLayoutEffect`
+  avvisa se lo si chiama lì, quindi dal lato server si usa l'altro.
 */
 const useEfectoDeDisposicion = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-/** Dónde está una celda, en coordenadas del documento y no de la ventana. */
+/** Dove sta una cella, in coordinate del documento e non della finestra. */
 type Caja = { left: number; top: number; width: number; height: number };
 
 type Arrastre = {
   id: number;
-  /** El lugar del que salió. */
+  /** Il posto da cui è uscita. */
   origen: number;
-  /** El lugar donde caería si se soltara ahora. */
+  /** Il posto in cui cadrebbe se si lasciasse adesso. */
   destino: number;
-  /** Las medidas de todas las celdas, tomadas al agarrar. */
+  /** Le misure di tutte le celle, prese all'afferrare. */
   cajas: Caja[];
-  /** El puntero, en coordenadas de la ventana. */
+  /** Il puntatore, in coordinate della finestra. */
   x: number;
   y: number;
-  /** Dónde agarró el puntero dentro de la pieza, para que no salte al tomarla. */
+  /** Dove il puntatore ha afferrato dentro il pezzo, perché non salti quando lo si prende. */
   offX: number;
   offY: number;
   ancho: number;
@@ -74,7 +76,7 @@ type Arrastre = {
 
 type Guardado = "quieto" | "guardando" | "listo" | "falló";
 
-/** Mueve un elemento de un lugar a otro sin tocar el arreglo original. */
+/** Sposta un elemento da un posto a un altro senza toccare l'array originale. */
 function reubicar<T>(lista: T[], de: number, a: number): T[] {
   const copia = lista.slice();
   const [pieza] = copia.splice(de, 1);
@@ -82,18 +84,18 @@ function reubicar<T>(lista: T[], de: number, a: number): T[] {
   return copia;
 }
 
-/** Cuánto hay que correr la celda `i` para que se vea en el lugar `j`. */
+/** Di quanto va spostata la cella `i` perché si veda al posto `j`. */
 function correr(cajas: Caja[], i: number, j: number): string | undefined {
   if (i === j) return undefined;
   return `translate(${cajas[j].left - cajas[i].left}px, ${cajas[j].top - cajas[i].top}px)`;
 }
 
 /**
- * A qué lugar corresponde la celda `i` mientras se arrastra.
+ * A quale posto corrisponde la cella `i` mentre si trascina.
  *
- * Es el corrimiento de a uno de toda la vida: si la pieza baja, las que
- * quedaron entremedio suben un casillero; si sube, bajan uno. Las de afuera
- * del tramo no se enteran.
+ * È lo scorrimento di uno alla volta di sempre: se il pezzo scende, quelli
+ * rimasti in mezzo salgono di una casella; se sale, scendono di una. Quelli
+ * fuori dal tratto non se ne accorgono.
  */
 function lugarDurante(i: number, { origen, destino }: Arrastre): number {
   if (i === origen) return destino;
@@ -104,19 +106,19 @@ function lugarDurante(i: number, { origen, destino }: Arrastre): number {
 
 export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; hueco: ReactNode }) {
   /*
-    El orden vive acá mientras se mueve, y en la base cuando se suelta. La
-    firma es la lista de ids tal como llegó del servidor: cuando cambia —se
-    guardó un orden nuevo, se cargó una obra, se borró otra— lo que vale es
-    lo que dice el servidor y lo de acá se descarta. Cuando no cambia, como
-    después de un guardado que falló, lo de acá se queda: es lo que ella hizo
-    y todavía no perdió.
+    L'ordine vive qui mentre si muove, e nel database quando si lascia. La firma
+    è la lista di id così com'è arrivata dal server: quando cambia —si è
+    salvato un ordine nuovo, si è caricata un'opera, se n'è cancellata un'altra—
+    quello che vale è ciò che dice il server e quello di qui si scarta. Quando
+    non cambia, come dopo un salvataggio fallito, quello di qui resta: è ciò
+    che ha fatto lei e non ha ancora perso.
   */
   const firma = obras.map((o) => o.id).join(",");
   const [orden, setOrden] = useState(obras);
   const [ultimaFirma, setUltimaFirma] = useState(firma);
 
   const [arrastre, setArrastre] = useState<Arrastre | null>(null);
-  /** La pieza levantada con el teclado: id y de dónde salió, para poder devolverla. */
+  /** Il pezzo sollevato con la tastiera: id e da dove è uscito, per poterlo rimettere. */
   const [agarrada, setAgarrada] = useState<{ id: number; desde: number } | null>(null);
   const [guardado, setGuardado] = useState<Guardado>("quieto");
   const [falla, setFalla] = useState<{ texto: string; salida: Salida | null } | null>(null);
@@ -126,31 +128,32 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
   const rejilla = useRef<HTMLUListElement>(null);
   const manijas = useRef(new Map<number, HTMLButtonElement>());
   /*
-    Espejo del arrastre para el bucle de autodesplazamiento, que corre fuera
-    de React y no ve el estado. Lo escribe un solo lugar, más abajo.
+    Specchio del trascinamento per il ciclo di scorrimento automatico, che gira
+    fuori da React e non vede lo stato. Lo scrive un posto solo, più in basso.
   */
   const enCurso = useRef<Arrastre | null>(null);
   const puntero = useRef({ x: 0, y: 0 });
   const cuadro = useRef<number | null>(null);
-  /** Cuál guardado es el último. Dos arrastres seguidos no pueden pisarse. */
+  /** Quale salvataggio è l'ultimo. Due trascinamenti di fila non possono calpestarsi. */
   const envio = useRef(0);
   /*
-    Mover una pieza con el teclado cambia su nodo de lugar en la página, y un
-    nodo que se mueve pierde el foco: el navegador dispara `blur` aunque nadie
-    se haya ido a ningún lado. Sin distinguir ese blur del de verdad, cada
-    flecha soltaría la pieza que se está moviendo.
+    Spostare un pezzo con la tastiera cambia posto al suo nodo nella pagina, e
+    un nodo che si sposta perde il fuoco: il browser lancia `blur` anche se
+    nessuno se n'è andato da nessuna parte. Senza distinguere quel blur da
+    quello vero, ogni freccia lascerebbe cadere il pezzo che si sta spostando.
   */
   const reacomodando = useRef(false);
 
   /*
-    Llegó otra lista del servidor. Si había una pieza en el aire hay que
-    bajarla acá mismo: `arrastre` y `agarrada` guardan **índices** dentro del
-    arreglo viejo, y aplicarlos sobre el nuevo movería la obra que pasó a
-    ocupar ese lugar. Se guardaría sin error, y quedaría una grilla que ella
-    no armó.
+    È arrivata un'altra lista dal server. Se c'era un pezzo in aria va fatto
+    scendere proprio qui: `arrastre` e `agarrada` conservano **indici** dentro
+    l'array vecchio, e applicarli su quello nuovo sposterebbe l'opera che è
+    passata a occupare quel posto. Si salverebbe senza errore, e resterebbe una
+    griglia che non ha costruito lei.
 
-    Que pase no es raro: `limpiarSueltas` revalida /admin, un borrado desde
-    otra pestaña también, y la revalidación del guardado anterior también.
+    Che succeda non è strano: `limpiarSueltas` rivalida /admin, una
+    cancellazione da un'altra scheda pure, e anche la rivalidazione del
+    salvataggio precedente.
   */
   if (firma !== ultimaFirma) {
     setUltimaFirma(firma);
@@ -160,7 +163,7 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
       setAgarrada(null);
       setGuardado("falló");
       setFalla({
-        texto: "El archivo cambió mientras movías una obra, así que el movimiento se descartó.",
+        texto: "L’archivio è cambiato mentre spostavi un’opera, quindi lo spostamento è stato scartato.",
         salida: null,
       });
     }
@@ -171,7 +174,7 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
   const aplicar = setArrastre;
 
 
-  /* ------------------------------------------------------------- guardar */
+  /* ------------------------------------------------------------- salvare */
 
   const guardar = useCallback(async (nuevo: Work[]) => {
     const mio = ++envio.current;
@@ -179,7 +182,8 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
 
     const r = await reordenarArchivo(nuevo.map((o) => o.id));
 
-    // Llegó tarde: ya salió otro orden detrás de éste y manda el último.
+    // È arrivato tardi: è già partito un altro ordine dopo questo e comanda
+    // l'ultimo.
     if (mio !== envio.current) return;
 
     if (r.ok) {
@@ -191,17 +195,18 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
     }
   }, []);
 
-  // «Orden guardado» se borra solo. Es una confirmación, no un estado: dejarla
-  // puesta la convierte en un cartel que a los diez minutos ya no dice nada.
+  // «Ordine salvato» si cancella da solo. È una conferma, non uno stato:
+  // lasciarla lì la trasforma in un cartello che dopo dieci minuti non dice
+  // più niente.
   useEffect(() => {
     if (guardado !== "listo") return;
     const t = setTimeout(() => setGuardado("quieto"), 2600);
     return () => clearTimeout(t);
   }, [guardado]);
 
-  /* ------------------------------------------------------------- medidas */
+  /* ------------------------------------------------------------- misure */
 
-  /** Las celdas de obra en el orden en que están en la página. El hueco de alta no cuenta. */
+  /** Le celle d'opera nell'ordine in cui stanno nella pagina. La casella di inserimento non conta. */
   const celdas = useCallback(
     () => Array.from(rejilla.current?.querySelectorAll<HTMLLIElement>("li[data-obra]") ?? []),
     [],
@@ -216,12 +221,13 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
   }, [celdas]);
 
   /**
-   * Cuántas columnas tiene la grilla ahora mismo.
+   * Quante colonne ha la griglia in questo momento.
    *
-   * Se cuenta mirando cuántas celdas comparten el borde de arriba, en vez de
-   * repetir acá los cortes de 640 y 1024 que ya están en las clases de la
-   * lista. Dos lugares con el mismo número es un lugar donde se van a
-   * despegar: si mañana la grilla pasa a cuatro columnas, esto se entera solo.
+   * Si conta guardando quante celle condividono il bordo superiore, invece di
+   * ripetere qui i punti di rottura a 640 e 1024 che stanno già nelle classi
+   * della lista. Due posti con lo stesso numero sono un posto dove finiranno
+   * per divergere: se domani la griglia passa a quattro colonne, questo se ne
+   * accorge da solo.
    */
   const columnas = useCallback((): number => {
     const todas = celdas();
@@ -235,7 +241,7 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
     return Math.max(1, n);
   }, [celdas]);
 
-  /** En qué celda cae el puntero. Si cae en un hueco entre dos, la más cercana. */
+  /** In quale cella cade il puntatore. Se cade in un vuoto fra due, la più vicina. */
   const lugarBajoElPuntero = useCallback((px: number, py: number, cajas: Caja[]): number => {
     let cerca = 0;
     let menor = Infinity;
@@ -253,13 +259,13 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
     return cerca;
   }, []);
 
-  /* ---------------------------------------------------------- arrastrar */
+  /* ---------------------------------------------------------- trascinare */
 
   /*
-    La página se desplaza sola cuando la pieza llega al borde de la ventana.
-    Sin esto, un archivo más largo que la pantalla sólo se puede reordenar
-    dentro de lo que se ve: llevar la última obra al primer lugar sería
-    soltarla, desplazar, volver a agarrarla, y otra vez.
+    La pagina scorre da sola quando il pezzo arriva al bordo della finestra.
+    Senza questo, un archivio più lungo dello schermo si può riordinare solo
+    dentro quello che si vede: portare l'ultima opera al primo posto
+    significherebbe lasciarla, scorrere, riafferrarla, e da capo.
   */
   const pararRodado = useCallback(() => {
     if (cuadro.current !== null) cancelAnimationFrame(cuadro.current);
@@ -287,8 +293,8 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
 
       if (dv !== 0) {
         window.scrollBy(0, dv);
-        // El dedo no se movió, pero el documento sí: debajo del puntero hay
-        // otra celda, y el destino tiene que seguirla.
+        // Il dito non si è mosso, ma il documento sì: sotto il puntatore c'è
+        // un'altra cella, e la destinazione deve seguirla.
         aplicar({
           ...a,
           destino: lugarBajoElPuntero(x + window.scrollX, y + window.scrollY, a.cajas),
@@ -303,14 +309,15 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
 
   useEffect(() => pararRodado, [pararRodado]);
   /*
-    El espejo lo escribe esto y nada más. Tenerlo también en `aplicar` parecía
-    inofensivo y no lo era: cuando el arrastre se baja desde el render —porque
-    llegó otra lista del servidor— ahí no se puede tocar un ref, y el bucle de
-    autodesplazamiento seguiría leyendo un arrastre que ya no existe y lo
-    resucitaría en el cuadro siguiente.
+    Lo specchio lo scrive questo e nient'altro. Averlo anche in `aplicar`
+    sembrava innocuo e non lo era: quando il trascinamento viene annullato dal
+    render —perché è arrivata un'altra lista dal server— lì non si può toccare
+    un ref, e il ciclo di scorrimento automatico continuerebbe a leggere un
+    trascinamento che non esiste più e lo resusciterebbe al fotogramma
+    successivo.
 
-    Va en la fase de disposición y no en un efecto común: corre antes de
-    pintar, y por lo tanto antes de que pueda entrar ningún cuadro.
+    Va nella fase di layout e non in un effetto comune: gira prima del disegno,
+    e quindi prima che possa entrare qualsiasi fotogramma.
   */
   useEfectoDeDisposicion(() => {
     enCurso.current = arrastre;
@@ -318,8 +325,9 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
   }, [arrastre, pararRodado]);
 
   function tomar(e: PointerEvent<HTMLButtonElement>, obra: Work, i: number) {
-    // Con el mouse, sólo el botón principal: el secundario abre el menú del
-    // navegador y quedaría una pieza agarrada que nadie soltó.
+    // Con il mouse, solo il pulsante principale: quello secondario apre il
+    // menu del browser e resterebbe un pezzo afferrato che nessuno ha
+    // lasciato.
     if (e.pointerType === "mouse" && e.button !== 0) return;
 
     const celda = celdas()[i];
@@ -327,9 +335,10 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
 
     e.preventDefault();
     /*
-      La captura es lo que hace que el arrastre siga andando cuando el puntero
-      se va de la manija, que es en el primer píxel. Sin ella los eventos los
-      recibiría lo que esté debajo del dedo y el arrastre se cortaría solo.
+      La cattura è ciò che fa proseguire il trascinamento quando il puntatore
+      esce dalla maniglia, cosa che succede al primo pixel. Senza, gli eventi
+      li riceverebbe quello che sta sotto il dito e il trascinamento si
+      interromperebbe da solo.
     */
     e.currentTarget.setPointerCapture(e.pointerId);
     setAgarrada(null);
@@ -367,13 +376,13 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
   }
 
   /**
-   * Baja la pieza sin escribir nada.
+   * Fa scendere il pezzo senza scrivere niente.
    *
-   * La llaman `pointercancel` —el navegador se quedó con el gesto: pulsación
-   * larga, rechazo de palma, un gesto del sistema— y también Escape, que
-   * durante un arrastre por puntero no tenía salida mientras el teclado sí la
-   * tenía. En los dos casos ella no soltó: guardar ahí sería escribir en la
-   * base un orden que nadie confirmó.
+   * La chiamano `pointercancel` —il browser si è preso il gesto: pressione
+   * lunga, rifiuto del palmo, un gesto di sistema— e anche Escape, che durante
+   * un trascinamento con il puntatore non aveva una via d'uscita mentre la
+   * tastiera ce l'aveva. In entrambi i casi lei non ha lasciato: salvare lì
+   * sarebbe scrivere nel database un ordine che nessuno ha confermato.
    */
   const cancelarArrastre = useCallback(() => {
     pararRodado();
@@ -382,11 +391,11 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
   }, [aplicar, pararRodado]);
 
   /*
-    Un cambio de tamaño rehace la grilla, y las medidas anotadas al agarrar
-    pasan a describir una página que ya no existe: las piezas se correrían a
-    coordenadas viejas y la obra caería en el casillero equivocado. Remedir a
-    mitad de gesto haría saltar la pieza bajo el dedo, así que se cancela, que
-    es lo honesto.
+    Un cambio di dimensioni ricostruisce la griglia, e le misure annotate
+    all'afferrare passano a descrivere una pagina che non esiste più: i pezzi
+    si sposterebbero a coordinate vecchie e l'opera cadrebbe nella casella
+    sbagliata. Rimisurare a metà gesto farebbe saltare il pezzo sotto il dito,
+    quindi si annulla, che è la cosa onesta.
   */
   useEffect(() => {
     if (!arrastre) return;
@@ -418,14 +427,14 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
     void guardar(nuevo);
   }
 
-  /* ------------------------------------------------------------- teclado */
+  /* ------------------------------------------------------------- tastiera */
 
   /*
-    Mismo trabajo sin puntero: la manija se levanta con la barra, las flechas
-    la llevan, la barra la deja y Escape la devuelve. Las flechas de arriba y
-    abajo saltan una fila entera, que es lo que esas teclas significan en una
-    grilla; en una lista de una sola columna esa fila es una pieza, y el salto
-    da lo mismo que el de los costados.
+    Stesso lavoro senza puntatore: la maniglia si solleva con la barra
+    spaziatrice, le frecce la portano, la barra la lascia ed Escape la rimette.
+    Le frecce su e giù saltano una riga intera, che è quello che quei tasti
+    significano in una griglia; in una lista a colonna singola quella riga è un
+    pezzo, e il salto equivale a quello laterale.
   */
   function teclado(e: KeyboardEvent<HTMLButtonElement>, obra: Work, i: number) {
     const n = orden.length;
@@ -435,8 +444,8 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
         e.preventDefault();
         setAgarrada({ id: obra.id, desde: i });
         setAviso(
-          `«${obra.title}» levantada. Lugar ${i + 1} de ${n}. Las flechas la mueven, ` +
-            "la barra la suelta, Escape la devuelve.",
+          `«${obra.title}» sollevata. Posto ${i + 1} di ${n}. Le frecce la spostano, ` +
+            "la barra spaziatrice la lascia, Escape la rimette a posto.",
         );
       }
       return;
@@ -453,7 +462,7 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
       reacomodando.current = true;
       setOrden((o) => reubicar(o, i, agarrada.desde));
       setAgarrada(null);
-      setAviso(`«${obra.title}» volvió al lugar ${agarrada.desde + 1}.`);
+      setAviso(`«${obra.title}» è tornata al posto ${agarrada.desde + 1}.`);
       return;
     }
 
@@ -472,34 +481,35 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
 
     reacomodando.current = true;
     setOrden((o) => reubicar(o, i, destino));
-    setAviso(`«${obra.title}», lugar ${destino + 1} de ${n}.`);
+    setAviso(`«${obra.title}», posto ${destino + 1} di ${n}.`);
   }
 
   /**
-   * Deja la pieza donde está y guarda si se movió.
+   * Lascia il pezzo dov'è e salva se si è spostato.
    *
-   * Lo llaman la barra, el Enter y también el foco que se va: si ella
-   * levantó una obra, la corrió tres lugares y se fue con el tabulador, lo
-   * que hizo vale. Cancelar ahí le borraría el trabajo por haber mirado otra
-   * cosa, y para deshacer ya está Escape, que es explícito.
+   * La chiamano la barra spaziatrice, l'Invio e anche il fuoco che se ne va:
+   * se lei ha sollevato un'opera, l'ha spostata di tre posti e se n'è andata
+   * con il tab, quello che ha fatto vale. Annullare lì le cancellerebbe il
+   * lavoro per aver guardato un'altra cosa, e per disfare c'è già Escape, che
+   * è esplicito.
    */
   function soltarConTeclado(obra: Work, i: number) {
     if (!agarrada) return;
     setAgarrada(null);
 
     if (i === agarrada.desde) {
-      setAviso(`«${obra.title}» quedó donde estaba.`);
+      setAviso(`«${obra.title}» è rimasta dov'era.`);
       return;
     }
 
-    setAviso(`«${obra.title}» soltada en el lugar ${i + 1} de ${orden.length}.`);
+    setAviso(`«${obra.title}» lasciata al posto ${i + 1} di ${orden.length}.`);
     void guardar(orden);
   }
 
   /*
-    Mover una obra mueve su nodo en la página, y un nodo que se mueve pierde
-    el foco: sin esto, la segunda flecha ya no le llega a nadie y la pieza
-    queda levantada a mitad de camino.
+    Spostare un'opera sposta il suo nodo nella pagina, e un nodo che si sposta
+    perde il fuoco: senza questo, la seconda freccia non arriva più a nessuno e
+    il pezzo resta sollevato a metà strada.
   */
   useEfectoDeDisposicion(() => {
     reacomodando.current = false;
@@ -507,30 +517,31 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
     manijas.current.get(agarrada.id)?.focus();
   }, [agarrada, orden]);
 
-  /* ---------------------------------------------------------- la pantalla */
+  /* --------------------------------------------------------- la schermata */
 
   const enMovimiento = arrastre !== null;
   const piezaEnMano = arrastre ? orden.find((o) => o.id === arrastre.id) : undefined;
 
   /*
-    Un solo renglón para la ayuda y para el estado del guardado, con alto
-    reservado: si fueran dos, la pantalla llevaría permanentemente un renglón
-    vacío esperando un aviso que casi nunca está.
+    Una sola riga per l'aiuto e per lo stato del salvataggio, con altezza
+    riservata: se fossero due, la schermata porterebbe in permanenza una riga
+    vuota in attesa di un avviso che quasi mai c'è.
 
-    Mientras se arrastra se muestra siempre la ayuda, aunque justo termine un
-    guardado anterior. No es cosmético: un renglón que cambia de alto mientras
-    hay una pieza en el aire corre la grilla entera, y las medidas anotadas al
-    agarrar dejarían de coincidir con lo que se ve.
+    Mentre si trascina si mostra sempre l'aiuto, anche se proprio in quel
+    momento finisce un salvataggio precedente. Non è cosmetico: una riga che
+    cambia altezza mentre c'è un pezzo in aria sposta la griglia intera, e le
+    misure annotate all'afferrare smetterebbero di coincidere con quello che si
+    vede.
   */
   const ayuda = enMovimiento || guardado === "quieto";
   const renglon: { texto: string; falla: boolean; salida: Salida | null } = ayuda
     ? { texto: "", falla: false, salida: null }
     : guardado === "guardando"
-      ? { texto: "Guardando el orden…", falla: false, salida: null }
+      ? { texto: "Salvataggio dell’ordine…", falla: false, salida: null }
       : guardado === "listo"
-        ? { texto: "Orden guardado.", falla: false, salida: null }
+        ? { texto: "Ordine salvato.", falla: false, salida: null }
         : {
-            texto: falla?.texto ?? "No se pudo guardar el orden.",
+            texto: falla?.texto ?? "Non è stato possibile salvare l’ordine.",
             falla: true,
             salida: falla === null ? "reintentar" : falla.salida,
           };
@@ -538,23 +549,22 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
   return (
     <>
       {/*
-        Dos renglones en el hueco de uno, con el alto reservado por el
-        contenedor: la ayuda, que está siempre y por eso no se anuncia, y la
-        región viva, que está montada siempre y vacía cuando no hay nada que
-        decir.
+        Due righe nello spazio di una, con l'altezza riservata dal contenitore:
+        l'aiuto, che c'è sempre e per questo non si annuncia, e la regione
+        viva, che è montata sempre e vuota quando non c'è niente da dire.
 
-        Separados a propósito. Con la ayuda adentro de la región viva, un
-        lector de pantalla leía «Arrastrá una obra de su manija…» al empezar
-        cada arrastre y otra vez dos segundos y medio después de cada
-        guardado, cuando el renglón vuelve a su texto de reposo. La región
-        viva tampoco se monta junto con su texto: montada recién cuando hay
-        algo que decir, varios lectores no la anuncian.
+        Separate di proposito. Con l'aiuto dentro la regione viva, un lettore
+        di schermo leggeva «Trascina un'opera dalla sua maniglia…» all'inizio
+        di ogni trascinamento e di nuovo due secondi e mezzo dopo ogni
+        salvataggio, quando la riga torna al suo testo di riposo. Neanche la
+        regione viva si monta insieme al suo testo: montata solo quando c'è
+        qualcosa da dire, parecchi lettori non la annunciano.
       */}
       {ordenable && (
         <div className="mb-6 min-h-9 text-xs">
           {ayuda && (
             <p className="text-ink-faint">
-              Arrastrá una obra de su manija para cambiar el orden.
+              Trascina un&apos;opera dalla sua maniglia per cambiare l&apos;ordine.
             </p>
           )}
           <p
@@ -562,9 +572,10 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
             className={`flex items-start gap-2 ${renglon.falla ? "text-ink" : "text-ink-faint"}`}
           >
             {/*
-              El punto es el mismo de la barra del admin y dice lo mismo: en
-              terracota, algo pide atención. No aparece cuando todo va bien,
-              porque en este sistema «funciona» no lleva color.
+              Il punto è lo stesso della barra dell'admin e dice la stessa
+              cosa: in terracotta, qualcosa chiede attenzione. Non compare
+              quando va tutto bene, perché in questo sistema «funziona» non
+              porta colore.
             */}
             {renglon.falla && (
               <span
@@ -578,12 +589,12 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
                 <>
                   {" "}
                   {/*
-                    La salida que se ofrece es la que corresponde a la falla, y
-                    no siempre es la misma. Reintentar un orden que la base
-                    rechazó por viejo vuelve a fallar igual: ahí lo que hay que
-                    hacer es traer el archivo de nuevo. Y hay una falla sin
-                    salida —el archivo cambió abajo del gesto— donde lo único
-                    que corresponde es contarlo.
+                    La via d'uscita che si offre è quella che corrisponde al
+                    guasto, e non è sempre la stessa. Riprovare un ordine che
+                    il database ha rifiutato perché vecchio fallisce di nuovo
+                    uguale: lì quello da fare è riportare l'archivio da capo. E
+                    c'è un guasto senza via d'uscita —l'archivio è cambiato
+                    sotto al gesto— dove l'unica cosa che si può fare è dirlo.
                   */}
                   <button
                     type="button"
@@ -592,7 +603,7 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
                     }
                     className="link-underline text-accent transition-opacity hover:opacity-70"
                   >
-                    {renglon.salida === "recargar" ? "Recargar" : "Reintentar"}
+                    {renglon.salida === "recargar" ? "Ricarica" : "Riprova"}
                   </button>
                 </>
               )}
@@ -602,16 +613,18 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
       )}
 
       {/*
-        La grilla exacta del sitio. Si cambia allá, cambia acá: que las dos
-        se vean distinto haría que esta pantalla deje de servir para lo único
-        que justifica su forma, que es ver la obra en su lugar definitivo.
+        La griglia esatta del sito. Se cambia là, cambia qui: che le due si
+        vedano diverse farebbe smettere questa schermata di servire all'unica
+        cosa che giustifica la sua forma, cioè vedere l'opera al suo posto
+        definitivo.
 
-        Lo único que no hereda es la entrada: las celdas de la portada llevan
-        `rivista-piece`, que las hace entrar desde su columna, y acá no. No es
-        un olvido. Ahí el movimiento es parte de mirar el archivo; acá se
-        viene a trabajar, y una grilla que se acomoda cada vez que se guarda
-        una obra pone medio segundo de coreografía entre ella y lo siguiente
-        que iba a hacer. Se entra a una tarea, no a una presentación.
+        L'unica cosa che non eredita è l'entrata: le celle della home portano
+        `rivista-piece`, che le fa entrare dalla loro colonna, e qui no. Non è
+        una dimenticanza. Là il movimento fa parte del guardare l'archivio; qui
+        si viene a lavorare, e una griglia che si sistema ogni volta che si
+        salva un'opera mette mezzo secondo di coreografia fra lei e la cosa
+        successiva che stava per fare. Si entra in un compito, non in una
+        presentazione.
       */}
       <ul ref={rejilla} className="grid gap-6 sm:grid-cols-2 md:gap-8 lg:grid-cols-3">
         <li>{hueco}</li>
@@ -626,14 +639,14 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
               data-obra={obra.id}
               style={transform ? { transform } : undefined}
               /*
-                La transición se pone sólo mientras hay un arrastre. Puesta
-                siempre, al soltar —cuando el arreglo se reordena de verdad y
-                los `transform` se van— cada celda animaría su vuelta a cero
-                desde el lugar prestado, y la grilla haría un segundo baile
-                después del que ya se vio.
+                La transizione si mette solo mentre c'è un trascinamento. Messa
+                sempre, al rilascio —quando l'array si riordina davvero e i
+                `transform` se ne vanno— ogni cella animerebbe il suo ritorno a
+                zero dal posto prestato, e la griglia farebbe un secondo ballo
+                dopo quello che si è già visto.
 
-                Bajo `prefers-reduced-motion` la hoja de estilos global la
-                deja en 0.01ms, como a todo lo demás.
+                Sotto `prefers-reduced-motion` il foglio di stile globale la
+                lascia a 0.01ms, come tutto il resto.
               */
               className={`relative ${
                 enMovimiento
@@ -642,10 +655,11 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
               }`}
             >
               {/*
-                La pieza en el aire deja su celda pero no su lugar: `invisible`
-                la esconde sin sacarla del cálculo, así que la grilla mantiene
-                exactamente el alto que tenía. Si se desmontara, la fila se
-                encogería y las medidas anotadas al agarrar quedarían mintiendo.
+                Il pezzo in aria lascia la sua cella ma non il suo posto:
+                `invisible` lo nasconde senza toglierlo dal calcolo, così la
+                griglia mantiene esattamente l'altezza che aveva. Se venisse
+                smontato, la riga si restringerebbe e le misure annotate
+                all'afferrare resterebbero a mentire.
               */}
               <div className={estaEnElAire ? "invisible" : undefined}>
                 <ObraEditable
@@ -655,11 +669,12 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
               </div>
 
               {/*
-                El lugar que la pieza va a ocupar al soltarse. Filete punteado
-                y no lleno, por lo mismo que el hueco de alta: punteado dice
-                que ahí no hay nada y que algo puede entrar. Es el único otro
-                lugar del sistema donde el punteado aparece, y aparece
-                significando lo mismo.
+                Il posto che il pezzo occuperà al rilascio. Filetto
+                tratteggiato e non pieno, per lo stesso motivo della casella di
+                inserimento: il tratteggio dice che lì non c'è niente e che
+                qualcosa ci può entrare. È l'unico altro posto del sistema in
+                cui il tratteggio compare, e compare significando la stessa
+                cosa.
               */}
               {estaEnElAire && (
                 <span
@@ -673,13 +688,13 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
       </ul>
 
       {/*
-        La obra en la mano. Va sobre papel pleno —no translúcida— porque tiene
-        que leerse como una pieza levantada de la grilla y no como un fantasma
-        encima de ella; el sistema no tiene sombras para decir «está arriba»,
-        y el papel opaco con el filete terracota lo dice sin inventar ninguna.
+        L'opera in mano. Va su carta piena —non traslucida— perché deve leggersi
+        come un pezzo sollevato dalla griglia e non come un fantasma sopra di
+        essa; il sistema non ha ombre per dire «sta sopra», e la carta opaca con
+        il filetto terracotta lo dice senza inventarne nessuna.
 
-        Se mueve con `transform` y no con `left`/`top`: es la diferencia entre
-        seguir al dedo y perseguirlo.
+        Si muove con `transform` e non con `left`/`top`: è la differenza fra
+        seguire il dito e inseguirlo.
       */}
       {arrastre && piezaEnMano && (
         <div
@@ -695,9 +710,9 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
       )}
 
       {/*
-        Lo que pasa, dicho para quien no lo ve. Va aparte del renglón visible
-        porque ése cuenta el guardado y esto cuenta el movimiento, y con un
-        lector de pantalla hacen falta los dos.
+        Quello che succede, detto per chi non lo vede. Va separato dalla riga
+        visibile perché quella racconta il salvataggio e questa racconta il
+        movimento, e con un lettore di schermo servono entrambe.
       */}
       <p aria-live="polite" className="sr-only">
         {aviso}
@@ -705,7 +720,7 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
     </>
   );
 
-  /** La manija de una pieza. Se arma acá porque necesita el índice y el estado del arrastre. */
+  /** La maniglia di un pezzo. Si costruisce qui perché serve l'indice e lo stato del trascinamento. */
   function manija(obra: Work, i: number) {
     const levantada = agarrada?.id === obra.id;
 
@@ -716,16 +731,17 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
           if (el) manijas.current.set(obra.id, el);
           else manijas.current.delete(obra.id);
         }}
-        title="Mover"
+        title="Sposta"
         /*
-          El estado de levantada tiene que viajar como booleano y no sólo como
-          un nombre distinto: cambiarle el texto a un control que ya tiene el
-          foco no se reanuncia de forma confiable, así que con lector de
-          pantalla no había manera de saber si la barra había prendido.
+          Lo stato di "sollevata" deve viaggiare come booleano e non solo come
+          un nome diverso: cambiare il testo a un controllo che ha già il fuoco
+          non viene riannunciato in modo affidabile, quindi con un lettore di
+          schermo non c'era modo di sapere se la barra spaziatrice avesse
+          funzionato.
 
-          Sin `aria-describedby`: con el `title` puesto serían dos
-          descripciones sobre el mismo botón. Las instrucciones se dicen una
-          vez, al levantar la pieza, que es cuando hacen falta.
+          Senza `aria-describedby`: con il `title` presente sarebbero due
+          descrizioni sullo stesso pulsante. Le istruzioni si dicono una volta,
+          al sollevare il pezzo, che è quando servono.
         */
         aria-pressed={levantada}
         onPointerDown={(e) => tomar(e, obra, i)}
@@ -734,17 +750,17 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
         onPointerCancel={cancelarArrastre}
         onKeyDown={(e) => teclado(e, obra, i)}
         onBlur={() => {
-          // El blur que provoca el reacomodo no es una salida: el foco vuelve
-          // a esta misma manija en el efecto de abajo.
+          // Il blur provocato dalla risistemazione non è un'uscita: il fuoco
+          // torna a questa stessa maniglia nell'effetto qui sotto.
           if (reacomodando.current || !levantada) return;
           soltarConTeclado(obra, i);
         }}
         /*
-          `touch-none` es lo que separa arrastrar de desplazar la página: sin
-          eso, el navegador se queda con el gesto apenas el dedo se mueve un
-          poco y la obra no llega a salir de su lugar. Va sólo en la manija,
-          así que el resto de la grilla se sigue desplazando con el dedo como
-          siempre.
+          `touch-none` è ciò che separa il trascinare dallo scorrere la pagina:
+          senza, il browser si prende il gesto appena il dito si muove un poco
+          e l'opera non arriva a uscire dal suo posto. Va solo sulla maniglia,
+          così il resto della griglia continua a scorrere con il dito come
+          sempre.
         */
         className={`flex h-8 w-8 touch-none items-center justify-center bg-paper/95 transition-colors focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
           levantada ? "cursor-grabbing text-accent" : "cursor-grab text-ink-soft hover:text-ink"
@@ -752,8 +768,8 @@ export default function ArchivoOrdenable({ obras, hueco }: { obras: Work[]; huec
       >
         <span className="sr-only">
           {levantada
-            ? `Soltar «${obra.title}» en el lugar ${i + 1} de ${orden.length}`
-            : `Mover «${obra.title}». Lugar ${i + 1} de ${orden.length}`}
+            ? `Lascia «${obra.title}» al posto ${i + 1} di ${orden.length}`
+            : `Sposta «${obra.title}». Posto ${i + 1} di ${orden.length}`}
         </span>
         <Move size={16} />
       </button>

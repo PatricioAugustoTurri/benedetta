@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "@/components/Icon";
 import WorkForm from "../components/WorkForm";
 
-export const metadata = { title: "Nueva obra" };
+export const metadata = { title: "Nuova opera" };
 
 export default function NuevaObraPage() {
   return (
@@ -15,7 +15,7 @@ export default function NuevaObraPage() {
           size={16}
           className="shrink-0 transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:-translate-x-0.5"
         />
-        <span className="link-underline">Al archivo</span>
+        <span className="link-underline">All&apos;archivio</span>
       </Link>
 
       <WorkForm />

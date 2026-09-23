@@ -1,25 +1,25 @@
--- 001 · El orden del archivo pasa a ser una decisión, no un cálculo
+-- 001 · L'ordine dell'archivio diventa una decisione, non un calcolo
 --
--- Correr una sola vez sobre una base que ya existe:
+-- Eseguire una sola volta su un database che esiste già:
 --   psql -d illustrando -f db/migrations/001-orden-manual.sql
 --
--- Una base nueva no necesita esto: db/schema.sql ya viene con la columna.
+-- Un database nuovo non ne ha bisogno: db/schema.sql ha già la colonna.
 --
--- Hasta acá la grilla salía `ORDER BY year DESC, id DESC`, que es un orden
--- que nadie eligió: lo decidía la fecha de la obra y, a igual año, el número
--- que le había tocado en la tabla. Eso alcanza para un archivo que se lee
--- como una cronología, y no alcanza para uno que se cura: qué pieza abre el
--- sitio y cuál va al lado de cuál es una decisión de ella, y no tenía dónde
--- escribirse.
+-- Fino a qui la griglia usciva con `ORDER BY year DESC, id DESC`, che è un
+-- ordine che nessuno ha scelto: lo decidevano la data dell'opera e, a parità
+-- di anno, il numero che le era toccato in tabella. Basta per un archivio che
+-- si legge come una cronologia, e non basta per uno che si cura: quale pezzo
+-- apre il sito e quale va accanto a quale è una decisione sua, e non aveva
+-- dove essere scritta.
 
 BEGIN;
 
 ALTER TABLE works ADD COLUMN position integer;
 
--- El orden que había hasta ahora se conserva tal cual, numerado. Arrancar
--- desde el orden vigente y no desde cero es lo que hace que la migración no
--- se note: ella abre el admin y ve el archivo como lo dejó, con la
--- diferencia de que ahora lo puede mover.
+-- L'ordine che c'era finora si conserva tale e quale, numerato. Partire
+-- dall'ordine in vigore e non da zero è ciò che fa sì che la migrazione non si
+-- noti: lei apre l'admin e vede l'archivio come l'ha lasciato, con la
+-- differenza che adesso lo può spostare.
 WITH orden_heredado AS (
   SELECT id, row_number() OVER (ORDER BY year DESC, id DESC) AS n
     FROM works
@@ -31,25 +31,26 @@ UPDATE works
 
 ALTER TABLE works ALTER COLUMN position SET NOT NULL;
 
--- Único, porque dos obras en el mismo lugar es exactamente el error que esta
--- columna existe para no tener: si pasa, la grilla vuelve a ordenarse sola
--- entre dos cargas y no hay forma de darse cuenta mirando.
+-- Unico, perché due opere nello stesso posto sono esattamente l'errore che
+-- questa colonna esiste per non avere: se succede, la griglia torna a
+-- riordinarsi da sola fra due caricamenti e non c'è modo di accorgersene
+-- guardando.
 --
--- DEFERRABLE INITIALLY DEFERRED porque reordenar es, por definición, pasar
--- por estados donde dos filas se pisan: mover la quinta al primer lugar
--- corre cuatro obras un casillero, y en el medio de ese UPDATE hay
--- duplicados. La restricción se verifica al cerrar la transacción, cuando el
--- orden ya es un orden.
+-- DEFERRABLE INITIALLY DEFERRED perché riordinare è, per definizione, passare
+-- per stati in cui due righe si calpestano: spostare la quinta al primo posto
+-- fa scorrere quattro opere di una casella, e in mezzo a quell'UPDATE ci sono
+-- duplicati. Il vincolo si verifica alla chiusura della transazione, quando
+-- l'ordine è ormai un ordine.
 ALTER TABLE works
   ADD CONSTRAINT works_position_unica UNIQUE (position) DEFERRABLE INITIALLY DEFERRED;
 
--- El índice por año se va con el orden que servía. Ya no queda ninguna
--- consulta que ordene o filtre por `year`: en la ficha de la obra el año es
--- un dato que se muestra, no uno por el que se busca. Un índice que nadie
--- usa es trabajo en cada escritura a cambio de nada.
+-- L'indice per anno se ne va insieme all'ordine che serviva. Non resta più
+-- nessuna query che ordini o filtri per `year`: nella scheda dell'opera l'anno
+-- è un dato che si mostra, non uno per cui si cerca. Un indice che nessuno usa
+-- è lavoro a ogni scrittura in cambio di niente.
 --
--- La restricción de arriba deja su propio índice sobre `position`, que es
--- el que ahora recorre la grilla, así que no hace falta crear otro.
+-- Il vincolo qui sopra lascia il proprio indice su `position`, che è quello
+-- che adesso percorre la griglia, quindi non serve crearne un altro.
 DROP INDEX IF EXISTS works_year_idx;
 
 COMMIT;

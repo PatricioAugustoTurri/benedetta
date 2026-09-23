@@ -4,22 +4,22 @@ import { MAX_CUERPO_MB } from "./src/lib/limites";
 const nextConfig: NextConfig = {
   images: {
     /*
-      De dónde se permite traer imágenes.
+      Da dove è permesso portare immagini.
 
-      La obra vive en Cloudinary desde que el admin sube directo allá, y
-      `next/image` se niega a optimizar un dominio que no esté declarado acá.
-      No es burocracia: sin la lista, cualquier URL que entrara en la base
-      convertiría al optimizador del sitio en un proxy de imágenes ajenas que
-      cualquiera podría usar por su cuenta.
+      L'opera vive su Cloudinary da quando l'admin carica direttamente lì, e
+      `next/image` si rifiuta di ottimizzare un dominio che non sia dichiarato
+      qui. Non è burocrazia: senza la lista, qualsiasi URL che entrasse nel
+      database trasformerebbe l'ottimizzatore del sito in un proxy di immagini
+      altrui che chiunque potrebbe usare per conto proprio.
 
-      `pathname` acota a la cuenta de ella. El resto de Cloudinary, incluidas
-      las cuentas de otros, queda afuera.
+      `pathname` restringe all'account di lei. Il resto di Cloudinary, inclusi
+      gli account di altri, resta fuori.
     */
     remotePatterns: [
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
-        pathname: `/${process.env.CLOUDINARY_CLOUD_NAME ?? "_sin_configurar"}/**`,
+        pathname: `/${process.env.CLOUDINARY_CLOUD_NAME ?? "_non_configurato"}/**`,
       },
     ],
   },
@@ -27,9 +27,9 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       /*
-        El tope del cuerpo de una Server Action. Ver `src/lib/limites.ts`:
-        desde que las imágenes suben directo a Cloudinary, por acá sólo pasa
-        un JSON con direcciones y medidas.
+        Il limite del corpo di una Server Action. Vedi `src/lib/limites.ts`:
+        da quando le immagini salgono direttamente su Cloudinary, di qui passa
+        solo un JSON con indirizzi e misure.
       */
       bodySizeLimit: `${MAX_CUERPO_MB}mb`,
     },

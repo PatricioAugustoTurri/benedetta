@@ -1,26 +1,26 @@
 import Reveal from "@/components/Reveal";
 
 /**
- * La entrada de Contatti: el titular y el único consejo que no tiene un campo
- * donde vivir.
+ * L'apertura di Contatti: il titolo e l'unico consiglio che non ha un campo
+ * dove vivere.
  *
- * Lo que antes decía este párrafo —qué contar, para cuándo, en qué formato—
- * ahora está debajo del campo donde se escribe. Una instrucción sirve donde
- * se ejecuta, no tres pantallas más arriba.
+ * Quello che prima diceva questo paragrafo —cosa raccontare, per quando, in
+ * che formato— adesso sta sotto il campo dove si scrive. Un'istruzione serve
+ * dove si esegue, non tre schermate più in alto.
  */
 export default function ContactIntro() {
   return (
     <>
       <Reveal>
         <h1 className="display-h1 text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance">
-          Escribime y armamos algo juntos.
+          Scrivimi e costruiamo qualcosa insieme.
         </h1>
       </Reveal>
 
       <Reveal delay={90}>
         <p className="prose-measure mt-8 text-lg leading-relaxed text-ink-soft">
-          Si ya tenés referencias o un presupuesto en mente, mejor: así te respondo con
-          algo concreto en lugar de un ida y vuelta largo.
+          Se hai già dei riferimenti o un budget in mente, tanto meglio: così ti rispondo
+          con qualcosa di concreto invece di un lungo scambio di mail.
         </p>
       </Reveal>
     </>

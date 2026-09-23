@@ -2,18 +2,18 @@ import Reveal from "@/components/Reveal";
 import { servicios } from "@/data/studio";
 
 /**
- * Cómo trabaja: los tres tipos de encargo, en una lista de definición.
+ * Come lavora: i tre tipi di commissione, in una lista di definizione.
  *
- * Entran escalonados de a 90ms, que es el paso del resto del sitio.
+ * Entrano scalati di 90ms l'uno dall'altro, che è il passo del resto del sito.
  *
- * PLACEHOLDER: las tres descripciones son de relleno. Ver PRODUCT.md.
+ * PLACEHOLDER: le tre descrizioni sono segnaposto. Vedi PRODUCT.md.
  */
 export default function StudioServices() {
   return (
     <section className="shell mt-16" aria-labelledby="servizi">
       <Reveal>
         <h2 id="servizi" className="label border-b border-line pb-4">
-          Cómo trabajo
+          Come lavoro
         </h2>
       </Reveal>
       <dl className="mt-10 grid gap-10 md:grid-cols-3 md:gap-12">

@@ -4,16 +4,16 @@ import { useEffect, useRef, type ElementType, type ReactNode } from "react";
 
 type Props = {
   children: ReactNode;
-  /** Retardo en ms, para escalonar varios elementos. */
+  /** Ritardo in ms, per scalare più elementi. */
   delay?: number;
   as?: ElementType;
   className?: string;
 };
 
 /**
- * Aparición suave cuando el elemento entra en pantalla.
- * Si el navegador no soporta IntersectionObserver o el usuario pidió
- * menos movimiento, el contenido se muestra directamente.
+ * Apparizione morbida quando l'elemento entra nello schermo.
+ * Se il browser non supporta IntersectionObserver o l'utente ha chiesto meno
+ * movimento, il contenuto si mostra direttamente.
  */
 export default function Reveal({ children, delay = 0, as: Tag = "div", className = "" }: Props) {
   const ref = useRef<HTMLElement>(null);

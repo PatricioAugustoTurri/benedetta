@@ -9,14 +9,14 @@ type Params = { params: Promise<{ id: string }> };
 export async function generateMetadata({ params }: Params) {
   const { id } = await params;
   const obra = await getWorkById(Number(id));
-  return { title: obra ? obra.title : "Obra" };
+  return { title: obra ? obra.title : "Opera" };
 }
 
 export default async function EditarObraPage({ params }: Params) {
   const { id } = await params;
 
-  // `Number("nueva")` da NaN, no 0: sin esta guarda, una dirección inventada
-  // llegaría a la base como consulta en vez de terminar en un 404.
+  // `Number("nueva")` dà NaN, non 0: senza questa guardia, un indirizzo
+  // inventato arriverebbe al database come query invece di finire in un 404.
   const numero = Number(id);
   if (!Number.isInteger(numero)) notFound();
 
@@ -33,7 +33,7 @@ export default async function EditarObraPage({ params }: Params) {
           size={16}
           className="shrink-0 transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:-translate-x-0.5"
         />
-        <span className="link-underline">Al archivo</span>
+        <span className="link-underline">All&apos;archivio</span>
       </Link>
 
       <WorkForm obra={obra} />

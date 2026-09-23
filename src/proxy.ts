@@ -3,32 +3,34 @@ import type { NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/lib/auth";
 
 /**
- * La puerta de /admin.
+ * La porta di /admin.
  *
- * En Next.js 16 esto se llama `proxy` y ya no `middleware`; el archivo va al
- * lado de `app/` y sólo puede haber uno.
+ * In Next.js 16 questo si chiama `proxy` e non più `middleware`; il file sta
+ * accanto ad `app/` e ce ne può essere uno solo.
  *
- * **Acá no se verifica la sesión, se mira si hay una.** La documentación es
- * explícita: el proxy sirve para comprobaciones optimistas, no para
- * autorización. Corre antes que la página, sin acceso al entorno completo, y
- * verificar la firma acá obligaría a meter la clave en este borde.
+ * **Qui non si verifica la sessione, si guarda se ce n'è una.** La
+ * documentazione è esplicita: il proxy serve per controlli ottimistici, non
+ * per l'autorizzazione. Gira prima della pagina, senza accesso all'ambiente
+ * completo, e verificare la firma qui obbligherebbe a mettere la password su
+ * questo bordo.
  *
- * Lo que hace es evitar el parpadeo: sin esto, quien no tiene sesión vería
- * cargar el admin un instante antes de que la página lo eche. La decisión de
- * verdad la toman la página, que comprueba la firma, y cada Server Action,
- * que la vuelve a comprobar porque se la puede invocar con un POST directo
- * sin pasar por ninguna página.
+ * Quello che fa è evitare lo sfarfallio: senza, chi non ha una sessione
+ * vedrebbe caricare l'admin per un istante prima che la pagina lo cacci. La
+ * decisione vera la prendono la pagina, che controlla la firma, e ogni Server
+ * Action, che la ricontrolla perché la si può invocare con un POST diretto
+ * senza passare da nessuna pagina.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // La pantalla de acceso queda afuera, o no se podría llegar nunca a ella.
+  // La schermata di accesso resta fuori, altrimenti non ci si potrebbe mai
+  // arrivare.
   if (pathname.startsWith("/admin/login")) return NextResponse.next();
 
   if (!request.cookies.has(SESSION_COOKIE)) {
     const login = new URL("/admin/login", request.url);
-    // De dónde venía, para devolverlo ahí después de entrar en vez de
-    // dejarlo siempre en la portada del admin.
+    // Da dove veniva, per riportarcelo dopo l'accesso invece di lasciarlo
+    // sempre sulla home dell'admin.
     if (pathname !== "/admin") login.searchParams.set("desde", pathname);
     return NextResponse.redirect(login);
   }

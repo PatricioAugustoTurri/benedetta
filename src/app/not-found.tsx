@@ -4,12 +4,13 @@ import Footer from "@/components/Footer";
 import { ArrowLeft } from "@/components/Icon";
 
 /**
- * El 404 de todo el sitio.
+ * Il 404 di tutto il sito.
  *
- * Vive en la raíz de `app/` y no dentro de `(sitio)`, porque una dirección
- * que no coincide con ninguna ruta no cae en ningún grupo. Por eso se trae
- * la cabecera y el pie a mano: el layout raíz sólo pone el documento, y sin
- * esto un link viejo dejaría al visitante en una página sin salida.
+ * Vive nella radice di `app/` e non dentro `(sitio)`, perché un indirizzo che
+ * non corrisponde a nessun percorso non cade in nessun gruppo. Per questo
+ * porta con sé header e footer a mano: il layout radice mette solo il
+ * documento, e senza questo un link vecchio lascerebbe il visitatore in una
+ * pagina senza uscita.
  */
 export default function NotFound() {
   return (
@@ -18,10 +19,10 @@ export default function NotFound() {
       <main className="flex-1">
         <section className="shell flex min-h-[60vh] flex-col justify-center py-24">
           <h1 className="display-h1 max-w-2xl text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance">
-            Esta página no existe.
+            Questa pagina non esiste.
           </h1>
           <p className="prose-measure mt-6 text-ink-soft">
-            Puede que el link esté viejo o mal escrito. El archivo completo sigue en su lugar.
+            Forse il link è vecchio o scritto male. L&apos;archivio completo è sempre al suo posto.
           </p>
           <Link
             href="/"
@@ -29,7 +30,7 @@ export default function NotFound() {
           >
             <ArrowLeft size={16} className="shrink-0" />
             <span className="link-underline" data-active="true">
-              Ir al archivo
+              Vai all&apos;archivio
             </span>
           </Link>
         </section>

@@ -8,22 +8,22 @@ import { enMB, MAX_ARCHIVO_MB, MB } from "@/lib/limites";
 import type { Work } from "@/lib/works";
 
 /*
-  El vocabulario de campo del sitio, el mismo que usa el formulario de
-  Contatti: rótulo en versalitas, control sobre un solo filete, sin caja ni
-  relleno ni radio. Se repite acá en vez de importarse porque aquel archivo
-  las declara para su propio uso; el día que haya un tercer formulario, estas
-  dos constantes se mudan a un módulo compartido y no antes.
+  Il vocabolario di campo del sito, lo stesso che usa il modulo di Contatti:
+  etichetta in maiuscoletto, controllo su un solo filetto, senza riquadro né
+  riempimento né raggio. Si ripete qui invece di essere importato perché quel
+  file le dichiara per uso proprio; il giorno in cui ci sarà un terzo modulo,
+  queste due costanti si trasferiscono in un modulo condiviso e non prima.
 */
 const LABEL = "label block text-ink-faint transition-colors";
 const CONTROL =
   "peer block w-full border-0 border-b border-line bg-transparent py-2.5 text-base text-ink transition-colors placeholder:text-ink-faint focus:border-ink aria-[invalid=true]:border-accent";
 
 /**
- * Una imagen en el formulario.
+ * Un'immagine nel modulo.
  *
- * Las nuevas llevan estado porque suben a Cloudinary apenas se las elige, no
- * al guardar: mientras viaja un escaneo de 8 MB hay que poder decir por dónde
- * va, y al terminar la imagen ya tiene dirección y medidas propias.
+ * Le nuove portano uno stato perché salgono su Cloudinary appena si scelgono,
+ * non al salvataggio: mentre viaggia una scansione da 8 MB bisogna poter dire
+ * a che punto è, e alla fine l'immagine ha già indirizzo e misure proprie.
  */
 type Nueva = {
   key: string;
@@ -53,14 +53,16 @@ type Item =
   | Nueva;
 
 /**
- * Manda un archivo a Cloudinary desde el navegador, informando el avance.
+ * Manda un file a Cloudinary dal browser, segnalando l'avanzamento.
  *
- * `XMLHttpRequest` y no `fetch`: fetch no expone el progreso de subida, y sin
- * progreso un escaneo grande deja la pantalla quieta un minuto sin decir si
- * está pasando algo o se colgó.
+ * `XMLHttpRequest` e non `fetch`: fetch non espone il progresso del
+ * caricamento, e senza progresso una scansione grande lascia la schermata
+ * ferma per un minuto senza dire se sta succedendo qualcosa o se si è
+ * bloccata.
  *
- * El archivo no toca el servidor de este proyecto. Lo único que vino de él es
- * la firma, que autoriza esta subida a esta carpeta y vence sola.
+ * Il file non tocca il server di questo progetto. L'unica cosa arrivata da lui
+ * è la firma, che autorizza questo caricamento in questa cartella e scade da
+ * sola.
  */
 function subirACloudinary(
   file: File,
@@ -87,7 +89,7 @@ function subirACloudinary(
       try {
         cuerpo = JSON.parse(peticion.responseText);
       } catch {
-        rechazar(new Error("Cloudinary contestó algo que no se entiende."));
+        rechazar(new Error("Cloudinary ha risposto qualcosa che non si capisce."));
         return;
       }
 
@@ -101,24 +103,24 @@ function subirACloudinary(
         return;
       }
 
-      // Cloudinary explica bien sus propios rechazos —formato, tamaño, firma
-      // vencida—, así que se muestra su mensaje en vez de uno genérico.
+      // Cloudinary spiega bene i propri rifiuti —formato, dimensione, firma
+      // scaduta—, quindi si mostra il suo messaggio invece di uno generico.
       const error = (cuerpo.error as { message?: string } | undefined)?.message;
-      rechazar(new Error(error ?? `Cloudinary rechazó la subida (${peticion.status}).`));
+      rechazar(new Error(error ?? `Cloudinary ha rifiutato il caricamento (${peticion.status}).`));
     };
 
-    peticion.onerror = () => rechazar(new Error("Se cortó la conexión al subir."));
+    peticion.onerror = () => rechazar(new Error("La connessione si è interrotta durante il caricamento."));
     peticion.send(datos);
   });
 }
 
 /**
- * De un título a una dirección.
+ * Da un titolo a un indirizzo.
  *
- * Es una propuesta, no una imposición: el campo queda editable y deja de
- * seguir al título en cuanto alguien lo toca a mano. Una obra ya guardada
- * nunca lo recalcula —su dirección puede estar compartida— así que esto sólo
- * corre mientras se carga una obra nueva.
+ * È una proposta, non un'imposizione: il campo resta modificabile e smette di
+ * seguire il titolo appena qualcuno lo tocca a mano. Un'opera già salvata non
+ * lo ricalcola mai —il suo indirizzo può essere stato condiviso— quindi questo
+ * gira solo mentre si carica un'opera nuova.
  */
 function aDireccion(titulo: string): string {
   return titulo
@@ -135,7 +137,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
 
   const [titulo, setTitulo] = useState(obra?.title ?? "");
   const [direccion, setDireccion] = useState(obra?.slug ?? "");
-  // Una obra guardada no sigue al título; una nueva sí, hasta que la toquen.
+  // Un'opera salvata non segue il titolo; una nuova sì, finché non la toccano.
   const [direccionTocada, setDireccionTocada] = useState(Boolean(obra));
 
   const [items, setItems] = useState<Item[]>(
@@ -154,13 +156,14 @@ export default function WorkForm({ obra }: { obra?: Work }) {
   const elegir = useRef<HTMLInputElement>(null);
 
   /*
-    Lo que impide guardar, y por qué cada cosa.
+    Quello che impedisce di salvare, e il perché di ogni cosa.
 
-    `subiendo`: la imagen todavía viaja a Cloudinary y aún no tiene dirección,
-    así que no hay nada que guardar en la base.
-    `fallada`: subió mal; guardar dejaría la obra sin esa imagen y sin aviso.
-    `pesadas`: Cloudinary las va a rechazar igual, pero decirlo acá ahorra el
-    viaje y explica qué hacer.
+    `subiendo`: l'immagine sta ancora viaggiando verso Cloudinary e non ha
+    ancora un indirizzo, quindi non c'è niente da salvare nel database.
+    `falladas`: il caricamento è andato male; salvare lascerebbe l'opera senza
+    quell'immagine e senza avviso.
+    `pesadas`: Cloudinary le rifiuterà comunque, ma dirlo qui risparmia il
+    viaggio e spiega cosa fare.
   */
   const subiendo = items.some((it) => it.tipo === "nueva" && it.estado === "subiendo");
   const falladas = items.filter((it) => it.tipo === "nueva" && it.estado === "error");
@@ -168,30 +171,33 @@ export default function WorkForm({ obra }: { obra?: Work }) {
   const bloqueado = subiendo || falladas.length > 0 || pesadas.length > 0;
 
   /*
-    Las miniaturas de los archivos nuevos son URLs de objeto, que el navegador
-    sostiene en memoria hasta que se las suelta. Sin esto, cargar seis obras
-    seguidas en una sesión deja seis tandas de imágenes completas retenidas.
+    Le miniature dei file nuovi sono URL di oggetto, che il browser tiene in
+    memoria finché non li si rilascia. Senza questo, caricare sei opere di
+    seguito in una sessione lascia trattenute sei serie di immagini intere.
   */
   useEffect(() => {
     return () => {
       for (const it of items) if (it.tipo === "nueva") URL.revokeObjectURL(it.preview);
     };
-    // Corre sólo al desmontar: adentro se lee la lista viva por la clausura,
-    // y volver a atarlo en cada cambio revocaría miniaturas todavía en uso.
+    // Gira solo allo smontaggio: dentro si legge la lista viva tramite la
+    // closure, e rilegarlo a ogni cambiamento revocherebbe miniature ancora in
+    // uso.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /*
-    Lo que viaja al servidor: apenas un JSON con el orden, el texto
-    alternativo y, por cada imagen, su dirección en Cloudinary y sus medidas.
+    Quello che viaggia verso il server: appena un JSON con l'ordine, il testo
+    alternativo e, per ogni immagine, il suo indirizzo su Cloudinary e le sue
+    misure.
 
-    Los archivos ya no pasan por acá —subieron directo del navegador— así que
-    este envío pesa unos cientos de bytes aunque la obra tenga tres escaneos
-    de 8 MB. Es lo que hace que el tope del cuerpo de una Server Action deje
-    de ser un problema.
+    I file non passano più di qui —sono saliti direttamente dal browser—
+    quindi questo invio pesa qualche centinaio di byte anche se l'opera ha tre
+    scansioni da 8 MB. È questo che fa smettere di essere un problema il limite
+    del corpo di una Server Action.
 
-    Las que todavía están subiendo o fallaron no entran: el botón está
-    bloqueado mientras eso pase, y esto es la segunda red por si se destraba.
+    Quelle che stanno ancora salendo o che sono fallite non entrano: il
+    pulsante è bloccato finché questo succede, e questa è la seconda rete nel
+    caso si sblocchi.
   */
   const manifiesto = useMemo(
     () =>
@@ -219,11 +225,11 @@ export default function WorkForm({ obra }: { obra?: Work }) {
     if (!lista || lista.length === 0) return;
 
     /*
-      La copia se hace acá y no dentro del actualizador de estado, y no es
-      cosmético: `lista` es el FileList vivo del input, y el manejador vacía
-      ese input apenas termina para poder volver a elegir el mismo archivo.
-      React llama al actualizador después, así que si la lectura viviera
-      adentro encontraría la lista ya vacía y no se cargaría ninguna imagen.
+      La copia si fa qui e non dentro l'updater di stato, e non è cosmetica:
+      `lista` è il FileList vivo dell'input, e il gestore svuota quell'input
+      appena finisce per poter riscegliere lo stesso file. React chiama
+      l'updater dopo, quindi se la lettura vivesse là dentro troverebbe la
+      lista già vuota e non si caricherebbe nessuna immagine.
     */
     const nuevos: Nueva[] = Array.from(lista).map((file, i) => ({
       key: `nueva-${Date.now()}-${i}`,
@@ -237,8 +243,8 @@ export default function WorkForm({ obra }: { obra?: Work }) {
 
     setItems((previos) => [...previos, ...nuevos]);
 
-    // Un permiso por tanda: la firma autoriza la carpeta y el momento, no un
-    // archivo concreto, así que sirve para todas las de este grupo.
+    // Un permesso per gruppo: la firma autorizza la cartella e il momento,
+    // non un file preciso, quindi vale per tutte quelle di questo gruppo.
     const respuesta = await pedirPermisoDeSubida();
     if (!respuesta.ok) {
       for (const it of nuevos) actualizar(it.key, { estado: "error", mensaje: respuesta.error });
@@ -246,17 +252,17 @@ export default function WorkForm({ obra }: { obra?: Work }) {
     }
 
     /*
-      De a una y no todas a la vez. Tres escaneos en paralelo se reparten el
-      ancho de banda de subida y las tres barras avanzan a un tercio de
-      velocidad: la primera imagen tarda lo mismo que la última. En fila, la
-      primera termina pronto y se puede empezar a escribirle el texto
-      alternativo mientras siguen las otras.
+      Una alla volta e non tutte insieme. Tre scansioni in parallelo si dividono
+      la banda di caricamento e le tre barre avanzano a un terzo della
+      velocità: la prima immagine ci mette quanto l'ultima. In fila, la prima
+      finisce presto e le si può cominciare a scrivere il testo alternativo
+      mentre le altre proseguono.
     */
     for (const it of nuevos) {
       if (it.file.size > MAX_ARCHIVO_MB * MB) {
         actualizar(it.key, {
           estado: "error",
-          mensaje: `Pesa ${enMB(it.file.size)} y el máximo son ${MAX_ARCHIVO_MB} MB.`,
+          mensaje: `Pesa ${enMB(it.file.size)} e il massimo sono ${MAX_ARCHIVO_MB} MB.`,
         });
         continue;
       }
@@ -269,7 +275,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
       } catch (e) {
         actualizar(it.key, {
           estado: "error",
-          mensaje: e instanceof Error ? e.message : "No se pudo subir.",
+          mensaje: e instanceof Error ? e.message : "Non è stato possibile caricarla.",
         });
       }
     }
@@ -281,12 +287,12 @@ export default function WorkForm({ obra }: { obra?: Work }) {
       if (fuera?.tipo === "nueva") {
         URL.revokeObjectURL(fuera.preview);
         /*
-          Si ya había subido, se saca también de Cloudinary. Sin esto, cada
-          imagen que ella elige y descarta queda ocupando la cuenta para
-          siempre, sin que ninguna obra la nombre.
+          Se era già salita, si toglie anche da Cloudinary. Senza questo, ogni
+          immagine che lei sceglie e scarta resta a occupare l'account per
+          sempre, senza che nessuna opera la nomini.
 
-          Sólo las nuevas: una imagen ya guardada puede estar todavía en la
-          obra publicada, y se borra recién al guardar los cambios.
+          Solo le nuove: un'immagine già salvata può essere ancora nell'opera
+          pubblicata, e si cancella solo al salvataggio delle modifiche.
         */
         if (fuera.publicId) void descartarImagen(fuera.publicId);
       }
@@ -313,16 +319,16 @@ export default function WorkForm({ obra }: { obra?: Work }) {
       {obra && <input type="hidden" name="id" value={obra.id} />}
       <input type="hidden" name="imagenes" value={manifiesto} />
 
-      {/* ------------------------------------------------ la ficha, 7 col */}
+      {/* --------------------------------------------- la scheda, 7 colonne */}
       <div className="md:col-span-7">
         <h1 className="display-lead font-display text-[clamp(1.5rem,3vw,2.125rem)] leading-[1.15]">
-          {obra ? obra.title : "Nueva obra"}
+          {obra ? obra.title : "Nuova opera"}
         </h1>
 
         {/*
-          El aviso de las imágenes va antes del error del servidor porque se
-          ve sin haber enviado nada: corrige el problema en vez de informarlo
-          después de que el envío falló.
+          L'avviso sulle immagini va prima dell'errore del server perché si
+          vede senza aver inviato niente: corregge il problema invece di
+          segnalarlo dopo che l'invio è fallito.
         */}
         {(falladas.length > 0 || pesadas.length > 0) && (
           <p
@@ -330,16 +336,16 @@ export default function WorkForm({ obra }: { obra?: Work }) {
             className="mt-5 border-l border-accent bg-paper-deep/60 py-2 pl-3 text-sm text-accent"
           >
             {pesadas.length > 0
-              ? `${pesadas.length === 1 ? "Una imagen pasa" : `${pesadas.length} imágenes pasan`} los ${MAX_ARCHIVO_MB} MB. Exportalas más chicas y volvé a elegirlas.`
-              : `${falladas.length === 1 ? "Una imagen no subió" : `${falladas.length} imágenes no subieron`}. Quitalas y probá de nuevo, o revisá el detalle debajo de cada una.`}
+              ? `${pesadas.length === 1 ? "Un'immagine supera" : `${pesadas.length} immagini superano`} i ${MAX_ARCHIVO_MB} MB. Esportale più piccole e riscegliele.`
+              : `${falladas.length === 1 ? "Un'immagine non è stata caricata" : `${falladas.length} immagini non sono state caricate`}. Toglile e riprova, oppure controlla il dettaglio sotto ognuna.`}
           </p>
         )}
 
         {estado.error && (
           /*
-            El error va arriba del todo y no al pie del botón: si aparece
-            abajo de un formulario largo, quien lo envió desde la mitad de la
-            página no lo ve nunca. `role="alert"` hace que se anuncie solo.
+            L'errore va in cima a tutto e non sotto il pulsante: se comparisse
+            in fondo a un modulo lungo, chi l'ha inviato da metà pagina non lo
+            vedrebbe mai. `role="alert"` fa sì che si annunci da solo.
           */
           <p
             role="alert"
@@ -352,7 +358,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
         <div className="mt-8 space-y-7">
           <div className="group/campo">
             <label htmlFor={`${idBase}-title`} className={`${LABEL} group-has-[:focus]/campo:text-ink`}>
-              Título
+              Titolo
             </label>
             <input
               id={`${idBase}-title`}
@@ -370,11 +376,11 @@ export default function WorkForm({ obra }: { obra?: Work }) {
 
           <div className="group/campo">
             <label htmlFor={`${idBase}-slug`} className={`${LABEL} group-has-[:focus]/campo:text-ink`}>
-              Dirección
+              Indirizzo
             </label>
             <p className="mt-1.5 text-xs leading-relaxed text-ink-faint">
-              Lo que va después de /opera/. Minúsculas, números y guiones. Si la obra ya se
-              compartió, no la cambies: el link viejo dejaría de funcionar.
+              Quello che va dopo /opera/. Minuscole, numeri e trattini. Se l&apos;opera è già
+              stata condivisa, non cambiarlo: il link vecchio smetterebbe di funzionare.
             </p>
             <input
               id={`${idBase}-slug`}
@@ -394,7 +400,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
           <div className="grid gap-7 sm:grid-cols-2">
             <div className="group/campo">
               <label htmlFor={`${idBase}-year`} className={`${LABEL} group-has-[:focus]/campo:text-ink`}>
-                Año
+                Anno
               </label>
               <input
                 id={`${idBase}-year`}
@@ -414,7 +420,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                 htmlFor={`${idBase}-tecnica`}
                 className={`${LABEL} group-has-[:focus]/campo:text-ink`}
               >
-                Técnica
+                Tecnica
               </label>
               <input
                 id={`${idBase}-tecnica`}
@@ -422,7 +428,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                 defaultValue={obra?.tecnica ?? ""}
                 required
                 autoComplete="off"
-                placeholder="Acuarela y tinta"
+                placeholder="Acquerello e inchiostro"
                 className={`${CONTROL} mt-2`}
               />
             </div>
@@ -433,10 +439,10 @@ export default function WorkForm({ obra }: { obra?: Work }) {
               htmlFor={`${idBase}-description`}
               className={`${LABEL} group-has-[:focus]/campo:text-ink`}
             >
-              Texto
+              Testo
             </label>
             <p className="mt-1.5 text-xs leading-relaxed text-ink-faint">
-              El contexto del encargo, para la página de la obra. Puede quedar vacío.
+              Il contesto della commissione, per la pagina dell&apos;opera. Può restare vuoto.
             </p>
             <textarea
               id={`${idBase}-description`}
@@ -448,28 +454,28 @@ export default function WorkForm({ obra }: { obra?: Work }) {
           </div>
         </div>
 
-        {/* --------------------------------------------------- imágenes */}
+        {/* --------------------------------------------------- immagini */}
         <div className="mt-12 border-t border-line pt-8">
-          <h2 className="label text-ink">Imágenes</h2>
+          <h2 className="label text-ink">Immagini</h2>
           <p className="mt-1.5 max-w-[46ch] text-xs leading-relaxed text-ink-faint">
-            La primera es la portada: la que sale en la grilla del archivo. Cada una sube a
-            Cloudinary apenas la elegís, y de ahí salen el ancho y el alto: no hace falta
-            cargarlos.
+            La prima è la copertina: quella che esce nella griglia dell&apos;archivio. Ognuna
+            sale su Cloudinary appena la scegli, e da lì escono larghezza e altezza: non
+            serve inserirle.
           </p>
 
           <ul className="mt-6 space-y-4">
             {items.map((it, i) => (
               <li key={it.key} className="flex gap-4 border-b border-line pb-4">
                 {/*
-                  La miniatura es cuadrada como la grilla, para que se vea acá
-                  el mismo recorte que va a verse publicado.
-                  <img> y no next/image: mientras sube es un objeto en memoria
-                  del navegador, y una vez arriba la sirve Cloudinary, que ya
-                  hace su propio redimensionado.
+                  La miniatura è quadrata come la griglia, perché si veda qui
+                  lo stesso ritaglio che si vedrà pubblicato.
+                  <img> e non next/image: mentre sale è un oggetto in memoria
+                  del browser, e una volta caricata la serve Cloudinary, che fa
+                  già il proprio ridimensionamento.
 
-                  Mientras viaja va en tinta apagada: la imagen todavía no
-                  está en ningún lado, y mostrarla igual que una guardada
-                  diría que el trabajo terminó.
+                  Mentre viaggia va in inchiostro spento: l'immagine non è
+                  ancora da nessuna parte, e mostrarla uguale a una salvata
+                  direbbe che il lavoro è finito.
                 */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -483,7 +489,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="label text-ink-faint">
-                      {i === 0 ? "Portada" : `Imagen ${i + 1}`}
+                      {i === 0 ? "Copertina" : `Immagine ${i + 1}`}
                     </span>
 
                     <div className="flex items-center gap-1">
@@ -491,29 +497,29 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                         type="button"
                         onClick={() => mover(i, -1)}
                         disabled={i === 0}
-                        title="Subir"
+                        title="Sposta su"
                         className="flex h-7 w-7 rotate-90 items-center justify-center text-ink-faint transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-30"
                       >
-                        <span className="sr-only">Subir esta imagen</span>
+                        <span className="sr-only">Sposta su questa immagine</span>
                         <ArrowLeft size={15} />
                       </button>
                       <button
                         type="button"
                         onClick={() => mover(i, 1)}
                         disabled={i === items.length - 1}
-                        title="Bajar"
+                        title="Sposta giù"
                         className="flex h-7 w-7 rotate-90 items-center justify-center text-ink-faint transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-30"
                       >
-                        <span className="sr-only">Bajar esta imagen</span>
+                        <span className="sr-only">Sposta giù questa immagine</span>
                         <ArrowRight size={15} />
                       </button>
                       <button
                         type="button"
                         onClick={() => quitar(it.key)}
-                        title="Quitar"
+                        title="Togli"
                         className="flex h-7 w-7 items-center justify-center text-ink-faint transition-colors hover:text-accent"
                       >
-                        <span className="sr-only">Quitar esta imagen</span>
+                        <span className="sr-only">Togli questa immagine</span>
                         <Trash size={15} />
                       </button>
                     </div>
@@ -522,16 +528,16 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                   <input
                     value={it.alt}
                     onChange={(e) => cambiarAlt(it.key, e.target.value)}
-                    placeholder="Describí la imagen"
-                    aria-label={`Texto alternativo de la imagen ${i + 1}`}
+                    placeholder="Descrivi l’immagine"
+                    aria-label={`Testo alternativo dell’immagine ${i + 1}`}
                     className={`${CONTROL} mt-1 py-1.5 text-sm`}
                   />
 
                   {/*
-                    El pie de cada imagen dice dos cosas distintas según de
-                    dónde venga: una guardada muestra sus medidas, que son un
-                    hecho; una que está subiendo muestra por dónde va, que es
-                    lo único que importa en ese momento.
+                    La didascalia di ogni immagine dice due cose diverse a
+                    seconda della provenienza: una salvata mostra le sue
+                    misure, che sono un fatto; una che sta salendo mostra a che
+                    punto è, che è l'unica cosa che conta in quel momento.
                   */}
                   {it.tipo === "existente" ? (
                     <p className="mt-1.5 truncate text-xs text-ink-faint">
@@ -539,7 +545,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                         {it.width} × {it.height}
                       </span>
                       <span aria-hidden="true"> · </span>
-                      guardada
+                      salvata
                     </p>
                   ) : (
                     <div className="mt-1.5">
@@ -560,12 +566,12 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                       </p>
 
                       {/*
-                        La barra sólo existe mientras sube. Es un filete que
-                        crece, del mismo grosor que los del sistema: no es un
-                        componente nuevo, es el filete que ya separa las filas
-                        haciendo de medida. Al terminar desaparece, porque una
-                        barra llena al 100% no dice nada que las medidas de al
-                        lado no digan mejor.
+                        La barra esiste solo mentre sale. È un filetto che
+                        cresce, dello stesso spessore di quelli del sistema:
+                        non è un componente nuovo, è il filetto che già separa
+                        le righe che fa da misura. Alla fine sparisce, perché
+                        una barra piena al 100% non dice niente che le misure
+                        accanto non dicano meglio.
                       */}
                       {it.estado === "subiendo" && (
                         <div
@@ -573,7 +579,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                           aria-valuenow={it.progreso}
                           aria-valuemin={0}
                           aria-valuemax={100}
-                          aria-label={`Subiendo ${it.file.name}`}
+                          aria-label={`Caricamento di ${it.file.name}`}
                           className="mt-1.5 h-px w-full bg-line"
                         >
                           <div
@@ -597,8 +603,8 @@ export default function WorkForm({ obra }: { obra?: Work }) {
             hidden
             onChange={(e) => {
               sumarArchivos(e.target.files);
-              // Se vacía para que elegir dos veces el mismo archivo vuelva a
-              // disparar el evento.
+              // Si svuota perché scegliere due volte lo stesso file torni a
+              // far scattare l'evento.
               e.target.value = "";
             }}
           />
@@ -610,12 +616,12 @@ export default function WorkForm({ obra }: { obra?: Work }) {
           >
             <Plus size={18} />
             <span className="label">
-              {items.length === 0 ? "Elegir imágenes" : "Sumar otra"}
+              {items.length === 0 ? "Scegli le immagini" : "Aggiungine un'altra"}
             </span>
           </button>
         </div>
 
-        {/* ------------------------------------------------------ enviar */}
+        {/* ------------------------------------------------------ invio */}
         <div className="mt-10 flex items-center gap-6 border-t border-line pt-6">
           <button
             type="submit"
@@ -623,30 +629,30 @@ export default function WorkForm({ obra }: { obra?: Work }) {
             className="bg-ink px-6 py-3 text-sm text-paper transition-opacity hover:opacity-85 disabled:opacity-50"
           >
             {enviando
-              ? "Guardando…"
+              ? "Salvataggio…"
               : subiendo
-                ? "Subiendo imágenes…"
+                ? "Caricamento immagini…"
                 : obra
-                  ? "Guardar cambios"
-                  : "Cargar la obra"}
+                  ? "Salva le modifiche"
+                  : "Carica l'opera"}
           </button>
 
           <Link
             href="/admin"
             className="link-underline text-sm text-ink-soft transition-colors hover:text-ink"
           >
-            Cancelar
+            Annulla
           </Link>
         </div>
       </div>
 
-      {/* ------------------------------------------------ el lateral, col 9 */}
+      {/* ------------------------------------------ la colonna laterale, col 9 */}
       <aside className="md:col-span-3 md:col-start-9">
-        <h2 className="label">Dónde va a salir</h2>
+        <h2 className="label">Dove uscirà</h2>
         <ul className="mt-4 space-y-2.5 text-sm text-ink-soft">
-          <li>En la grilla de la portada, con la primera imagen en cuadrado.</li>
+          <li>Nella griglia della home, con la prima immagine in quadrato.</li>
           <li>
-            En su propia página:{" "}
+            Nella sua pagina:{" "}
             <span className="break-all text-xs tracking-[0.01em] text-ink">
               /opera/{direccion || "…"}
             </span>
@@ -655,8 +661,8 @@ export default function WorkForm({ obra }: { obra?: Work }) {
 
         {obra && (
           <p className="mt-6 border-t border-line pt-4 text-xs text-ink-faint">
-            Cargada como{" "}
-            <span className="figures text-ink-soft">#{obra.id}</span> en el archivo.
+            Caricata come{" "}
+            <span className="figures text-ink-soft">#{obra.id}</span> nell&apos;archivio.
           </p>
         )}
       </aside>

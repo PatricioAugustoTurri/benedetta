@@ -1,14 +1,14 @@
 import StudioFilm from "@/components/StudioFilm";
 
 /**
- * La película que abre la página, como lámina sobre el pliego: los mismos
- * márgenes que una obra del archivo, así se lee como una pieza más de su
- * trabajo y no como la portada de otra cosa.
+ * Il filmato che apre la pagina, come tavola sul foglio: gli stessi margini di
+ * un'opera dell'archivio, così si legge come un altro pezzo del suo lavoro e
+ * non come la copertina di qualcos'altro.
  *
- * Sin `Reveal`, a diferencia del resto de la página. La aparición al entrar
- * en pantalla es para lo que llega con el scroll; esto ya está ahí cuando se
- * abre la página, y hacerlo aparecer sería inventarle una llegada a algo que
- * no viaja.
+ * Senza `Reveal`, a differenza del resto della pagina. L'apparizione
+ * all'entrata in schermo è per quello che arriva con lo scroll; questo è già
+ * lì quando si apre la pagina, e farlo apparire sarebbe inventare un arrivo a
+ * qualcosa che non viaggia.
  */
 export default function StudioOpening() {
   return (

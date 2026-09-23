@@ -1,37 +1,39 @@
 /**
- * Los topes de subida.
+ * I limiti di caricamento.
  *
- * Cambiaron de sentido cuando las imágenes pasaron a subir directo del
- * navegador a Cloudinary. Antes el archivo atravesaba el servidor de Next y
- * el número que importaba era cuánto cuerpo aceptaba una Server Action; ahora
- * el archivo no lo toca, y lo único que viaja al guardar es un JSON de unos
- * cientos de bytes con direcciones y medidas.
+ * Hanno cambiato senso quando le immagini sono passate a salire direttamente
+ * dal browser a Cloudinary. Prima il file attraversava il server di Next e il
+ * numero che contava era quanto corpo accettasse una Server Action; adesso il
+ * file non lo tocca, e l'unica cosa che viaggia al salvataggio è un JSON di
+ * qualche centinaio di byte con indirizzi e misure.
  */
 
 /**
- * Lo que puede pesar una imagen sola.
+ * Quanto può pesare una singola immagine.
  *
- * El número no lo elegí yo: es el techo del plan gratuito de Cloudinary para
- * imágenes. Comprobarlo acá antes de subir no es desconfianza, es cortesía —
- * decirle a alguien que su archivo es muy grande después de hacerle esperar
- * la subida entera es la peor forma de decírselo.
+ * Il numero non l'ho scelto io: è il tetto del piano gratuito di Cloudinary
+ * per le immagini. Controllarlo qui prima di caricare non è diffidenza, è
+ * cortesia — dire a qualcuno che il suo file è troppo grande dopo avergli
+ * fatto aspettare l'intero caricamento è il modo peggiore per dirglielo.
  *
- * Si el plan de la cuenta sube, este número sube con él y nada más cambia.
+ * Se il piano dell'account sale, questo numero sale con lui e non cambia
+ * nient'altro.
  */
 export const MAX_ARCHIVO_MB = 10;
 
 /**
- * Lo que acepta el framework en el cuerpo de una Server Action.
+ * Quello che il framework accetta nel corpo di una Server Action.
  *
- * Next trae 1 MB. Dos alcanzan de sobra para el JSON de una obra con muchas
- * imágenes, y dejarlo bajo es deliberado: un tope alto en una acción que ya
- * no recibe archivos sólo agranda lo que alguien podría mandarle al servidor.
+ * Next porta 1 MB. Due bastano e avanzano per il JSON di un'opera con molte
+ * immagini, e tenerlo basso è deliberato: un limite alto su un'azione che non
+ * riceve più file non fa che ingrandire quello che qualcuno potrebbe mandare
+ * al server.
  */
 export const MAX_CUERPO_MB = 2;
 
 export const MB = 1024 * 1024;
 
-/** Para los mensajes: «2,4 MB» y no «2516582 bytes». */
+/** Per i messaggi: «2,4 MB» e non «2516582 byte». */
 export function enMB(bytes: number): string {
   return `${(bytes / MB).toFixed(1)} MB`;
 }

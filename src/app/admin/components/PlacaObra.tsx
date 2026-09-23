@@ -2,26 +2,27 @@ import Image from "next/image";
 import { Work } from "@/lib/works";
 
 /**
- * El dibujo de una obra en la grilla del admin: la placa y su ficha.
+ * Il disegno di un'opera nella griglia dell'admin: la placca e la sua scheda.
  *
- * Existe como pieza aparte porque ahora se dibuja en dos lugares —la celda
- * de la grilla y la copia que sigue al dedo mientras se arrastra— y esos dos
- * tienen que ser la misma obra, no dos versiones parecidas. Un duplicado se
- * empieza a separar en la primera corrección que alguien hace en uno solo.
+ * Esiste come pezzo a sé perché adesso si disegna in due posti —la cella della
+ * griglia e la copia che segue il dito mentre si trascina— e quei due devono
+ * essere la stessa opera, non due versioni simili. Un duplicato comincia a
+ * divergere alla prima correzione che qualcuno fa su uno solo dei due.
  *
- * La proporción es la del sitio, 4:5, y tiene que seguirla cuando cambie: esta
- * pantalla existe para juzgar cómo se va a ver la pieza publicada, y mostrarla
- * con otro encuadre la deja sirviendo para lo contrario de lo que justifica su
- * forma.
+ * La proporzione è quella del sito, 4:5, e deve seguirla quando cambia: questa
+ * schermata esiste per giudicare come si vedrà il pezzo pubblicato, e mostrarlo
+ * con un'altra inquadratura la lascia a servire per il contrario di ciò che
+ * giustifica la sua forma.
  *
- * Todo son `<span>` y no `<div>`: en la celda esto vive adentro de un `<a>`,
- * que no admite contenido de bloque. En la copia flotante da igual, y la
- * regla la marca el caso que sí obliga.
+ * Sono tutti `<span>` e non `<div>`: nella cella questo vive dentro un `<a>`,
+ * che non ammette contenuto di blocco. Nella copia flottante è indifferente, e
+ * la regola la detta il caso che invece obbliga.
  *
- * `enMano` es la pieza levantada. Lleva el filete terracota y el título en
- * terracota, no como decoración sino porque en este sistema el color marca
- * estado, y una obra en el aire es estado: es la que se está moviendo. Fuera
- * de la mano ese mismo filete lo pone el hover, y por eso acá se apaga.
+ * `enMano` è il pezzo sollevato. Porta il filetto terracotta e il titolo in
+ * terracotta, non come decorazione ma perché in questo sistema il colore segna
+ * lo stato, e un'opera in aria è uno stato: è quella che si sta spostando.
+ * Fuori dalla mano quello stesso filetto lo mette l'hover, e per questo qui si
+ * spegne.
  */
 export default function PlacaObra({ obra, enMano = false }: { obra: Work; enMano?: boolean }) {
   const portada = obra.image[0];
@@ -42,28 +43,28 @@ export default function PlacaObra({ obra, enMano = false }: { obra: Work; enMano
           />
         ) : (
           /*
-            No debería pasar —el formulario exige una imagen— pero si una fila
-            entró por psql sin ninguna, la grilla lo dice en vez de dibujar un
-            rectángulo gris sin explicación.
+            Non dovrebbe succedere —il modulo esige un'immagine— ma se una riga
+            è entrata da psql senza nessuna, la griglia lo dice invece di
+            disegnare un rettangolo grigio senza spiegazione.
           */
           <span className="flex aspect-[4/5] w-full items-center justify-center text-xs text-accent">
-            Sin imagen
+            Senza immagine
           </span>
         )}
 
         {/*
-          El filete que marca la pieza apuntada. Va por dentro del borde con
-          `inset` y no como `border`, para no correr la imagen un píxel al
-          aparecer: el salto delataría que es una capa agregada.
+          Il filetto che segna il pezzo puntato. Va all'interno del bordo con
+          `inset` e non come `border`, per non spostare l'immagine di un pixel
+          quando compare: il salto rivelerebbe che è uno strato aggiunto.
 
-          Detrás de `@media (hover: hover)` como los controles, y por lo mismo:
-          en una pantalla táctil el `:hover` se queda pegado después de tocar,
-          así que sin esto una pieza en reposo quedaba con el filete y el
-          título en terracota. El sistema reserva ese color para el estado;
-          pegado, pasa a ser decoración.
+          Dietro a `@media (hover: hover)` come i controlli, e per lo stesso
+          motivo: su uno schermo touch il `:hover` resta attaccato dopo il
+          tocco, quindi senza questo un pezzo a riposo restava con il filetto e
+          il titolo in terracotta. Il sistema riserva quel colore allo stato;
+          attaccato, diventa decorazione.
 
-          En la mano el filete está puesto y no depende de nada: ahí el estado
-          es cierto en cualquier dispositivo, porque la pieza está agarrada.
+          In mano il filetto è acceso e non dipende da niente: lì lo stato è
+          vero su qualsiasi dispositivo, perché il pezzo è afferrato.
         */}
         <span
           aria-hidden="true"
@@ -90,22 +91,22 @@ export default function PlacaObra({ obra, enMano = false }: { obra: Work; enMano
         {obra.tecnica}
         <span aria-hidden="true"> · </span>
         <span className="figures">{obra.image.length}</span>
-        {obra.image.length === 1 ? " imagen" : " imágenes"}
+        {obra.image.length === 1 ? " immagine" : " immagini"}
 
         {/*
-          Lo que falta, dicho en la grilla. El texto es el único campo que
-          puede quedar vacío sin que la obra deje de guardarse, así que es el
-          único que se puede tener a medias sin enterarse: la página de la
-          obra sale sin una línea y nada lo avisa.
+          Quello che manca, detto nella griglia. Il testo è l'unico campo che
+          può restare vuoto senza che l'opera smetta di salvarsi, quindi è
+          l'unico che si può avere a metà senza accorgersene: la pagina
+          dell'opera esce senza una riga e niente lo avvisa.
 
-          En terracota porque el sistema usa ese color para el estado, y esto
-          es estado: no es un error —la obra está bien cargada— es una obra a
-          la que todavía le falta algo.
+          In terracotta perché il sistema usa quel colore per lo stato, e
+          questo è uno stato: non è un errore —l'opera è caricata bene— è
+          un'opera a cui manca ancora qualcosa.
         */}
         {!obra.description && (
           <>
             <span aria-hidden="true"> · </span>
-            <span className="text-accent">sin texto</span>
+            <span className="text-accent">senza testo</span>
           </>
         )}
       </span>

@@ -4,25 +4,25 @@ import AdminBar from "./components/AdminBar";
 
 export const metadata: Metadata = {
   title: "Archivio",
-  // Que no lo indexe nadie. Es una pantalla de trabajo, no una página.
+  // Che non lo indicizzi nessuno. È una schermata di lavoro, non una pagina.
   robots: { index: false, follow: false },
 };
 
 /*
-  El admin se sirve siempre fresco. Sin esto, la grilla podría venir de una
-  respuesta guardada y ella cargaría una obra para encontrarse con el archivo
-  de hace un rato: en una pantalla de edición, ver lo que había antes de tu
-  último cambio es un error, no una optimización.
+  L'admin si serve sempre fresco. Senza questo, la griglia potrebbe arrivare da
+  una risposta in cache e lei caricherebbe un'opera per ritrovarsi l'archivio
+  di poco fa: in una schermata di modifica, vedere quello che c'era prima del
+  tuo ultimo cambiamento è un errore, non un'ottimizzazione.
 */
 export const dynamic = "force-dynamic";
 
 /**
- * El marco del admin.
+ * La cornice dell'admin.
  *
- * No trae la cabecera ni el pie del sitio —ésos viven en `(sitio)`— porque
- * acá no se navega un portfolio, se trabaja sobre él. Lo único fijo arriba es
- * la barra, y sólo cuando hay sesión: en la pantalla de acceso no hay nada
- * que contar todavía.
+ * Non porta l'header né il footer del sito —quelli vivono in `(sitio)`— perché
+ * qui non si naviga un portfolio, ci si lavora sopra. L'unica cosa fissa in
+ * alto è la barra, e solo quando c'è una sessione: nella schermata di accesso
+ * non c'è ancora niente da raccontare.
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const conSesion = await isAuthenticated();

@@ -1,70 +1,72 @@
--- illustrando · esquema
+-- illustrando · schema
 --
--- Base: illustrando (PostgreSQL 17)
--- Correr con:  psql -d illustrando -f db/schema.sql
+-- Database: illustrando (PostgreSQL 17)
+-- Eseguire con:  psql -d illustrando -f db/schema.sql
 --
--- Este archivo es la fuente de verdad de la estructura. Si cambia una columna,
--- cambia acá primero y después en la base: al revés, la próxima máquina que
--- levante el proyecto arranca con un esquema que no es el que se está usando.
+-- Questo file è la fonte di verità della struttura. Se cambia una colonna,
+-- cambia prima qui e poi nel database: al contrario, la prossima macchina che
+-- avvia il progetto parte con uno schema che non è quello in uso.
 
 BEGIN;
 
 -- --------------------------------------------------------------------------
--- works — el archivo de obra
+-- works — l'archivio d'opera
 --
--- Una fila por pieza, y la única fuente: el sitio lee de acá. Reemplazó a
--- src/data/illustrations.ts, que se eliminó. Quien escribe es /admin.
+-- Una riga per pezzo, e l'unica fonte: il sito legge da qui. Ha sostituito
+-- src/data/illustrations.ts, che è stato eliminato. Chi scrive è /admin.
 -- --------------------------------------------------------------------------
 CREATE TABLE works (
   id          integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
-  -- El identificador del link permanente: /opera/<slug>. Va UNIQUE porque una
-  -- URL que ya se compartió no puede empezar a apuntar a otra obra. El CHECK
-  -- lo mantiene apto para una URL: minúsculas, números y guiones, nada más.
+  -- L'identificatore del link permanente: /opera/<slug>. Va UNIQUE perché un
+  -- URL già condiviso non può cominciare a puntare a un'altra opera. Il CHECK
+  -- lo mantiene adatto a un URL: minuscole, numeri e trattini, nient'altro.
   slug        text        NOT NULL UNIQUE
               CONSTRAINT works_slug_formato CHECK (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
 
   title       text        NOT NULL
               CONSTRAINT works_title_no_vacio CHECK (length(trim(title)) > 0),
 
-  -- El contexto del encargo, para la página de la obra. Puede faltar: una
-  -- pieza puede entrar al archivo antes de que esté escrito su texto.
+  -- Il contesto della commissione, per la pagina dell'opera. Può mancare: un
+  -- pezzo può entrare nell'archivio prima che il suo testo sia scritto.
   description text,
 
-  -- Las imágenes de la obra, en orden: la primera es la portada, la que sale
-  -- en la grilla del archivo. Es un arreglo y no una columna suelta porque
-  -- cada pieza tiene más de una toma —el frente, un detalle, la hoja sobre la
-  -- mesa— y esa cantidad cambia de obra en obra.
+  -- Le immagini dell'opera, in ordine: la prima è la copertina, quella che
+  -- esce nella griglia dell'archivio. È un array e non una colonna singola
+  -- perché ogni pezzo ha più di uno scatto —il fronte, un dettaglio, il foglio
+  -- sul tavolo— e quel numero cambia da opera a opera.
   --
-  -- jsonb y no text[] porque cada imagen no es sólo una dirección: Next.js
-  -- necesita las medidas reales del archivo para reservar el hueco antes de
-  -- que cargue, y el alt es obligación de accesibilidad, no un extra. Un
-  -- arreglo de URLs sueltas obligaría a guardar todo eso en otro lado.
+  -- jsonb e non text[] perché ogni immagine non è solo un indirizzo: Next.js
+  -- ha bisogno delle misure reali del file per riservare lo spazio prima del
+  -- caricamento, e l'alt è un obbligo di accessibilità, non un extra. Un
+  -- array di URL sciolti obbligherebbe a conservare tutto questo altrove.
   --
-  -- Sigue la convención que ya usaban products.image y categories.portada en
-  -- esta misma base.
+  -- Segue la convenzione che già usavano products.image e categories.portada
+  -- in questo stesso database.
   --
-  -- Forma de cada elemento:
-  --   { "url": "/ilustraciones/01-a.jpg",   -- requerida
-  --     "alt": "Rama con hojas bajo un círculo",
+  -- Forma di ogni elemento:
+  --   { "url": "/ilustraciones/01-a.jpg",   -- obbligatoria
+  --     "alt": "Ramo con foglie sotto un cerchio",
   --     "width": 900,
   --     "height": 1200 }
   image       jsonb       NOT NULL DEFAULT '[]'::jsonb
-              -- Dos reglas, y las dos son sobre la forma, no sobre el
-              -- contenido: que sea un arreglo, y que ningún elemento venga sin
-              -- url. Va con jsonpath porque un CHECK no admite subconsultas,
-              -- así que no se puede recorrer el arreglo con un SELECT.
+              -- Due regole, ed entrambe riguardano la forma e non il
+              -- contenuto: che sia un array, e che nessun elemento arrivi
+              -- senza url. Va con jsonpath perché un CHECK non ammette
+              -- sottoquery, quindi non si può percorrere l'array con un
+              -- SELECT.
               --
-              -- La segunda cuenta en vez de buscar al que está mal: un filtro
-              -- `? (@.url.type() != "string")` no atrapa al elemento que no
-              -- tiene `url` —si la clave no está, no hay nada que comparar y
-              -- el filtro no lo ve pasar—. Contando los que sí la tienen y
-              -- exigiendo que sean todos, el que falta cae igual.
+              -- La seconda conta invece di cercare quello sbagliato: un filtro
+              -- `? (@.url.type() != "string")` non prende l'elemento che non
+              -- ha `url` —se la chiave non c'è, non c'è niente da confrontare e
+              -- il filtro non lo vede passare—. Contando quelli che ce l'hanno
+              -- ed esigendo che siano tutti, anche quello mancante cade lo
+              -- stesso.
               --
-              -- El CASE no es adorno: Postgres no garantiza el orden en que
-              -- evalúa un AND, y jsonb_array_length sobre algo que no es
-              -- arreglo no devuelve falso, revienta. El CASE sí garantiza que
-              -- primero se mire el tipo.
+              -- Il CASE non è un ornamento: Postgres non garantisce l'ordine
+              -- in cui valuta un AND, e jsonb_array_length su qualcosa che non
+              -- è un array non restituisce falso, esplode. Il CASE garantisce
+              -- invece che si guardi prima il tipo.
               CONSTRAINT works_image_es_arreglo CHECK (jsonb_typeof(image) = 'array')
               CONSTRAINT works_image_con_url CHECK (
                 CASE WHEN jsonb_typeof(image) = 'array' THEN
@@ -74,30 +76,32 @@ CREATE TABLE works (
                 ELSE true END
               ),
 
-  -- El año de la obra. Es un dato de la ficha, no el orden del archivo: se
-  -- muestra al lado del título y no decide nada. smallint alcanza y sobra.
-  -- El piso es arbitrario pero atrapa el error real: un año de dos cifras o
-  -- un tipeo de cuatro dígitos que empieza con 1.
+  -- L'anno dell'opera. È un dato della scheda, non l'ordine dell'archivio: si
+  -- mostra accanto al titolo e non decide niente. smallint basta e avanza.
+  -- Il limite inferiore è arbitrario ma intercetta l'errore reale: un anno di
+  -- due cifre o un refuso di quattro cifre che comincia con 1.
   year        smallint    NOT NULL
               CONSTRAINT works_year_plausible CHECK (year BETWEEN 1900 AND 2200),
 
-  -- El lugar de la pieza en la grilla, que lo decide ella arrastrando en
-  -- /admin. Es la única columna que existe para una decisión de curaduría y
-  -- no para un dato de la obra.
+  -- Il posto del pezzo nella griglia, che lo decide lei trascinando in /admin.
+  -- È l'unica colonna che esiste per una decisione di curatela e non per un
+  -- dato dell'opera.
   --
-  -- Existe porque el orden anterior —año descendente, y a igual año el id más
-  -- alto primero— no lo había elegido nadie: qué pieza abre el sitio quedaba
-  -- librado a la fecha de la obra y al número que le tocó en la tabla.
+  -- Esiste perché l'ordine precedente —anno decrescente, e a parità di anno
+  -- l'id più alto per primo— non l'aveva scelto nessuno: quale pezzo aprisse
+  -- il sito era lasciato alla data dell'opera e al numero che le era toccato
+  -- in tabella.
   --
-  -- Es un ordinal, no un índice: se lee sólo en comparación con las otras, y
-  -- no tiene por qué ser contiguo ni empezar en 1. Una obra nueva entra con
-  -- el mínimo menos uno, así que la última cargada abre la grilla; reordenar
-  -- renumera todo de 1 a n.
+  -- È un ordinale, non un indice: si legge solo in confronto agli altri, e non
+  -- deve per forza essere contiguo né cominciare da 1. Un'opera nuova entra
+  -- con il minimo meno uno, così l'ultima caricata apre la griglia;
+  -- riordinare rinumera tutto da 1 a n.
   position    integer     NOT NULL,
 
-  -- Acuarela, gouache, lápiz, serigrafía, tinta y digital… Texto libre a
-  -- propósito: es la ficha de una pieza hecha a mano, y encerrarlo en una
-  -- lista fija obligaría a migrar la tabla cada vez que ella pruebe algo.
+  -- Acquerello, gouache, matita, serigrafia, inchiostro e digitale… Testo
+  -- libero di proposito: è la scheda di un pezzo fatto a mano, e rinchiuderlo
+  -- in una lista fissa obbligherebbe a migrare la tabella ogni volta che lei
+  -- prova qualcosa di nuovo.
   tecnica     text        NOT NULL
               CONSTRAINT works_tecnica_no_vacia CHECK (length(trim(tecnica)) > 0),
 
@@ -105,26 +109,29 @@ CREATE TABLE works (
   updated_at  timestamptz NOT NULL DEFAULT now()
 );
 
--- Dos obras no pueden reclamar el mismo lugar: si pasa, la grilla se
--- reordena sola entre dos cargas y no hay forma de notarlo mirando.
+-- Due opere non possono reclamare lo stesso posto: se succede, la griglia si
+-- riordina da sola fra due caricamenti e non c'è modo di accorgersene
+-- guardando.
 --
--- DEFERRABLE INITIALLY DEFERRED porque reordenar es, por definición, pasar
--- por estados donde dos filas se pisan: mover la quinta al primer lugar corre
--- cuatro obras un casillero, y en el medio de ese UPDATE hay duplicados. Se
--- verifica al cerrar la transacción, cuando el orden ya es un orden.
+-- DEFERRABLE INITIALLY DEFERRED perché riordinare è, per definizione, passare
+-- per stati in cui due righe si calpestano: spostare la quinta al primo posto
+-- fa scorrere quattro opere di una casella, e in mezzo a quell'UPDATE ci sono
+-- duplicati. Si verifica alla chiusura della transazione, quando l'ordine è
+-- ormai un ordine.
 --
--- La restricción deja su propio índice sobre `position`, que es el único
--- orden en que se recorre el archivo, así que no hace falta crear ninguno
--- más. No hay índice por `year`: ninguna consulta ordena ni filtra por él.
+-- Il vincolo lascia il proprio indice su `position`, che è l'unico ordine in
+-- cui si percorre l'archivio, quindi non serve crearne nessun altro. Non c'è
+-- un indice su `year`: nessuna query ordina né filtra per quello.
 ALTER TABLE works
   ADD CONSTRAINT works_position_unica UNIQUE (position) DEFERRABLE INITIALLY DEFERRED;
 
 -- --------------------------------------------------------------------------
--- updated_at se mantiene solo.
+-- updated_at si mantiene da solo.
 --
--- En el trigger y no en la aplicación: si la fecha dependiera de que quien
--- escribe se acuerde de ponerla, el día que alguien corrija un título con un
--- UPDATE a mano desde psql la columna mentiría, que es peor que no tenerla.
+-- Nel trigger e non nell'applicazione: se la data dipendesse dal fatto che chi
+-- scrive si ricordi di metterla, il giorno in cui qualcuno corregge un titolo
+-- con un UPDATE a mano da psql la colonna mentirebbe, che è peggio che non
+-- averla.
 -- --------------------------------------------------------------------------
 CREATE FUNCTION set_updated_at() RETURNS trigger
 LANGUAGE plpgsql AS $$

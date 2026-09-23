@@ -2,22 +2,22 @@ import Image from "next/image";
 import type { Work } from "@/lib/works";
 
 /**
- * Las láminas.
+ * Le tavole.
  *
- * La obra manda: ancho completo, sin recorte, proporción real. El techo de
- * 78vh es la única restricción, y no recorta —`object-contain` deja la pieza
- * entera y la escala—, porque una obra más alta que la pantalla obliga a
- * hacer scroll para verla de una vez, que es lo contrario de mirarla.
+ * Comanda l'opera: larghezza piena, senza ritaglio, proporzione reale. Il
+ * tetto di 78vh è l'unico vincolo, e non ritaglia —`object-contain` lascia il
+ * pezzo intero e lo scala— perché un'opera più alta dello schermo costringe a
+ * scorrere per vederla tutta, che è il contrario di guardarla.
  *
- * Una obra puede traer más de una imagen: el frente, un detalle, la hoja
- * sobre la mesa. Salen todas, una debajo de la otra y en el orden que ella
- * les dio en el admin. La primera es la que abre y la única con `priority`:
- * es la que está en el primer viewport, y precargar las demás le sacaría
- * ancho de banda justo a la que se está mirando.
+ * Un'opera può portare più di un'immagine: il fronte, un dettaglio, il foglio
+ * sul tavolo. Escono tutte, una sotto l'altra e nell'ordine che ha dato loro
+ * lei nell'admin. La prima è quella che apre e l'unica con `priority`: è
+ * quella che sta nel primo viewport, e precaricare le altre toglierebbe banda
+ * proprio a quella che si sta guardando.
  *
- * Las siguientes van con más aire entre ellas que el que las separa del
- * título, para que se lean como una secuencia de la misma obra y no como
- * piezas distintas apiladas.
+ * Le successive vanno con più aria fra loro di quanta ne le separi dal
+ * titolo, perché si leggano come una sequenza della stessa opera e non come
+ * pezzi diversi impilati.
  */
 export default function WorkPlate({ work }: { work: Work }) {
   return (

@@ -8,26 +8,27 @@ import ContactNote from "./components/ContactNote";
 
 export const metadata: Metadata = {
   title: "Contatti",
-  description: "Encargos, colaboraciones y consultas por impresiones.",
+  description: "Commissioni, collaborazioni e richieste di stampe.",
 };
 
 /**
- * `?opera=<slug>` es lo que deja «Chiedi info» al traer a alguien desde una
- * obra, y lo único que hace es precargar el asunto.
+ * `?opera=<slug>` è quello che lascia «Chiedi info» quando porta qualcuno da
+ * un'opera, e l'unica cosa che fa è precompilare l'oggetto.
  *
- * **Viaja el slug y no el título.** Con el título en la URL, el asunto del
- * formulario sería texto que cualquiera puede escribir en la barra de
- * direcciones: nadie se rompe por eso, pero un link armado a mano podría
- * poner cualquier cosa en el campo y hacerlo pasar por el nombre de una obra.
- * Con el slug, el título lo busca el servidor en la tabla, así que es siempre
- * el que ella cargó, y sigue siendo el correcto aunque haya renombrado la
- * obra después de que alguien guardara el link.
+ * **Viaggia lo slug e non il titolo.** Con il titolo nell'URL, l'oggetto del
+ * modulo sarebbe testo che chiunque può scrivere nella barra degli indirizzi:
+ * nessuno ci si rompe, ma un link costruito a mano potrebbe mettere qualsiasi
+ * cosa nel campo e farla passare per il nome di un'opera. Con lo slug, il
+ * titolo lo cerca il server nella tabella, quindi è sempre quello che ha
+ * caricato lei, e resta corretto anche se ha rinominato l'opera dopo che
+ * qualcuno aveva salvato il link.
  *
- * Un slug que ya no existe no rompe nada: no hay obra, no hay asunto, y el
- * formulario sale vacío como si se hubiera entrado por el menú.
+ * Uno slug che non esiste più non rompe niente: non c'è opera, non c'è
+ * oggetto, e il modulo esce vuoto come se si fosse entrati dal menu.
  *
- * Sin el parámetro no se toca la base. La página se sirve por petición porque
- * mira `searchParams`, pero quien entra por el menú no paga una consulta.
+ * Senza il parametro il database non si tocca. La pagina si serve su
+ * richiesta perché guarda `searchParams`, ma chi entra dal menu non paga una
+ * query.
  */
 export default async function ContattiPage({
   searchParams,
@@ -39,8 +40,8 @@ export default async function ContattiPage({
 
   return (
     <section className="shell pt-12 pb-8 md:pt-20">
-      {/* Medida de 7 columnas y lateral en la 9: el marco que comparten
-          Contatti y About me. */}
+      {/* Misura di 7 colonne e barra laterale sulla 9: la cornice che
+          condividono Contatti e About me. */}
       <div className="grid gap-12 md:grid-cols-12 md:gap-16">
         <div className="md:col-span-7">
           <ContactIntro />

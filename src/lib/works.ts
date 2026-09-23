@@ -1,21 +1,24 @@
 import { query, transaction } from "@/lib/db";
 
 /**
- * Una imagen de una obra. Es la forma que guarda la columna `image`, que es un
- * arreglo ordenado: el primer elemento es la portada, la que sale en la grilla.
+ * Un'immagine di un'opera. È la forma che conserva la colonna `image`, che è
+ * un array ordinato: il primo elemento è la copertina, quella che esce nella
+ * griglia.
  *
- * `width` y `height` no son opcionales y no se escriben a mano: los devuelve
- * Cloudinary al recibir el archivo. Son lo que `next/image` necesita para
- * reservar el hueco antes de que la imagen cargue, y una medida inventada
- * hace saltar la página en el momento exacto en que se está mirando la obra.
+ * `width` e `height` non sono facoltativi e non si scrivono a mano: li
+ * restituisce Cloudinary quando riceve il file. Sono quello che serve a
+ * `next/image` per riservare lo spazio prima che l'immagine carichi, e una
+ * misura inventata fa saltare la pagina nel momento esatto in cui si sta
+ * guardando l'opera.
  *
- * `publicId` es el nombre que la imagen tiene dentro de la cuenta de
- * Cloudinary, y existe por una sola razón: es lo único que permite borrarla
- * de ahí cuando se borra la obra. Sin él, cada obra eliminada dejaría sus
- * imágenes ocupando la cuenta para siempre.
+ * `publicId` è il nome che l'immagine ha dentro l'account Cloudinary, ed
+ * esiste per una sola ragione: è l'unica cosa che permette di cancellarla da
+ * lì quando si cancella l'opera. Senza, ogni opera eliminata lascerebbe le sue
+ * immagini a occupare l'account per sempre.
  *
- * Es opcional porque las imágenes que vivían en `public/` no lo tienen: ésas
- * se borran del disco por su URL. La columna acepta las dos formas.
+ * È facoltativo perché le immagini che vivevano in `public/` non ce l'hanno:
+ * quelle si cancellano dal disco tramite il loro URL. La colonna accetta
+ * entrambe le forme.
  */
 export type WorkImage = {
   url: string;
@@ -36,17 +39,17 @@ export type Work = {
 };
 
 /**
- * Lo que se puede escribir. `id` no está: lo pone la base, y dejar que el
- * formulario lo proponga es abrir la puerta a que dos obras discutan por el
- * mismo número.
+ * Quello che si può scrivere. `id` non c'è: lo mette il database, e lasciare
+ * che lo proponga il modulo è aprire la porta a due opere che si contendono lo
+ * stesso numero.
  */
 export type WorkInput = Omit<Work, "id">;
 
 /*
-  `year` llega de la base como número; `id` también. El resto es texto o jsonb,
-  que el driver ya entrega como objeto. No hace falta mapear nada salvo
-  asegurar que `image` sea un arreglo aunque la fila venga de antes de que la
-  restricción existiera.
+  `year` arriva dal database come numero; `id` anche. Il resto è testo o jsonb,
+  che il driver consegna già come oggetto. Non serve mappare niente, se non
+  assicurarsi che `image` sia un array anche se la riga viene da prima che il
+  vincolo esistesse.
 */
 function hydrate(row: Record<string, unknown>): Work {
   return {
@@ -61,18 +64,19 @@ function hydrate(row: Record<string, unknown>): Work {
 }
 
 /**
- * El archivo entero, en el orden que ella le dio.
+ * L'archivio intero, nell'ordine che gli ha dato lei.
  *
- * Ese orden vive en la columna `position` y se escribe arrastrando en
- * /admin. Antes salía `ORDER BY year DESC, id DESC`, que es un orden que
- * nadie había elegido: qué pieza abría el sitio lo decidía la fecha de la
- * obra, y entre dos del mismo año, el número que les había tocado en la
- * tabla. El año sigue en la ficha; dejó de mandar.
+ * Quell'ordine vive nella colonna `position` e si scrive trascinando in
+ * /admin. Prima usciva `ORDER BY year DESC, id DESC`, che è un ordine che
+ * nessuno aveva scelto: quale pezzo aprisse il sito lo decideva la data
+ * dell'opera, e fra due dello stesso anno, il numero che era toccato loro in
+ * tabella. L'anno resta nella scheda; ha smesso di comandare.
  *
- * El desempate por `id` descendente queda aunque `position` sea única, y no
- * es de adorno: es lo que le da al motor un orden total incluso si alguna vez
- * dos filas empatan por una escritura hecha a mano desde psql. Una grilla que
- * se reordena sola entre dos cargas es un error que cuesta horas encontrar.
+ * Lo spareggio per `id` discendente resta anche se `position` è unica, e non è
+ * un ornamento: è quello che dà al motore un ordine totale anche se una volta
+ * due righe dovessero pareggiare per una scrittura fatta a mano da psql. Una
+ * griglia che si riordina da sola fra due caricamenti è un errore che costa
+ * ore da trovare.
  */
 export async function listWorks(): Promise<Work[]> {
   const rows = await query<Record<string, unknown>>(
@@ -103,16 +107,16 @@ export async function getWorkById(id: number): Promise<Work | null> {
   return rows[0] ? hydrate(rows[0]) : null;
 }
 
-/** Sólo los slugs, para `generateStaticParams`. */
+/** Solo gli slug, per `generateStaticParams`. */
 export async function listSlugs(): Promise<string[]> {
   const rows = await query<{ slug: string }>(`SELECT slug FROM works`);
   return rows.map((r) => r.slug);
 }
 
 /**
- * La obra anterior y la siguiente dentro del archivo, para navegar sin volver.
- * El orden tiene que ser el mismo que el de `listWorks` o el paginado
- * contradice a la grilla de la que salió.
+ * L'opera precedente e la successiva dentro l'archivio, per navigare senza
+ * tornare indietro. L'ordine deve essere lo stesso di `listWorks` o la
+ * paginazione contraddice la griglia da cui si è usciti.
  */
 export async function neighbours(slug: string): Promise<{ prev: Work | null; next: Work | null }> {
   const all = await listWorks();
@@ -125,30 +129,32 @@ export async function neighbours(slug: string): Promise<{ prev: Work | null; nex
 }
 
 /**
- * Una obra nueva entra primera en la grilla.
+ * Un'opera nuova entra per prima nella griglia.
  *
- * `position` no la manda el formulario: la calcula la base tomando el mínimo
- * que ya existe y restándole uno. Ella acaba de cargar esa pieza, así que es
- * la que quiere ver, y pedirle que además la arrastre desde el final hasta
- * arriba sería cobrarle un gesto por algo que ya dijo al subirla.
+ * `position` non la manda il modulo: la calcola il database prendendo il
+ * minimo che già esiste e sottraendogli uno. Lei ha appena caricato quel
+ * pezzo, quindi è quello che vuole vedere, e chiederle per giunta di
+ * trascinarlo dalla fine fino in cima sarebbe farle pagare un gesto per una
+ * cosa che ha già detto caricandolo.
  *
- * Que el número se vaya a negativo no importa: `position` es un ordinal, se
- * lee sólo en comparación con los otros, y el próximo reordenamiento renumera
- * todo de 1 a n. El COALESCE cubre la tabla vacía, donde no hay mínimo.
+ * Che il numero vada in negativo non conta: `position` è un ordinale, si legge
+ * solo in confronto agli altri, e il prossimo riordinamento rinumera tutto da
+ * 1 a n. Il COALESCE copre la tabella vuota, dove non c'è un minimo.
  */
 export async function createWork(input: WorkInput): Promise<Work> {
   return transaction(async (run) => {
     /*
-      El lugar de la obra nueva se calcula leyendo el mínimo que ya existe, y
-      entre esa lectura y la escritura cabe otra alta: las dos elegirían el
-      mismo ordinal y la segunda moriría contra `works_position_unica`. El
-      error que ella vería sería «La base rechazó la obra. Revisá los campos.»
-      sobre campos que están impecables, que es un callejón sin salida.
+      Il posto dell'opera nuova si calcola leggendo il minimo che già esiste, e
+      fra quella lettura e la scrittura ci sta un altro inserimento: tutti e
+      due sceglierebbero lo stesso ordinale e il secondo morirebbe contro
+      `works_position_unica`. L'errore che vedrebbe lei sarebbe «Il database ha
+      rifiutato l'opera. Controlla i campi.» su campi che sono impeccabili, che
+      è un vicolo cieco.
 
-      La traba lo hace imposible en vez de improbable. Es de tabla y suena
-      caro, pero acá escribe una sola persona desde una sola pantalla: no hay
-      nadie a quien hacer esperar. Deja pasar las lecturas, así que el sitio
-      público no se entera.
+      Il lock lo rende impossibile invece che improbabile. È di tabella e suona
+      costoso, ma qui scrive una persona sola da una sola schermata: non c'è
+      nessuno da far aspettare. Lascia passare le letture, quindi il sito
+      pubblico non se ne accorge.
     */
     await run(`LOCK TABLE works IN SHARE ROW EXCLUSIVE MODE`);
 
@@ -191,8 +197,8 @@ export async function updateWork(id: number, input: WorkInput): Promise<Work> {
 }
 
 /**
- * Devuelve la obra borrada en vez de nada: quien llama necesita saber qué
- * archivos de imagen quedaron sin dueño para poder limpiarlos.
+ * Restituisce l'opera cancellata invece di niente: chi chiama ha bisogno di
+ * sapere quali file immagine sono rimasti senza padrone per poterli pulire.
  */
 export async function deleteWork(id: number): Promise<Work | null> {
   const rows = await query<Record<string, unknown>>(
@@ -205,36 +211,36 @@ export async function deleteWork(id: number): Promise<Work | null> {
 }
 
 /**
- * Reescribe el orden del archivo entero: `orden` son los ids de todas las
- * obras, de la primera a la última de la grilla.
+ * Riscrive l'ordine dell'archivio intero: `orden` sono gli id di tutte le
+ * opere, dalla prima all'ultima della griglia.
  *
- * **Pide la lista completa a propósito.** Un reordenamiento parcial —«poné
- * estas tres acá»— obliga a inventar qué pasa con las demás, y cada respuesta
- * posible deja huecos o duplicados. Con la lista entera hay una sola lectura:
- * el archivo es esto, en este orden.
+ * **Chiede la lista completa di proposito.** Un riordinamento parziale
+ * —«metti queste tre qui»— obbliga a inventare cosa succede alle altre, e ogni
+ * risposta possibile lascia buchi o duplicati. Con la lista intera c'è una
+ * sola lettura: l'archivio è questo, in quest'ordine.
  *
- * Devuelve `false`, sin escribir nada, cuando lo que llega no es una
- * permutación de lo que hay. Eso no es paranoia: la pantalla arma la lista al
- * abrirse, y si mientras tanto se cargó o se borró una obra desde otra
- * pestaña, guardar dejaría una pieza fuera del orden o pisaría un lugar. Vale
- * más rechazarlo y que la pantalla se recargue.
+ * Restituisce `false`, senza scrivere niente, quando quello che arriva non è
+ * una permutazione di quello che c'è. Non è paranoia: la schermata costruisce
+ * la lista all'apertura, e se nel frattempo si è caricata o cancellata
+ * un'opera da un'altra scheda, salvare lascerebbe un pezzo fuori dall'ordine o
+ * calpesterebbe un posto. Meglio rifiutarlo e far ricaricare la schermata.
  *
- * El `WITH ORDINALITY` es lo que hace que sea un solo UPDATE: numera el
- * arreglo tal como llegó —el primer id es el 1— y lo une contra la tabla por
- * id. Sin eso habría que mandar una consulta por obra.
+ * Il `WITH ORDINALITY` è quello che ne fa un solo UPDATE: numera l'array così
+ * com'è arrivato —il primo id è l'1— e lo unisce alla tabella per id. Senza,
+ * bisognerebbe mandare una query per opera.
  */
 export async function reorderWorks(orden: number[]): Promise<boolean> {
   return transaction(async (run) => {
     /*
-      FOR UPDATE traba las filas hasta el COMMIT. Sin eso, entre comprobar que
-      la lista está completa y escribirla cabe cualquier otra escritura, y la
-      comprobación pasa a no significar nada.
+      FOR UPDATE blocca le righe fino al COMMIT. Senza, fra il controllo che la
+      lista sia completa e la sua scrittura ci sta qualsiasi altra scrittura, e
+      il controllo smette di significare qualcosa.
     */
     const actuales = await run<{ id: number }>(`SELECT id FROM works ORDER BY id FOR UPDATE`);
 
     const hay = new Set(actuales.map((r) => Number(r.id)));
     const pedidas = new Set(orden);
-    if (pedidas.size !== orden.length) return false; // un id repetido
+    if (pedidas.size !== orden.length) return false; // un id ripetuto
     if (pedidas.size !== hay.size) return false;
     if (orden.some((id) => !hay.has(id))) return false;
 
@@ -250,7 +256,7 @@ export async function reorderWorks(orden: number[]): Promise<boolean> {
   });
 }
 
-/** ¿Está la base viva? La barra del admin lo dice en una palabra. */
+/** Il database è vivo? La barra dell'admin lo dice in una parola. */
 export async function pingDb(): Promise<boolean> {
   try {
     await query("SELECT 1");

@@ -5,37 +5,38 @@ import { Copy, Mail } from "@/components/Icon";
 import { site } from "@/data/site";
 
 /**
- * El formulario de contacto.
+ * Il modulo di contatto.
  *
- * **A dónde va lo que se escribe.** No hay servidor, ni dominio, ni servicio
- * de formularios contratado: la consulta se resuelve por mail y afuera del
- * sitio. Así que esto no "envía" nada — arma el mensaje y se lo pasa al
- * programa de correo del visitante, con el asunto y el cuerpo ya escritos.
- * Es exactamente lo que ya hace el botón "Chiedi info" de cada obra, con la
- * diferencia de que acá el mensaje llega armado en vez de vacío.
+ * **Dove va quello che si scrive.** Non c'è un server, né un dominio, né un
+ * servizio di moduli attivo: la richiesta si risolve via mail e fuori dal
+ * sito. Quindi questo non "invia" niente — prepara il messaggio e lo passa al
+ * programma di posta del visitatore, con oggetto e corpo già scritti. È
+ * esattamente quello che fa già il pulsante "Chiedi info" di ogni opera, con
+ * la differenza che qui il messaggio arriva pronto invece che vuoto.
  *
- * Eso tiene una falla conocida y la pantalla de confirmación existe por ella:
- * si el visitante no tiene programa de correo configurado, `mailto:` no hace
- * nada y no avisa. Por eso después de enviar quedan a la vista la dirección y
- * un botón para copiarse el mensaje entero: pase lo que pase con el mailto,
- * hay una salida.
+ * Questo ha un difetto noto ed è per quello che esiste la schermata di
+ * conferma: se il visitatore non ha un programma di posta configurato,
+ * `mailto:` non fa niente e non avvisa. Per questo, dopo l'invio, restano in
+ * vista l'indirizzo e un pulsante per copiarsi il messaggio intero: qualunque
+ * cosa succeda al mailto, c'è una via d'uscita.
  *
- * El día que haya backend, lo único que cambia es `onSubmit`.
+ * Il giorno in cui ci sarà un backend, l'unica cosa che cambia è `onSubmit`.
  *
- * **Cómo se dibuja un campo en este sistema**, que no tenía ninguno: un
- * rótulo en versalitas —que es lo que DESIGN.md reserva para nombrar un
- * campo— y debajo el texto sobre un solo filete. Sin caja, sin relleno, sin
- * radio: un renglón sobre el que se escribe, como el resto del sitio separa
- * con filetes y aire en vez de con recuadros.
+ * **Come si disegna un campo in questo sistema**, che non ne aveva nessuno:
+ * un'etichetta in maiuscoletto —che è quello che DESIGN.md riserva al nome di
+ * un campo— e sotto il testo su un solo filetto. Senza riquadro, senza
+ * riempimento, senza raggio: una riga su cui si scrive, come il resto del
+ * sito separa con filetti e aria invece che con riquadri.
  *
- * Los estados usan lo que el sistema ya tiene:
- * - **Reposo:** filete `line`, rótulo en tinta pálida.
- * - **Foco:** el filete pasa a tinta plena y el rótulo también. El anillo de
- *   foco es el mismo de todo el sitio, sin tocar: es el indicador que ya
- *   conoce quien tabula, y cambiarlo acá sería inventar un segundo idioma.
- * - **Error:** el filete pasa a terracota y debajo aparece el motivo, también
- *   en terracota. Es color como marca de estado, que es para lo único que
- *   este sistema usa la terracota.
+ * Gli stati usano quello che il sistema ha già:
+ * - **Riposo:** filetto `line`, etichetta in inchiostro pallido.
+ * - **Fuoco:** il filetto passa a inchiostro pieno e l'etichetta pure.
+ *   L'anello di fuoco è lo stesso di tutto il sito, intatto: è l'indicatore
+ *   che conosce già chi naviga con il tab, e cambiarlo qui sarebbe inventare
+ *   una seconda lingua.
+ * - **Errore:** il filetto passa a terracotta e sotto compare il motivo,
+ *   anche lui in terracotta. È colore come segnale di stato, che è l'unica
+ *   cosa per cui questo sistema usa la terracotta.
  */
 
 type Field = "nome" | "email" | "oggetto" | "messaggio";
@@ -44,22 +45,23 @@ type Errors = Partial<Record<Field, string>>;
 const LABEL = "label block text-ink-faint transition-colors";
 
 /*
-  El campo entero, sin caja. `peer` deja que el rótulo reaccione al foco del
-  control sin JavaScript. El filete es `border-b` del propio control, así que
-  mide exactamente lo que mide el campo.
+  Il campo intero, senza riquadro. `peer` permette all'etichetta di reagire al
+  fuoco del controllo senza JavaScript. Il filetto è il `border-b` del
+  controllo stesso, quindi misura esattamente quanto misura il campo.
 */
 const CONTROL =
   "peer block w-full border-0 border-b border-line bg-transparent py-2.5 text-base text-ink transition-colors placeholder:text-ink-faint focus:border-ink aria-[invalid=true]:border-accent aria-[invalid=true]:focus:border-accent";
 
 /*
-  `text-base` no es una elección tipográfica: por debajo de 16px, Safari en
-  iPhone hace zoom al enfocar un campo y deja la página corrida. El cuerpo del
-  sitio mide 16px, así que coincide sin esfuerzo, pero si alguien lo baja, eso
-  es lo que se rompe.
+  `text-base` non è una scelta tipografica: sotto i 16px, Safari su iPhone fa
+  zoom quando si mette a fuoco un campo e lascia la pagina spostata. Il corpo
+  del testo del sito misura 16px, quindi coincide senza sforzo, ma se qualcuno
+  lo abbassa, è questo che si rompe.
 
-  Los estados de error y de foco pueden darse juntos, y `aria-[invalid=true]:focus`
-  pesa más que `focus` por especificidad, no por orden: un campo con error y
-  con el cursor adentro sigue siendo un campo con error.
+  Lo stato di errore e quello di fuoco possono darsi insieme, e
+  `aria-[invalid=true]:focus` pesa più di `focus` per specificità, non per
+  ordine: un campo con errore e con il cursore dentro resta un campo con
+  errore.
 */
 
 export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string }) {
@@ -71,13 +73,13 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
 
   const validate = (data: Record<Field, string>): Errors => {
     const next: Errors = {};
-    if (!data.nome.trim()) next.nome = "Falta tu nombre.";
-    // Comprobación mínima a propósito: la de verdad la hace el mail al llegar
-    // o no llegar. Una expresión estricta rechaza direcciones válidas raras.
-    if (!data.email.trim()) next.email = "Falta tu mail.";
+    if (!data.nome.trim()) next.nome = "Manca il tuo nome.";
+    // Controllo minimo di proposito: quello vero lo fa la mail arrivando o non
+    // arrivando. Un'espressione severa rifiuta indirizzi validi ma insoliti.
+    if (!data.email.trim()) next.email = "Manca la tua email.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
-      next.email = "Ese mail no parece completo.";
-    if (!data.messaggio.trim()) next.messaggio = "Contame algo, aunque sea corto.";
+      next.email = "Questa email non sembra completa.";
+    if (!data.messaggio.trim()) next.messaggio = "Raccontami qualcosa, anche in breve.";
     return next;
   };
 
@@ -99,8 +101,8 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
     setErrors(found);
 
     if (Object.keys(found).length > 0) {
-      // El foco va al primer campo con problema: quien no ve la página
-      // necesita que el error tenga lugar, no sólo texto.
+      // Il fuoco va al primo campo con un problema: chi non vede la pagina ha
+      // bisogno che l'errore abbia un posto, non solo un testo.
       const first = Object.keys(found)[0] as Field;
       form.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
       return;
@@ -111,10 +113,11 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
     setCopied(false);
 
     /*
-      El asunto lo escribe quien consulta, y cuando llega desde una obra ya
-      viene puesto. Si lo dejó vacío vuelve el de antes, con su nombre: un mail
-      sin asunto se pierde en cualquier bandeja, y dejarlo en blanco porque el
-      campo es opcional sería trasladarle a ella ese costo.
+      L'oggetto lo scrive chi chiede, e quando si arriva da un'opera è già
+      compilato. Se l'ha lasciato vuoto torna quello di prima, con il suo
+      nome: una mail senza oggetto si perde in qualsiasi casella, e lasciarlo
+      in bianco perché il campo è facoltativo sarebbe scaricare su di lei quel
+      costo.
     */
     const asunto = data.oggetto.trim() || `Contatto — ${data.nome.trim()}`;
     window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(
@@ -123,8 +126,9 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
   };
 
   /*
-    Revalidar al escribir, pero sólo el campo que ya falló. Antes del primer
-    envío nadie se equivocó todavía; marcarlo mientras escribe es apurarlo.
+    Rivalidare mentre si scrive, ma solo il campo che è già fallito. Prima del
+    primo invio nessuno ha ancora sbagliato; segnalarlo mentre scrive è metterlo
+    fretta.
   */
   const revalidate = (field: Field) => {
     if (!errors[field] || !formRef.current) return;
@@ -136,10 +140,11 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
     return (
       <div className="mt-10 border-t border-line pt-8">
         <p role="status" className="text-lg leading-relaxed text-ink">
-          Se abrió tu programa de mail con el mensaje ya escrito. Revisalo y mandalo.
+          Si è aperto il tuo programma di posta con il messaggio già scritto. Controllalo e
+          invialo.
         </p>
         <p className="prose-measure mt-4 text-sm text-ink-soft">
-          ¿No se abrió nada? Copiate el mensaje y mandámelo a{" "}
+          Non si è aperto niente? Copia il messaggio e mandamelo a{" "}
           <a
             href={`mailto:${site.email}`}
             className="link-underline break-all text-ink"
@@ -157,8 +162,8 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
                 await navigator.clipboard.writeText(sent);
                 setCopied(true);
               } catch {
-                // Sin permiso de portapapeles no hay nada que hacer desde acá,
-                // y el mensaje sigue estando a la vista para seleccionarlo.
+                // Senza il permesso per gli appunti non c'è niente da fare da
+                // qui, e il messaggio resta in vista per poterlo selezionare.
                 setCopied(false);
               }
             }}
@@ -166,7 +171,7 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
           >
             <Copy className="shrink-0 text-ink-faint transition-colors group-hover:text-accent" />
             <span className="link-underline" data-active="true">
-              {copied ? "Copiado" : "Copiar el mensaje"}
+              {copied ? "Copiato" : "Copia il messaggio"}
             </span>
           </button>
 
@@ -178,13 +183,14 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
             }}
             className="text-sm text-ink-faint transition-colors hover:text-ink"
           >
-            <span className="link-underline">Escribir otro</span>
+            <span className="link-underline">Scrivine un altro</span>
           </button>
         </div>
 
         {/*
-          El mensaje queda a la vista, no escondido detrás del botón de copiar:
-          si el portapapeles falla, todavía se puede seleccionar con el dedo.
+          Il messaggio resta in vista, non nascosto dietro il pulsante di
+          copia: se gli appunti non funzionano, si può ancora selezionare con
+          il dito.
         */}
         <pre className="mt-8 whitespace-pre-wrap border-t border-line pt-6 font-sans text-sm leading-relaxed text-ink-soft">
           {sent}
@@ -198,9 +204,10 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
       ref={formRef}
       onSubmit={onSubmit}
       /*
-        `noValidate` para que los globos del navegador no hablen por el sitio:
-        salen sin estilo, en el idioma del navegador y no en el de la página.
-        La validación es la de arriba, con los mismos mensajes y la misma voz.
+        `noValidate` perché i fumetti del browser non parlino al posto del
+        sito: escono senza stile, nella lingua del browser e non in quella
+        della pagina. La validazione è quella qui sopra, con gli stessi
+        messaggi e la stessa voce.
       */
       noValidate
       className="mt-10 border-t border-line pt-8"
@@ -223,20 +230,21 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
           onInput={() => revalidate("email")}
         />
         {/*
-          El asunto va entre el mail y el mensaje, y no es un campo más: es el
-          que llega ya escrito cuando alguien toca «Chiedi info» en una obra.
-          Ahí el visitante ve, antes de escribir una palabra, que el formulario
-          sabe de qué obra viene — que es lo que antes intentaba hacer el asunto
-          de un `mailto:` que muchas veces no llegaba a abrirse.
+          L'oggetto va fra la mail e il messaggio, e non è un campo come gli
+          altri: è quello che arriva già scritto quando qualcuno tocca «Chiedi
+          info» su un'opera. Lì il visitatore vede, prima di scrivere una
+          parola, che il modulo sa da quale opera arriva — che è quello che
+          prima provava a fare l'oggetto di un `mailto:` che molte volte non
+          arrivava neanche ad aprirsi.
 
-          Opcional a propósito: quien entra por el menú, sin venir de una obra,
-          no tiene por qué completar un campo más para escribir.
+          Facoltativo di proposito: chi entra dal menu, senza venire da
+          un'opera, non deve compilare un campo in più per scrivere.
         */}
         <Campo
           id={`${id}-oggetto`}
           name="oggetto"
           label="Oggetto"
-          hint="El título de la obra, o de qué querés hablar."
+          hint="Il titolo dell'opera, o di cosa vuoi parlare."
           defaultValue={asuntoInicial}
           error={errors.oggetto}
           onInput={() => revalidate("oggetto")}
@@ -245,7 +253,7 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
           id={`${id}-messaggio`}
           name="messaggio"
           label="Messaggio"
-          hint="De qué se trata el proyecto, para cuándo lo necesitás y en qué formato."
+          hint="Di cosa si tratta il progetto, per quando ti serve e in che formato."
           multiline
           error={errors.messaggio}
           onInput={() => revalidate("messaggio")}
@@ -253,10 +261,11 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
       </div>
 
       {/*
-        El envío toma prestado el dibujo de la acción principal del sitio —el
-        sobre en tinta pálida y la palabra subrayada de "Chiedi info"—, porque
-        hace lo mismo: abrir un mail. Es el primer `<button>` que actúa en
-        todo el sitio y no inventa una forma nueva para hacerlo.
+        L'invio prende in prestito il disegno dell'azione principale del sito
+        —la busta in inchiostro pallido e la parola sottolineata di "Chiedi
+        info"—, perché fa la stessa cosa: aprire una mail. È il primo
+        `<button>` che agisce in tutto il sito e non inventa una forma nuova
+        per farlo.
       */}
       <div className="mt-10">
         <button type="submit" className="group flex items-center gap-2 text-base text-ink">
@@ -269,7 +278,7 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
           </span>
         </button>
         <p className="mt-3 text-xs text-ink-faint">
-          Se abre tu programa de mail con el mensaje ya escrito. No se manda solo.
+          Si apre il tuo programma di posta con il messaggio già scritto. Non parte da solo.
         </p>
       </div>
     </form>
@@ -297,10 +306,10 @@ function Campo({
   multiline?: boolean;
   autoComplete?: string;
   /*
-    Valor inicial y no valor: el campo queda sin controlar a propósito, para
-    que lo que llega puesto se pueda corregir, ampliar o borrar como cualquier
-    otra cosa que se escriba acá. Un asunto que el visitante no puede tocar
-    sería decirle de qué tiene permitido hablar.
+    Valore iniziale e non valore: il campo resta non controllato di proposito,
+    perché quello che arriva precompilato si possa correggere, ampliare o
+    cancellare come qualsiasi altra cosa che si scriva qui. Un oggetto che il
+    visitatore non può toccare sarebbe dirgli di cosa gli è permesso parlare.
   */
   defaultValue?: string;
   onInput: () => void;
@@ -323,14 +332,14 @@ function Campo({
   return (
     <div>
       {/*
-        El rótulo va arriba y es un rótulo de verdad, no un texto de relleno
-        adentro del campo: un placeholder desaparece justo cuando se lo
-        necesita, que es mientras se escribe.
+        L'etichetta va sopra ed è un'etichetta vera, non un testo segnaposto
+        dentro il campo: un placeholder sparisce proprio quando serve, cioè
+        mentre si scrive.
 
-        `peer-focus:` lo lleva a tinta plena con el campo enfocado —el orden
-        en el DOM es rótulo, después control, así que va con `peer/…` sobre el
-        contenedor en vez de `peer-focus` hacia atrás. Se resuelve con
-        `has-[:focus]` en el div, que sí mira hacia adelante.
+        `peer-focus:` lo porta a inchiostro pieno quando il campo è a fuoco
+        —l'ordine nel DOM è etichetta, poi controllo, quindi va con `peer/…`
+        sul contenitore invece di `peer-focus` all'indietro. Si risolve con
+        `has-[:focus]` sul div, che invece guarda in avanti.
       */}
       <div className="group/campo" data-error={Boolean(error)}>
         <label
@@ -348,10 +357,10 @@ function Campo({
 
         {multiline ? (
           /*
-            `field-sizing-content` hace que crezca con lo que se escribe en vez
-            de abrir una barra de scroll adentro de un cajón de cinco renglones.
-            Donde todavía no está soportado quedan los cinco renglones y el
-            tirador manual, que por eso sigue habilitado.
+            `field-sizing-content` fa sì che cresca con quello che si scrive
+            invece di aprire una barra di scorrimento dentro un riquadro di
+            cinque righe. Dove non è ancora supportato restano le cinque righe
+            e la maniglia manuale, che per questo resta attiva.
           */
           <textarea
             {...shared}

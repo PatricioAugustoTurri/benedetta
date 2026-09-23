@@ -4,14 +4,14 @@ import { site } from "@/data/site";
 import StudioAside from "./StudioAside";
 
 /**
- * La presentación: medida de 7 columnas para el texto y columna lateral en la
- * 9, que es el marco que ya usa Contatti.
+ * La presentazione: misura di 7 colonne per il testo e colonna laterale sulla
+ * 9, che è la cornice che usa già Contatti.
  *
- * La sección es dueña de su propia grilla y se trae el lateral adentro: así
- * la página no tiene que saber cómo se reparten las columnas de un bloque que
- * no es suyo.
+ * La sezione è padrona della propria griglia e si porta la colonna laterale
+ * dentro: così la pagina non deve sapere come si distribuiscono le colonne di
+ * un blocco che non è suo.
  *
- * PLACEHOLDER: la bio es texto de relleno y está en español. Ver PRODUCT.md.
+ * PLACEHOLDER: la bio è testo segnaposto. Vedi PRODUCT.md.
  */
 export default function StudioIntro() {
   return (
@@ -20,7 +20,7 @@ export default function StudioIntro() {
         <div className="md:col-span-7">
           <Reveal>
             <h1 className="display-h1 text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance">
-              Hola, soy {site.author}.
+              Ciao, sono {site.author}.
             </h1>
           </Reveal>
 

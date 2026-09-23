@@ -6,23 +6,23 @@ import LimpiarSueltas from "./components/LimpiarSueltas";
 import NuevaObra from "./components/NuevaObra";
 
 /**
- * El archivo, con la mano adentro.
+ * L'archivio, con le mani dentro.
  *
- * Es la grilla del sitio —mismas tres columnas, mismo cuadrado, mismo
- * aire— y no una tabla de administración. La razón es que lo que hay que
- * juzgar al cargar una obra no es si el año quedó bien escrito, sino cómo se
- * ve la pieza al lado de las otras; una lista de renglones de texto contesta
- * la primera pregunta y esconde la segunda.
+ * È la griglia del sito —stesse tre colonne, stesso quadrato, stessa aria— e
+ * non una tabella di amministrazione. La ragione è che quello da giudicare
+ * quando si carica un'opera non è se l'anno è scritto bene, ma come si vede il
+ * pezzo accanto agli altri; una lista di righe di testo risponde alla prima
+ * domanda e nasconde la seconda.
  *
- * Lo único que se suma es la capa de control, y vive apoyada: los botones de
- * una pieza aparecen al pasar por encima, y el primer hueco de la grilla
- * —vacío, con filete punteado— es donde se carga una obra nueva.
+ * L'unica cosa che si aggiunge è lo strato di controllo, e vive appoggiato: i
+ * pulsanti di un pezzo compaiono al passaggio del puntatore, e la prima
+ * casella della griglia —vuota, con filetto tratteggiato— è dove si carica
+ * un'opera nuova.
  *
- * El orden de la grilla es el del sitio y se arrastra, así que la lista la
- * dibuja `ArchivoOrdenable`, que es cliente. El hueco de alta baja como
- * propiedad en vez de importarse allá adentro: no tiene un solo estado ni
- * escucha nada, y mandarlo desde acá lo deja donde estaba, del lado del
- * servidor.
+ * L'ordine della griglia è quello del sito e si trascina, quindi la lista la
+ * disegna `ArchivoOrdenable`, che è client. La casella di inserimento scende
+ * come proprietà invece di essere importata là dentro: non ha un solo stato né
+ * ascolta niente, e mandarla da qui la lascia dov'era, dal lato server.
  */
 export default async function AdminPage() {
   const viva = await pingDb();
@@ -31,18 +31,18 @@ export default async function AdminPage() {
     return (
       <section className="shell py-24">
         <h1 className="display-lead font-display text-[clamp(1.75rem,3.4vw,2.5rem)] leading-[1.15] text-balance">
-          La base no contesta.
+          Il database non risponde.
         </h1>
         <p className="prose-measure mt-5 text-ink-soft">
-          El sitio necesita PostgreSQL levantado para leer el archivo. Arrancalo y volvé a
-          cargar esta página.
+          Il sito ha bisogno di PostgreSQL avviato per leggere l&apos;archivio. Avvialo e
+          ricarica questa pagina.
         </p>
         {/*
-          El comando exacto, porque el error útil es el que dice qué hacer.
-          Va en un <code> y no en un bloque: es una línea, no un ejemplo.
+          Il comando esatto, perché l'errore utile è quello che dice cosa fare.
+          Va in un <code> e non in un blocco: è una riga, non un esempio.
         */}
         <p className="mt-6 text-sm text-ink-faint">
-          En esta máquina:{" "}
+          Su questa macchina:{" "}
           <code className="figures bg-paper-deep px-1.5 py-0.5 text-ink">
             brew services start postgresql@17
           </code>
@@ -57,51 +57,52 @@ export default async function AdminPage() {
   return (
     <section className="shell pt-8 pb-16 md:pt-12">
       {/*
-        Sin las claves de Cloudinary se puede entrar, mirar y editar textos,
-        pero no subir una imagen. El aviso va acá arriba y no escondido en el
-        formulario: enterarse de que falta una variable de entorno recién
-        después de elegir tres escaneos es enterarse tarde.
+        Senza le chiavi di Cloudinary si può entrare, guardare e modificare i
+        testi, ma non caricare un'immagine. L'avviso va qui in alto e non
+        nascosto nel modulo: scoprire che manca una variabile d'ambiente solo
+        dopo aver scelto tre scansioni è scoprirlo tardi.
       */}
       {!conCloudinary && (
         <p className="mb-8 border-l border-accent bg-paper-deep/60 py-3 pl-4 text-sm text-ink">
-          Faltan las claves de Cloudinary, así que no se pueden subir imágenes. Completá{" "}
+          Mancano le chiavi di Cloudinary, quindi non si possono caricare immagini. Completa{" "}
           <code className="bg-paper px-1 py-0.5">CLOUDINARY_CLOUD_NAME</code>,{" "}
-          <code className="bg-paper px-1 py-0.5">CLOUDINARY_API_KEY</code> y{" "}
+          <code className="bg-paper px-1 py-0.5">CLOUDINARY_API_KEY</code> e{" "}
           <code className="bg-paper px-1 py-0.5">CLOUDINARY_API_SECRET</code> en{" "}
-          <code className="bg-paper px-1 py-0.5">.env.local</code> y reiniciá el servidor.
+          <code className="bg-paper px-1 py-0.5">.env.local</code> e riavvia il server.
         </p>
       )}
       {/*
-        Dos diferencias declaradas con la grilla del sitio, ninguna por
-        olvido.
+        Due differenze dichiarate rispetto alla griglia del sito, nessuna per
+        dimenticanza.
 
-        La primera: allá la grilla no dibuja una sola palabra y acá cada pieza
-        lleva título, año, técnica, cantidad de imágenes y el aviso de que le
-        falta el texto. Es el punto de esta pantalla. Allá se viene a mirar la
-        obra; acá se viene a saber cuál es cuál y qué le falta, y eso no se
-        contesta mirando.
+        La prima: là la griglia non disegna una sola parola e qui ogni pezzo
+        porta titolo, anno, tecnica, numero di immagini e l'avviso che gli
+        manca il testo. È il senso di questa schermata. Là si viene a guardare
+        l'opera; qui si viene a sapere quale è quale e cosa le manca, e a
+        questo non si risponde guardando.
 
-        La segunda: allá el teléfono muestra dos columnas y acá una. En media
-        pantalla de teléfono, una celda con esa ficha más los tres controles
-        que caen al pie cuando no hay puntero queda apretada.
+        La seconda: là il telefono mostra due colonne e qui una. In mezzo
+        schermo di telefono, una cella con quella scheda più i tre controlli
+        che cadono in basso quando non c'è un puntatore resta stretta.
 
-        Lo que sí comparten, que es lo que hace que esta pantalla sirva, es el
-        recorte y las proporciones de la celda: la pieza se ve acá como se va
-        a ver publicada.
+        Quello che invece condividono, ed è ciò che rende utile questa
+        schermata, è il ritaglio e le proporzioni della cella: il pezzo si vede
+        qui come si vedrà pubblicato.
       */}
       <ArchivoOrdenable obras={obras} hueco={<NuevaObra />} />
 
       {/*
-        El archivo vacío no dice «no hay nada»: dice qué pasa cuando haya algo.
-        Sólo aparece cuando de verdad no hay obra cargada, y no compite con el
-        hueco de alta, que ya está arriba a la izquierda.
+        L'archivio vuoto non dice «non c'è niente»: dice cosa succede quando ci
+        sarà qualcosa. Compare solo quando davvero non c'è opera caricata, e
+        non fa concorrenza alla casella di inserimento, che è già in alto a
+        sinistra.
       */}
       {obras.length === 0 && (
         <p className="prose-measure mt-10 text-sm text-ink-faint">
-          El archivo está vacío. Cada obra que cargues aparece acá, y en el mismo orden y
-          con el mismo recorte, en{" "}
+          L&apos;archivio è vuoto. Ogni opera che carichi compare qui, e nello stesso
+          ordine e con lo stesso ritaglio, nella{" "}
           <Link href="/" className="link-underline text-ink-soft hover:text-ink">
-            la portada del sitio
+            home del sito
           </Link>
           .
         </p>

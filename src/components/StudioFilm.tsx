@@ -4,27 +4,27 @@ import Image from "next/image";
 import { studioFilm } from "@/data/studio";
 
 type Props = {
-  /** La caja: proporción, ancho y tope de alto los pone quien lo usa. */
+  /** Il riquadro: proporzione, larghezza e altezza massima li mette chi lo usa. */
   className?: string;
   priority?: boolean;
 };
 
 /**
- * El marco del video del About.
+ * La cornice del video di About.
  *
- * Dos estados y ninguno roto:
+ * Due stati e nessuno dei due rotto:
  *
- * - **Sin archivo** (hoy): dibuja el cuadro de portada como imagen. No un
- *   `<video>` vacío con controles que no controlan nada, ni un rectángulo
- *   negro: mientras no haya película, lo honesto es la foto.
- * - **Con archivo**: `<video>` sin sonido, en loop, que arranca solo. Sin
- *   controles, porque no hay nada que controlar en un loop mudo de unos
- *   segundos: es una imagen que se mueve, no una pieza que se mira.
+ * - **Senza file** (oggi): disegna il fotogramma di copertina come immagine.
+ *   Non un `<video>` vuoto con controlli che non controllano niente, né un
+ *   rettangolo nero: finché non c'è un filmato, la cosa onesta è la foto.
+ * - **Con file**: `<video>` senza audio, in loop, che parte da solo. Senza
+ *   controlli, perché non c'è niente da controllare in un loop muto di pochi
+ *   secondi: è un'immagine che si muove, non un pezzo che si guarda.
  *
- * Bajo `prefers-reduced-motion` deja de arrancar solo y le aparecen los
- * controles. Menos movimiento no es prohibir el video: es no imponerlo. Va
- * en un `ref` y no en estado para que no haya un primer pintado con el video
- * ya corriendo que después haya que frenar.
+ * Sotto `prefers-reduced-motion` smette di partire da solo e gli compaiono i
+ * controlli. Meno movimento non è vietare il video: è non imporlo. Va in un
+ * `ref` e non nello stato perché non ci sia un primo disegno con il video già
+ * in corsa da dover poi fermare.
  */
 export default function StudioFilm({ className = "", priority = false }: Props) {
   const frame = `block bg-paper-deep object-cover ${className}`;

@@ -7,18 +7,18 @@ import { useEffect, useRef, useState } from "react";
 import { nav, site } from "@/data/site";
 
 /*
-  La clase del renglón del cajón.
+  La classe della riga del pannello laterale.
 
-  Los rótulos entran escalonados desde el borde derecho, en el mismo sentido
-  en que llega el cajón. Al cerrar se van juntos y rápido: salir no es un
-  momento, volver a la obra sí.
+  Le etichette entrano scalate dal bordo destro, nella stessa direzione in cui
+  arriva il pannello. Alla chiusura se ne vanno insieme e in fretta: uscire non
+  è un momento, tornare all'opera sì.
 */
 const ITEM_DRAWER =
   "relative block translate-x-5 border-b border-line py-4 font-display text-[clamp(0.875rem,4vw,1.125rem)] font-medium leading-tight text-ink-soft opacity-0 transition-[translate,opacity,color] duration-500 ease-[var(--ease-out-soft)] hover:text-ink data-[active=true]:text-ink group-data-[open=true]/drawer:translate-x-0 group-data-[open=true]/drawer:opacity-100";
 
 /*
-  El escalonado del cajón, con el paso de 70ms del resto del sitio. Al cerrar,
-  todos a cero: salir no es un momento.
+  Lo scaglionamento del pannello, con il passo di 70ms del resto del sito. In
+  chiusura, tutti a zero: uscire non è un momento.
 */
 const stagger = (open: boolean, n: number) => (open ? `${140 + n * 70}ms` : "0ms");
 
@@ -28,8 +28,9 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
-  // Cerrar con Escape, con la cruz o tocando el velo devuelve el foco al
-  // control que abrió. Cerrar navegando no: ahí el foco es de la página nueva.
+  // Chiudere con Escape, con la croce o toccando il velo restituisce il fuoco
+  // al controllo che ha aperto. Chiudere navigando no: lì il fuoco è della
+  // pagina nuova.
   const restoreFocus = useRef(true);
 
   const close = (restore = true) => {
@@ -37,9 +38,9 @@ export default function Header() {
     setOpen(false);
   };
 
-  // Sin scroll no hay obra pasando por debajo, así que el fondo y el filete
-  // sobran: la barra arranca limpia sobre el papel y toma cuerpo sólo cuando
-  // empieza a haber algo que tapar.
+  // Senza scorrimento non c'è opera che passa sotto, quindi lo sfondo e il
+  // filetto sono di troppo: la barra parte pulita sulla carta e prende corpo
+  // solo quando comincia a esserci qualcosa da coprire.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
@@ -47,8 +48,8 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Si la pantalla crece hasta escritorio, el menú vuelve a estar a la vista
-  // bajo el logotipo y el cajón deja de tener sentido.
+  // Se lo schermo cresce fino al desktop, il menu torna in vista sotto il
+  // logotipo e il pannello smette di avere senso.
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
     const onChange = () => {
@@ -61,13 +62,13 @@ export default function Header() {
   useEffect(() => {
     if (!open) return;
 
-    // El cajón es modal: el archivo de atrás no se recorre mientras esté abierto.
+    // Il pannello è modale: l'archivio dietro non si scorre finché è aperto.
     const previousOverflow = document.body.style.overflow;
     const toggle = toggleRef.current;
     document.body.style.overflow = "hidden";
 
-    // El foco entra al cajón y queda adentro: el logotipo y el resto de la
-    // página siguen en el DOM y sin esto el tabulador se iría detrás del velo.
+    // Il fuoco entra nel pannello e ci resta: il logotipo e il resto della
+    // pagina sono ancora nel DOM e senza questo il tab finirebbe dietro il velo.
     const focusables = () =>
       Array.from(
         panelRef.current?.querySelectorAll<HTMLElement>("a[href], button:not([disabled])") ?? [],
@@ -105,38 +106,39 @@ export default function Header() {
     };
   }, [open]);
 
-  // "Work" vive en la raíz, así que también manda dentro de /opera/<slug>.
+  // "Works" vive nella radice, quindi comanda anche dentro /opera/<slug>.
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" || pathname.startsWith("/opera") : pathname.startsWith(href);
 
-  // El glifo de 20px queda alineado con el margen de página: el botón mide 40
-  // y el ícono va centrado, así que el cuadro sobresale media diferencia.
+  // Il glifo da 20px resta allineato al margine di pagina: il pulsante misura
+  // 40 e l'icona è centrata, quindi il riquadro sporge di metà differenza.
   const controlInset = "right-[calc(var(--gutter)-0.625rem)] top-3";
 
   return (
     <>
       {/*
-        La cabecera toma material sólo con obra pasando por debajo
-        (`data-scrolled`): papel al 85% y desenfoque. Es una barra, y una
-        barra deja ver lo que pasa detrás. Arriba del todo no hay nada que
-        tapar, así que arranca limpia sobre el papel.
+        L'header prende materia solo quando c'è opera che passa sotto
+        (`data-scrolled`): carta all'85% e sfocatura. È una barra, e una barra
+        lascia vedere quello che succede dietro. In cima a tutto non c'è niente
+        da coprire, quindi parte pulita sulla carta.
       */}
       <header
         data-scrolled={scrolled}
         className="sticky top-0 z-40 border-b border-transparent transition-[background-color,border-color,backdrop-filter] duration-300 data-[scrolled=true]:border-line/70 data-[scrolled=true]:bg-paper/85 data-[scrolled=true]:backdrop-blur-md"
       >
         {/*
-          Cartel centrado: el logotipo manda y el menú se apoya justo debajo.
-          En teléfono los rótulos se mudan al cajón y acá queda sólo la firma.
+          Insegna centrata: comanda il logotipo e il menu si appoggia appena
+          sotto. Sul telefono le etichette si trasferiscono nel pannello e qui
+          resta solo la firma.
         */}
         <div className="shell relative flex flex-col items-center py-4 md:py-5">
           {/*
-            El logotipo es la letra de ella, escaneada y recortada: no hay
-            tipografía que lo componga. Va con alt vacío a propósito —el
-            nombre accesible ya lo da el aria-label del link, y repetirlo en
-            la imagen lo haría anunciar dos veces.
-            width/height son los del archivo, para que el hueco esté reservado
-            antes de que cargue y la cabecera no salte.
+            Il logotipo è la sua scrittura, scansionata e ritagliata: non c'è
+            un carattere che lo componga. Va con alt vuoto di proposito —il
+            nome accessibile lo dà già l'aria-label del link, e ripeterlo
+            sull'immagine lo farebbe annunciare due volte.
+            width/height sono quelli del file, perché lo spazio sia riservato
+            prima del caricamento e l'header non salti.
           */}
           <Link href="/" className="block" aria-label={`${site.name} — archivio`}>
             <Image
@@ -151,10 +153,10 @@ export default function Header() {
           </Link>
 
           {/*
-            El hueco es chico y va medido desde el borde del logotipo: el
-            recorte está ajustado a la tinta, sin margen horneado, así que
-            este gap es exactamente el que se ve. Más aire y el menú dejaría
-            de leerse como parte del mismo cartel.
+            Lo stacco è piccolo ed è misurato dal bordo del logotipo: il
+            ritaglio è aderente all'inchiostro, senza margine incorporato,
+            quindi questo gap è esattamente quello che si vede. Con più aria il
+            menu smetterebbe di leggersi come parte della stessa insegna.
           */}
           <nav
             className="mt-2 hidden items-center gap-8 md:mt-2.5 md:flex md:gap-10"
@@ -182,7 +184,7 @@ export default function Header() {
             className={`absolute ${controlInset} flex h-10 w-10 items-center justify-center md:hidden`}
           >
             <span className="sr-only">Apri menu</span>
-            {/* Dos filetes del mismo grosor que el trazo de los íconos. */}
+            {/* Due filetti dello stesso spessore del tratto delle icone. */}
             <span aria-hidden="true" className="relative block h-2.5 w-5">
               <span className="absolute left-0 top-0 block h-px w-full bg-ink" />
               <span className="absolute bottom-0 left-0 block h-px w-full bg-ink" />
@@ -192,9 +194,9 @@ export default function Header() {
       </header>
 
       {/*
-        Velo: la mitad que queda a la vista sigue siendo el archivo, pero
-        atenuado y fuera de foco, así el cajón se lee como una capa encima
-        y no como una columna más de la página.
+        Velo: la metà che resta in vista è ancora l'archivio, ma attenuato e
+        fuori fuoco, così il pannello si legge come uno strato sopra e non come
+        un'altra colonna della pagina.
       */}
       <div
         data-drawer-scrim
@@ -205,8 +207,8 @@ export default function Header() {
       />
 
       {/*
-        Cajón de media pantalla. Papel sobre papel: lo que lo separa del
-        archivo es un filete y un escalón de tono, no una sombra.
+        Pannello a mezzo schermo. Carta su carta: quello che lo separa
+        dall'archivio è un filetto e un gradino di tono, non un'ombra.
       */}
       <div
         ref={panelRef}
@@ -226,8 +228,9 @@ export default function Header() {
         >
           <span className="sr-only">Chiudi menu</span>
           {/*
-            Los mismos dos filetes del botón de abrir, ya cruzados: el control
-            no cambia de forma al abrirse el cajón, cambia de estado.
+            Gli stessi due filetti del pulsante di apertura, ormai incrociati:
+            il controllo non cambia forma quando il pannello si apre, cambia
+            stato.
           */}
           <span aria-hidden="true" className="relative block h-2.5 w-5">
             <span className="absolute left-0 top-1/2 block h-px w-full -translate-y-1/2 rotate-45 bg-ink" />
@@ -245,27 +248,29 @@ export default function Header() {
               data-active={isActive(item.href)}
               aria-current={isActive(item.href) ? "page" : undefined}
               /*
-                El cuerpo lo fija el cliente, y se movió dos veces: llegó a ser
-                un titular, se pidió la mitad exacta (10px en el teléfono más
-                angosto, 14px al borde del cajón) y ahora un peldaño para
-                arriba, 14px a 18px. Ese es el punto donde se lee sin esfuerzo
-                y todavía no vuelve a ser un titular que compita con el
-                logotipo que tiene encima.
+                Il corpo lo decide la cliente, e si è spostato due volte: è
+                arrivato a essere un titolo, si è chiesta la metà esatta (10px
+                sul telefono più stretto, 14px al bordo del pannello) e adesso
+                un gradino più su, da 14px a 18px. È il punto in cui si legge
+                senza sforzo e non torna ancora a essere un titolo che compete
+                con il logotipo che ha sopra.
 
-                Sigue sin `display-section`: el rastreo negativo de ese peldaño
-                es corrección para cuerpos grandes y a este tamaño
-                perjudicaría la lectura. Queda el peso 500.
+                Resta senza `display-section`: il tracking negativo di quel
+                gradino è una correzione per corpi grandi e a questa misura
+                danneggerebbe la lettura. Rimane il peso 500.
 
-                El `py-4` no se toca. El área que se toca la fija el padding y
-                no la palabra, así que ya medía bien a 10px y mide igual acá:
-                agrandar el rótulo mejora la lectura sin mover el blanco.
+                Il `py-4` non si tocca. L'area di tocco la fissa il padding e
+                non la parola, quindi misurava già bene a 10px e misura uguale
+                qui: ingrandire l'etichetta migliora la lettura senza spostare
+                il bianco.
               */
               style={{ transitionDelay: stagger(open, i) }}
               className={ITEM_DRAWER}
             >
               {/*
-                La marca del lugar donde está, en el margen para no comerle
-                ancho al rótulo: terracota como marca, nunca como campo.
+                Il segno del punto in cui ci si trova, nel margine per non
+                rubare larghezza all'etichetta: terracotta come segno, mai come
+                campo.
               */}
               {isActive(item.href) && (
                 <span

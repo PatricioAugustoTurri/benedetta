@@ -2,25 +2,25 @@ import Reveal from "@/components/Reveal";
 import type { Work } from "@/lib/works";
 
 /**
- * El nombre de la obra, arriba de todo.
+ * Il nome dell'opera, in cima a tutto.
  *
- * Estaba debajo de las láminas, encabezando la descripción, y subió a pedido
- * del cliente. El orden que queda —nombre, obra, texto— es el de una ficha de
- * catálogo: se sabe qué se está por mirar antes de mirarlo, y lo que se lee
- * después es contexto de algo que ya se vio.
+ * Stava sotto le tavole, in testa alla descrizione, ed è salito su richiesta
+ * della cliente. L'ordine che ne risulta —nome, opera, testo— è quello di una
+ * scheda di catalogo: si sa cosa si sta per guardare prima di guardarlo, e
+ * quello che si legge dopo è contesto di qualcosa che si è già visto.
  *
- * Importa además por de dónde se llega. La grilla del archivo no dibuja una
- * sola palabra, así que el visitante toca una imagen sin saber cómo se llama;
- * si el nombre aparece recién pasadas las láminas, hay una pantalla entera en
- * la que no hay forma de saber dónde cayó.
+ * Conta anche da dove si arriva. La griglia dell'archivio non disegna una
+ * sola parola, quindi il visitatore tocca un'immagine senza sapere come si
+ * chiama; se il nome comparisse solo dopo le tavole, ci sarebbe una schermata
+ * intera in cui non c'è modo di sapere dove si è atterrati.
  *
- * Alineado a la izquierda como el resto de la página, aunque la lámina de
- * abajo vaya centrada: la izquierda es el eje del sitio y la lámina es la
- * excepción, centrada porque su ancho depende de la proporción de cada obra.
+ * Allineato a sinistra come il resto della pagina, anche se la tavola sotto è
+ * centrata: la sinistra è l'asse del sito e la tavola è l'eccezione, centrata
+ * perché la sua larghezza dipende dalla proporzione di ogni opera.
  *
- * Más aire arriba que abajo, que es la regla de cualquier titular acá: el
- * blanco que lo separa de la vuelta al archivo lo presenta, y el que lo separa
- * de la lámina lo ata a la obra que nombra.
+ * Più aria sopra che sotto, che è la regola di ogni titolo qui dentro: il
+ * bianco che lo separa dal ritorno all'archivio lo presenta, e quello che lo
+ * separa dalla tavola lo lega all'opera che nomina.
  */
 export default function WorkTitle({ work }: { work: Work }) {
   return (
@@ -28,10 +28,11 @@ export default function WorkTitle({ work }: { work: Work }) {
       <h1
         className="display-h1 mt-8 max-w-[30ch] text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance md:mt-12"
         /*
-          El tope de medida no es para los títulos que hay —ninguno llega—
-          sino para el que va a entrar algún día: sin él, un nombre largo se
-          estira en un solo renglón de 1300px, que a este cuerpo no se lee, se
-          recorre. `text-balance` reparte los renglones cuando los hay.
+          Il limite di misura non è per i titoli che ci sono —nessuno ci
+          arriva— ma per quello che entrerà un giorno: senza, un nome lungo si
+          stirerebbe su un'unica riga da 1300px, che a questo corpo non si
+          legge, si percorre. `text-balance` distribuisce le righe quando ci
+          sono.
         */
       >
         {work.title}

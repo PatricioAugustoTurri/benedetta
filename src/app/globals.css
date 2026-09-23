@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------
-   Sistema de diseño
-   Paleta cálida tipo papel: el fondo nunca compite con la obra.
-   La terracota vive sólo como regla y marca, nunca como campo:
-   el único color pleno de la página es el de la ilustración.
-   Cambiando estos tokens cambia todo el sitio.
+   Sistema di design
+   Palette calda tipo carta: lo sfondo non fa mai concorrenza all'opera.
+   La terracotta vive solo come filetto e segno, mai come campo:
+   l'unico colore pieno della pagina è quello dell'illustrazione.
+   Cambiando questi token cambia tutto il sito.
    --------------------------------------------------------------- */
 @theme {
   --gutter: 1.5rem;
@@ -14,24 +14,25 @@
   --color-paper-deep: #f2ece3;
   --color-ink: #1c1a16;
   --color-ink-soft: #55504a;
-  /* 5.13:1 sobre el papel. El anterior (#8f8880) daba 3.27:1 y cargaba
-     todas las etiquetas y rótulos chicos, por debajo del piso de 4.5:1. */
+  /* 5.13:1 sulla carta. Il precedente (#8f8880) dava 3.27:1 e reggeva tutte
+     le etichette e i titoletti piccoli, sotto la soglia di 4.5:1. */
   --color-ink-faint: #6f6861;
   --color-line: #e2dad0;
   --color-accent: #b4552f;
 
   /*
-    Una sola familia. --font-display y --font-sans apuntan al mismo sitio a
-    propósito: lo que separa un título de un párrafo ya no es la familia, es
-    el peso. Los dos tokens siguen existiendo porque nombran roles, no
-    archivos, y el día que vuelva una segunda familia sólo cambia uno.
+    Una sola famiglia. --font-display e --font-sans puntano allo stesso posto
+    di proposito: quello che separa un titolo da un paragrafo non è più la
+    famiglia, è il peso. I due token continuano a esistere perché nominano
+    ruoli, non file, e il giorno in cui tornerà una seconda famiglia ne cambia
+    uno solo.
   */
   --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   /*
-    La cara de los títulos de página. Es la única familia que no es Geist, y
-    llega sólo a los `h1` del sitio público: el escalón `display-lead` que usan
-    otros elementos —y los títulos del admin— sigue en Geist, porque una cara
-    de display con este peso sobre una pantalla de trabajo es ruido.
+    Il carattere dei titoli di pagina. È l'unica famiglia che non è Geist, e
+    arriva solo agli `h1` del sito pubblico: il gradino `display-lead` che usano
+    altri elementi —e i titoli dell'admin— resta in Geist, perché un carattere
+    da display con questo peso su una schermata di lavoro è rumore.
   */
   --font-title: var(--font-caprasimo), Georgia, "Times New Roman", serif;
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
@@ -59,7 +60,7 @@
   html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
-    /* Firefox: la barra de scroll también es parte del papel. */
+    /* Firefox: anche la barra di scorrimento fa parte della carta. */
     scrollbar-color: var(--color-line) var(--color-paper);
   }
 
@@ -70,7 +71,7 @@
     font-synthesis-weight: none;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    /* El cursor de texto hereda el acento en vez del azul del sistema. */
+    /* Il cursore di testo eredita l'accento invece dell'azzurro di sistema. */
     caret-color: var(--color-accent);
   }
 
@@ -79,7 +80,7 @@
     color: var(--color-paper);
   }
 
-  /* WebKit: pulgar de scroll como un filete sobre papel. */
+  /* WebKit: cursore di scorrimento come un filetto su carta. */
   ::-webkit-scrollbar {
     width: 12px;
     height: 12px;
@@ -106,15 +107,16 @@
   }
 
   /*
-    El mismo anillo, pero en escuadra, para los controles de formulario.
+    Lo stesso anello, ma a squadra, per i controlli di modulo.
 
-    Alrededor de una palabra el anillo redondeado es una pastilla y no molesta
-    a nadie. Alrededor de un campo que ocupa siete columnas es un rectángulo
-    redondeado a tamaño completo, y acá el radio de contenido es cero y los
-    bordes son de un lado. Se queda el anillo —es el indicador de foco que ya
-    conoce quien tabula, y tener dos sería peor que tener uno imperfecto— y se
-    le saca lo único que peleaba con el sistema, que era la curva. El offset
-    baja a 2px para que abrace el renglón en vez de flotar alrededor.
+    Attorno a una parola l'anello arrotondato è una pastiglia e non dà
+    fastidio a nessuno. Attorno a un campo che occupa sette colonne è un
+    rettangolo arrotondato a grandezza piena, e qui il raggio del contenuto è
+    zero e i bordi sono da un lato solo. Resta l'anello —è l'indicatore di
+    fuoco che conosce già chi naviga con il tab, e averne due sarebbe peggio
+    che averne uno imperfetto— e gli si toglie l'unica cosa che litigava con il
+    sistema, cioè la curva. L'offset scende a 2px perché abbracci la riga
+    invece di fluttuarci attorno.
   */
   input:focus-visible,
   textarea:focus-visible,
@@ -124,16 +126,17 @@
   }
 
   /*
-    El autorrelleno del navegador también es papel.
+    Anche il riempimento automatico del browser è carta.
 
-    Chrome pinta un celeste propio sobre el campo autocompletado y no se lo
-    saca con `background-color`: el único modo es taparlo con una sombra
-    interior enorme. No es profundidad y no rompe la regla de que acá no hay
-    sombras —es pintura, no relieve—, pero queda escrito para que nadie la
-    lea como el permiso de empezar a levantar cosas.
+    Chrome dipinge un azzurrino tutto suo sul campo autocompletato e non lo si
+    toglie con `background-color`: l'unico modo è coprirlo con un'ombra interna
+    enorme. Non è profondità e non rompe la regola che qui non ci sono ombre
+    —è pittura, non rilievo—, ma resta scritto perché nessuno la legga come il
+    permesso di cominciare a sollevare le cose.
 
-    La transición larguísima es el segundo cerrojo: Chrome vuelve a aplicar su
-    color al enfocar, y un retardo que nunca llega hace que nunca se pinte.
+    La transizione lunghissima è il secondo catenaccio: Chrome riapplica il suo
+    colore quando il campo va a fuoco, e un ritardo che non arriva mai fa sì che
+    non venga mai dipinto.
   */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
@@ -145,7 +148,7 @@
     transition: background-color 0s 600000s;
   }
 
-  /* Subrayados con aire, no pegados a la línea de base. */
+  /* Sottolineature con aria, non attaccate alla linea di base. */
   a {
     text-underline-offset: 0.18em;
     text-decoration-thickness: 1px;
@@ -165,7 +168,7 @@
 }
 
 @layer utilities {
-  /* Contenedor editorial: márgenes generosos, medida de lectura acotada. */
+  /* Contenitore editoriale: margini generosi, misura di lettura contenuta. */
   .shell {
     width: 100%;
     max-width: 82rem;
@@ -174,7 +177,7 @@
   }
 
 
-  /* Versalitas para rótulos que encabezan una lista. */
+  /* Maiuscoletto per le etichette che aprono una lista. */
   .label {
     font-size: 0.6875rem;
     letter-spacing: 0.18em;
@@ -182,25 +185,26 @@
     color: var(--color-ink-faint);
   }
 
-  /* Cifras de ancho fijo: años, medidas, numeración. */
+  /* Cifre a larghezza fissa: anni, misure, numerazione. */
   .figures {
     font-variant-numeric: tabular-nums lining-nums;
   }
 
   /*
-    La escalera óptica, rehecha para Geist.
+    La scala ottica, rifatta per Geist.
 
-    Fraunces traía ejes ópticos (opsz/SOFT/WONK) y cada tamaño pedía su
-    instancia. Geist no tiene eje óptico: lo único que se puede modular es el
-    peso y el rastreo. Así que la escalera pasa a ser de rastreo, y la regla
-    de fondo no cambia —un número a 5rem no puede espaciarse como un título a
-    1rem—, cambia el instrumento: cuanto más grande el tamaño, más cerrado el
-    rastreo, porque el espacio entre letras crece con el cuerpo y a tamaño de
-    titular sobra.
+    Fraunces portava assi ottici (opsz/SOFT/WONK) e ogni misura chiedeva la sua
+    istanza. Geist non ha un asse ottico: le uniche cose modulabili sono il
+    peso e il tracking. Così la scala diventa di tracking, e la regola di fondo
+    non cambia —un numero a 5rem non può essere spaziato come un titolo a
+    1rem—, cambia lo strumento: più grande è la misura, più chiuso il tracking,
+    perché lo spazio fra le lettere cresce con il corpo e a misura da titolo
+    avanza.
 
-    El peso 500 es lo que distingue un título de un párrafo ahora que los dos
-    son la misma familia. A 400 el título de una obra y su ficha se leen como
-    el mismo texto; a 600 el archivo entero grita. 500 separa y no levanta la voz.
+    Il peso 500 è quello che distingue un titolo da un paragrafo ora che i due
+    sono la stessa famiglia. A 400 il titolo di un'opera e la sua scheda si
+    leggono come lo stesso testo; a 600 l'archivio intero grida. 500 separa e
+    non alza la voce.
   */
   .display-mark {
     font-weight: 500;
@@ -213,17 +217,17 @@
   }
 
   /*
-    El título de una página. Reemplaza a `display-lead` en los `h1` del sitio
-    público, y no lo acompaña: las dos cosas que ese escalón corrige —el peso
-    500 y el rastreo negativo— son correcciones para Geist y acá sobran.
+    Il titolo di una pagina. Sostituisce `display-lead` negli `h1` del sito
+    pubblico, e non lo accompagna: le due cose che quel gradino corregge —il
+    peso 500 e il tracking negativo— sono correzioni per Geist e qui avanzano.
 
-    El peso queda en 400 porque es el único que la familia tiene; pedirle 500
-    haría que el navegador lo invente engrosando los trazos.
+    Il peso resta a 400 perché è l'unico che la famiglia ha; chiederle il 500
+    farebbe sì che il browser se lo inventi ingrossando i tratti.
 
-    El rastreo vuelve a cero. El -0.025em de `display-lead` existe porque una
-    grotesca de palo seco se abre de más en cuerpos grandes; esta cara ya
-    viene ajustada para leerse a este tamaño, y apretarla le cierra los
-    contornos que la hacen reconocible.
+    Il tracking torna a zero. Il -0.025em di `display-lead` esiste perché una
+    grottesca a bastone si apre troppo nei corpi grandi; questo carattere è già
+    regolato per leggersi a questa misura, e stringerlo gli chiude i contorni
+    che lo rendono riconoscibile.
   */
   .display-h1 {
     font-family: var(--font-title);
@@ -231,24 +235,24 @@
     letter-spacing: 0;
   }
 
-  /* Títulos de sección: tamaño de texto, así que corrección de texto. */
+  /* Titoli di sezione: misura da testo, quindi correzione da testo. */
   .display-section {
     font-weight: 500;
     letter-spacing: -0.015em;
   }
 
-  /* Títulos de obra dentro de la grilla: el escalón más chico de la escalera. */
+  /* Titoli d'opera dentro la griglia: il gradino più piccolo della scala. */
   .display-title {
     font-weight: 500;
     letter-spacing: -0.01em;
   }
 
-  /* Medida de lectura acotada a 68ch para el cuerpo de texto largo. */
+  /* Misura di lettura contenuta a 68ch per il corpo di testo lungo. */
   .prose-measure {
     max-width: 68ch;
   }
 
-  /* Subrayado que crece al hover, sin desplazar el texto. */
+  /* Sottolineatura che cresce al passaggio, senza spostare il testo. */
   .link-underline {
     position: relative;
     display: inline-block;
@@ -275,22 +279,22 @@
 }
 
 /*
-  `code` sin la familia del navegador.
+  `code` senza la famiglia del browser.
 
-  El sistema tiene una sola tipografía y el agente de usuario le mete una
-  monoespaciada al elemento `code` por defecto: la del sistema operativo, que
-  no la eligió nadie acá y cambia de máquina en máquina. Lo que marca que una
-  palabra es literal —un comando, el nombre de una variable— es el papel
-  hondo de atrás, no una segunda familia.
+  Il sistema ha un solo carattere e l'user agent infila per impostazione
+  predefinita un monospaziato all'elemento `code`: quello del sistema
+  operativo, che non l'ha scelto nessuno qui e cambia da macchina a macchina.
+  Quello che segnala che una parola è letterale —un comando, il nome di una
+  variabile— è la carta profonda dietro, non una seconda famiglia.
 
-  Queda el ancho fijo de las cifras, que sí es medida y no disfraz.
+  Resta la larghezza fissa delle cifre, che invece è misura e non travestimento.
 */
 code {
   font-family: inherit;
   font-variant-numeric: tabular-nums;
 }
 
-/* Aparición al hacer scroll — la activa <Reveal/>. */
+/* Apparizione allo scorrimento — la attiva <Reveal/>. */
 .reveal {
   opacity: 0;
   transform: translateY(1.25rem);
@@ -312,51 +316,52 @@ code {
 }
 
 /* ---------------------------------------------------------------
-   La entrada de la obra
+   L'entrata dell'opera
 
-   Cada pieza entra desde su columna —la izquierda desde la izquierda,
-   la del medio desde abajo, la derecha desde la derecha— subiendo y
-   escalando de 0.965 a 1. La dirección la da la posición en la grilla,
-   no el azar.
+   Ogni pezzo entra dalla sua colonna —quella di sinistra da sinistra,
+   quella di mezzo dal basso, quella di destra da destra— salendo e
+   scalando da 0.965 a 1. La direzione la dà la posizione nella griglia,
+   non il caso.
 
-   Llegó a entrar además con un desenfoque de 8px saliendo, y se sacó a
-   pedido del cliente: sobre ilustración, desenfocar la obra mientras
-   aparece deja medio segundo en que la pieza se ve mal hecha, y es la
-   primera impresión de cada una. Que la animación corra más barata
-   —`filter` obliga a rasterizar de nuevo en cada cuadro, `transform` y
-   `opacity` no— es consecuencia, no el motivo.
+   È arrivata a entrare anche con una sfocatura di 8px in uscita, ed è
+   stata tolta su richiesta della cliente: sull'illustrazione, sfocare
+   l'opera mentre compare lascia mezzo secondo in cui il pezzo sembra
+   fatto male, ed è la prima impressione di ognuno. Che l'animazione
+   costi meno —`filter` obbliga a rasterizzare di nuovo a ogni
+   fotogramma, `transform` e `opacity` no— è una conseguenza, non il
+   motivo.
 
-   Y por eso vive acá y no en una variable en línea: en línea la ponía
-   React contando de a tres, que es la grilla de escritorio. Con una
-   columna y con dos la cuenta no correspondía a ninguna columna real, y
-   una pieza que en el teléfono ocupa todo el ancho entraba desde la
-   derecha porque su índice era múltiplo de tres. Acá la dirección la
-   deciden los mismos cortes que deciden la grilla, y no hay forma de
-   que se desincronicen.
+   Ed è per questo che vive qui e non in una variabile inline: inline la
+   metteva React contando di tre in tre, che è la griglia da desktop.
+   Con una colonna e con due il conto non corrispondeva a nessuna
+   colonna reale, e un pezzo che sul telefono occupa tutta la larghezza
+   entrava da destra perché il suo indice era multiplo di tre. Qui la
+   direzione la decidono gli stessi punti di rottura che decidono la
+   griglia, e non c'è modo che si desincronizzino.
 
-   Va con animación ligada al scroll, que corre el compositor: sin
-   listeners ni recálculo por frame. El estado por defecto es el
-   visible, así que un navegador sin soporte muestra la página quieta
-   y completa, nunca vacía.
+   Va con animazione legata allo scorrimento, che gira sul compositor:
+   senza listener né ricalcolo per fotogramma. Lo stato predefinito è
+   quello visibile, quindi un browser senza supporto mostra la pagina
+   ferma e completa, mai vuota.
    --------------------------------------------------------------- */
 
 /*
-  El valor por omisión, para cualquier pieza a la que no la alcance ninguna
-  de las reglas de abajo: sube y nada más.
+  Il valore predefinito, per qualsiasi pezzo che nessuna delle regole qui
+  sotto raggiunga: sale e basta.
 */
 .rivista-piece {
   --enter-x: 0rem;
 }
 
 /*
-  Dos columnas, que es la grilla desde el teléfono: la de la izquierda entra
-  desde la izquierda y la de la derecha desde la derecha.
+  Due colonne, che è la griglia già dal telefono: quella di sinistra entra da
+  sinistra e quella di destra da destra.
 
-  El recorrido lateral es más corto acá y crece con el ancho, porque lo que
-  se percibe no son los píxeles sino qué proporción de su propia celda
-  recorre la pieza: 3rem sobre una celda de 373px es medio paso, y sobre la
-  de 159px del teléfono sería casi un tercio del ancho, que se ve como si la
-  obra entrara de otra columna.
+  Il percorso laterale è più corto qui e cresce con la larghezza, perché
+  quello che si percepisce non sono i pixel ma quale proporzione della propria
+  cella il pezzo percorre: 3rem su una cella da 373px sono mezzo passo, e su
+  quella da 159px del telefono sarebbero quasi un terzo della larghezza, che
+  si vede come se l'opera entrasse da un'altra colonna.
 */
 .rivista-piece:nth-child(odd) {
   --enter-x: -1.25rem;
@@ -374,7 +379,7 @@ code {
   }
 }
 
-/* Tres columnas: la del medio sigue subiendo. */
+/* Tre colonne: quella di mezzo continua a salire. */
 @media (min-width: 64rem) {
   .rivista-piece:nth-child(3n + 1) {
     --enter-x: -3rem;
@@ -397,8 +402,8 @@ code {
   }
 
   /*
-    Movimiento reducido no es ausencia de movimiento: se van el
-    desplazamiento y la escala; queda la aparición.
+    Movimento ridotto non è assenza di movimento: se ne vanno lo spostamento
+    e la scala; resta l'apparizione.
   */
   @media (prefers-reduced-motion: reduce) {
     .rivista-piece {
@@ -430,19 +435,19 @@ code {
 }
 
 /*
-  El cajón de teléfono bajo movimiento reducido: se va el desplazamiento y
-  queda la aparición. Menos movimiento, no ausencia de movimiento —la misma
-  regla que ya sigue la entrada de la grilla de obra. Va después de la
-  colapsada general de arriba, que si no lo dejaría en 0.01ms.
+  Il pannello da telefono sotto movimento ridotto: se ne va lo spostamento e
+  resta l'apparizione. Meno movimento, non assenza di movimento —la stessa
+  regola che segue già l'entrata della griglia d'opera. Va dopo la regola
+  generale qui sopra, che altrimenti lo lascerebbe a 0.01ms.
 */
 @media (prefers-reduced-motion: reduce) {
   [data-drawer],
   [data-drawer-scrim],
   [data-drawer-item] {
     /*
-      Tailwind v4 desplaza con la propiedad `translate`, alimentada por sus
-      propias variables. Se neutraliza en la variable y no en la propiedad
-      porque el minificador descarta un `translate` que valga la identidad.
+      Tailwind v4 sposta con la proprietà `translate`, alimentata dalle sue
+      variabili. Si neutralizza nella variabile e non nella proprietà perché
+      il minificatore scarta un `translate` che valga l'identità.
     */
     --tw-translate-x: 0px !important;
     --tw-translate-y: 0px !important;

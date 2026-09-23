@@ -5,19 +5,19 @@ import { ArrowRight } from "@/components/Icon";
 import { endpoint, pitch, subscribeHref } from "@/data/newsletter";
 
 /**
- * El alta a la newsletter, en una sola línea.
+ * L'iscrizione alla newsletter, su una sola riga.
  *
- * A dónde va: ver `src/data/newsletter.ts`. Hoy abre el mail con la dirección
- * ya escrita; el día que haya servicio, el POST entra en `onSubmit` y nada
- * más de este archivo cambia.
+ * Dove va a finire: vedi `src/data/newsletter.ts`. Oggi apre la mail con
+ * l'indirizzo già scritto; il giorno in cui ci sarà un servizio, il POST entra
+ * in `onSubmit` e nient'altro di questo file cambia.
  *
- * **Por qué el campo no lleva rótulo a la vista**, que es lo contrario de lo
- * que hace el formulario de contacto: allá hay tres campos y el rótulo es lo
- * único que los distingue. Acá hay uno solo, y la columna ya está encabezada
- * por sus versalitas —"Newsletter"— con la frase que dice qué se recibe justo
- * encima del renglón. Un segundo rótulo en versalitas debajo del primero sería
- * dos encabezados para una cosa. El `<label>` existe igual, en `sr-only`: la
- * excepción es visual, no de accesibilidad.
+ * **Perché il campo non ha un'etichetta in vista**, che è il contrario di
+ * quello che fa il modulo di contatto: là ci sono tre campi e l'etichetta è
+ * l'unica cosa che li distingue. Qui ce n'è uno solo, e la colonna è già
+ * aperta dal suo maiuscoletto —"Newsletter"— con la frase che dice cosa si
+ * riceve proprio sopra la riga. Una seconda etichetta in maiuscoletto sotto la
+ * prima sarebbero due intestazioni per una cosa sola. Il `<label>` esiste
+ * comunque, in `sr-only`: l'eccezione è visiva, non di accessibilità.
  */
 export default function NewsletterForm() {
   const id = useId();
@@ -29,8 +29,8 @@ export default function NewsletterForm() {
     const form = e.currentTarget;
     const email = String(new FormData(form).get("email") ?? "").trim();
 
-    // La misma comprobación mínima del formulario de contacto, y por la misma
-    // razón: la validación de verdad la hace el mail al llegar o no llegar.
+    // Lo stesso controllo minimo del modulo di contatto, e per la stessa
+    // ragione: la validazione vera la fa la mail arrivando o non arrivando.
     if (!email) {
       setError("Manca la tua email.");
       form.querySelector<HTMLElement>('[name="email"]')?.focus();
@@ -45,16 +45,16 @@ export default function NewsletterForm() {
     setError(null);
     setSent(true);
 
-    // `endpoint` todavía es null en todo el sitio, así que esta rama está
-    // apagada. Queda escrita para que el día del servicio no haya que
-    // reconstruirla desde cero: es un POST y una confirmación, nada más.
+    // `endpoint` è ancora null in tutto il sito, quindi questo ramo è spento.
+    // Resta scritto perché il giorno del servizio non si debba ricostruirlo da
+    // zero: è un POST e una conferma, nient'altro.
     if (endpoint) {
       void fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       }).catch(() => {
-        /* El alta a mano por mail sigue siendo la salida; ver el estado de abajo. */
+        /* L'iscrizione a mano via mail resta la via d'uscita; vedi lo stato qui sotto. */
       });
       return;
     }
@@ -76,19 +76,20 @@ export default function NewsletterForm() {
       <p className="text-sm leading-relaxed text-ink-soft">{pitch}</p>
 
       {/*
-        El renglón: un solo filete abajo, como cualquier campo del sitio, y el
-        botón adentro del mismo filete en vez de debajo. `has-[:focus]` lleva
-        el filete a tinta plena —no hay `:focus-within` acá porque el botón
-        también vive adentro y su foco no debe encender el campo.
+        La riga: un solo filetto in basso, come qualsiasi campo del sito, e il
+        pulsante dentro lo stesso filetto invece che sotto. `has-[:focus]`
+        porta il filetto a inchiostro pieno —qui non c'è `:focus-within`
+        perché anche il pulsante vive dentro e il suo fuoco non deve accendere
+        il campo.
       */}
       {/*
-        El renglón con error y con el cursor adentro sigue siendo un renglón
-        con error: por eso la última clase repite el estado de error bajo el
-        de foco. `:has(input:focus)` pesa más que `[data-error]` por
-        especificidad, no por orden, así que sin esa tercera clase el filete
-        volvía a tinta plena en cuanto el campo recuperaba el foco —que es
-        justo lo que hace el envío fallido— y el error se quedaba sin color.
-        Misma regla y mismo motivo que en el formulario de contacto.
+        La riga con errore e con il cursore dentro resta una riga con errore:
+        per questo l'ultima classe ripete lo stato di errore sotto quello di
+        fuoco. `:has(input:focus)` pesa più di `[data-error]` per specificità,
+        non per ordine, quindi senza quella terza classe il filetto tornava a
+        inchiostro pieno appena il campo riprendeva il fuoco —che è proprio
+        quello che fa un invio fallito— e l'errore restava senza colore.
+        Stessa regola e stesso motivo del modulo di contatto.
       */}
       <div
         data-error={Boolean(error)}
@@ -108,18 +109,18 @@ export default function NewsletterForm() {
           aria-describedby={error ? `${id}-error` : undefined}
           onInput={() => error && setError(null)}
           /*
-            `text-base` no es tipografía: por debajo de 16px Safari en iPhone
-            hace zoom al enfocar y deja la página corrida. Misma razón, misma
-            medida y mismo comentario que en el formulario de contacto.
+            `text-base` non è tipografia: sotto i 16px Safari su iPhone fa zoom
+            quando si mette a fuoco e lascia la pagina spostata. Stessa
+            ragione, stessa misura e stesso commento del modulo di contatto.
           */
           className="min-w-0 flex-1 border-0 bg-transparent py-2.5 text-base text-ink outline-none placeholder:text-ink-faint"
         />
         <button
           type="submit"
           /*
-            El área de toque mide 40px de alto aunque la flecha mida 16: el
-            renglón es angosto y el blanco no puede serlo. El anillo de foco
-            es el del sitio, sin tocar.
+            L'area di tocco misura 40px di altezza anche se la freccia ne
+            misura 16: la riga è stretta e il bianco non può esserlo. L'anello
+            di fuoco è quello del sito, intatto.
           */
           className="group -mr-1 flex h-10 w-10 shrink-0 items-center justify-center text-ink-faint transition-colors hover:text-accent"
         >

@@ -7,7 +7,7 @@ import StudioServices from "./components/StudioServices";
 
 export const metadata: Metadata = {
   title: "About me",
-  description: "Quién soy, cómo trabajo y con quién trabajé.",
+  description: "Chi sono, come lavoro e con chi ho lavorato.",
 };
 
 export default function StudioPage() {
@@ -17,7 +17,7 @@ export default function StudioPage() {
       <StudioIntro />
       <StudioServices />
       <StudioClients />
-      <ContactClose cta="Escribime">¿Tenés un proyecto en mente?</ContactClose>
+      <ContactClose cta="Scrivimi">Hai un progetto in mente?</ContactClose>
     </>
   );
 }

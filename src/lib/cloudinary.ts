@@ -1,24 +1,24 @@
 import { createHash } from "node:crypto";
 
 /**
- * Cloudinary, sin el paquete oficial.
+ * Cloudinary, senza il pacchetto ufficiale.
  *
- * Lo único que hace falta de su SDK son dos cosas —firmar una subida y borrar
- * una imagen— y las dos son una firma SHA-1 y un `fetch`. Traer el paquete
- * entero para eso agrega megabytes al servidor y una dependencia más que
- * mantener.
+ * L'unica cosa che serve del suo SDK sono due operazioni —firmare un
+ * caricamento e cancellare un'immagine— e tutte e due sono una firma SHA-1 e
+ * un `fetch`. Portarsi dietro il pacchetto intero per questo aggiunge megabyte
+ * al server e una dipendenza in più da mantenere.
  *
- * ## Por qué firmada y no «unsigned»
+ * ## Perché firmata e non «unsigned»
  *
- * Cloudinary permite subidas sin firma con un preset abierto. Eso significa
- * que cualquiera que lea el código del sitio puede subir a la cuenta de ella
- * todo lo que quiera: el preset es público por definición. Acá el navegador
- * pide una firma al servidor —que comprueba la sesión antes de darla—, la
- * firma vence a los pocos minutos y sólo sirve para los parámetros exactos
- * que se firmaron.
+ * Cloudinary permette caricamenti senza firma con un preset aperto. Questo
+ * significa che chiunque legga il codice del sito può caricare sull'account di
+ * lei tutto quello che vuole: il preset è pubblico per definizione. Qui il
+ * browser chiede una firma al server —che controlla la sessione prima di
+ * darla—, la firma scade dopo pochi minuti e serve solo per i parametri esatti
+ * che sono stati firmati.
  *
- * El `api_secret` nunca sale del servidor. El navegador ve la firma, que es
- * un resumen de un solo sentido y no se puede revertir.
+ * L'`api_secret` non esce mai dal server. Il browser vede la firma, che è un
+ * digest a senso unico e non si può invertire.
  */
 
 export type ConfigCloudinary = {
@@ -27,7 +27,7 @@ export type ConfigCloudinary = {
   apiSecret: string;
 };
 
-/** La carpeta de la cuenta donde cae la obra. */
+/** La cartella dell'account dove finisce l'opera. */
 export const CARPETA = "illustrando/works";
 
 export function configCloudinary(): ConfigCloudinary | null {
@@ -44,18 +44,19 @@ export function cloudinaryConfigurado(): boolean {
 }
 
 /**
- * La firma que pide Cloudinary.
+ * La firma che chiede Cloudinary.
  *
- * El armado del texto está en su documentación y no admite variantes: se
- * ordenan los parámetros por nombre, se unen como `clave=valor&clave=valor`,
- * y se le pega el `api_secret` al final sin separador. Quedan fuera del
- * cálculo `file`, `api_key`, `cloud_name` y `resource_type`.
+ * La costruzione del testo sta nella loro documentazione e non ammette
+ * varianti: si ordinano i parametri per nome, si uniscono come
+ * `chiave=valore&chiave=valore`, e si attacca l'`api_secret` in fondo senza
+ * separatore. Restano fuori dal calcolo `file`, `api_key`, `cloud_name` e
+ * `resource_type`.
  *
- * El algoritmo es SHA-1, que es el predeterminado de Cloudinary. Una cuenta
- * puede estar configurada en SHA-256, y en ese caso la firma sale mal y
- * Cloudinary contesta «Invalid Signature» —que el formulario muestra tal
- * cual—. Para eso está la variable: se pone `sha256` en .env.local y listo,
- * sin tocar código.
+ * L'algoritmo è SHA-1, che è il predefinito di Cloudinary. Un account può
+ * essere configurato su SHA-256, e in quel caso la firma esce sbagliata e
+ * Cloudinary risponde «Invalid Signature» —che il modulo mostra tale e quale—.
+ * Per questo c'è la variabile: si mette `sha256` in .env.local e basta, senza
+ * toccare il codice.
  */
 function firmar(params: Record<string, string | number>, apiSecret: string): string {
   const texto = Object.keys(params)
@@ -76,11 +77,12 @@ export type PermisoDeSubida = {
 };
 
 /**
- * El permiso que el navegador necesita para subir una imagen, y nada más.
+ * Il permesso di cui il browser ha bisogno per caricare un'immagine, e
+ * nient'altro.
  *
- * Va atado a la carpeta y al momento: Cloudinary rechaza una firma de más de
- * una hora, así que un permiso filtrado deja de servir solo. No incluye el
- * nombre del archivo —lo pone Cloudinary— ni permite sobrescribir nada.
+ * È legato alla cartella e al momento: Cloudinary rifiuta una firma di più di
+ * un'ora, quindi un permesso trapelato smette di servire da solo. Non include
+ * il nome del file —lo mette Cloudinary— né permette di sovrascrivere niente.
  */
 export function permisoDeSubida(config: ConfigCloudinary): PermisoDeSubida {
   const timestamp = Math.floor(Date.now() / 1000);
@@ -96,12 +98,12 @@ export function permisoDeSubida(config: ConfigCloudinary): PermisoDeSubida {
 }
 
 /**
- * Borra una imagen de la cuenta.
+ * Cancella un'immagine dall'account.
  *
- * Silenciosa a propósito, como el borrado en disco al que reemplaza: que la
- * imagen ya no esté es el resultado buscado, y hacer fallar el borrado de una
- * obra porque Cloudinary no contestó dejaría la fila en la base por algo que
- * se puede limpiar después a mano.
+ * Silenziosa di proposito, come la cancellazione su disco che sostituisce: che
+ * l'immagine non ci sia più è il risultato cercato, e far fallire la
+ * cancellazione di un'opera perché Cloudinary non ha risposto lascerebbe la
+ * riga nel database per qualcosa che si può ripulire dopo a mano.
  */
 export async function borrarDeCloudinary(publicId: string): Promise<void> {
   const config = configCloudinary();
@@ -123,19 +125,19 @@ export async function borrarDeCloudinary(publicId: string): Promise<void> {
       body: cuerpo,
     });
   } catch {
-    // La fila ya se borró; la imagen huérfana se limpia desde el panel.
+    // La riga è già cancellata; l'immagine orfana si ripulisce dal pannello.
   }
 }
 
 export type ImagenEnCuenta = { publicId: string; bytes: number; creada: string };
 
 /**
- * Lo que hay guardado en la carpeta de obra de la cuenta.
+ * Quello che è conservato nella cartella d'opera dell'account.
  *
- * Usa la API de administración, que va con autenticación básica —clave y
- * secreto— y no con firma. Es la única forma de saber qué hay allá arriba:
- * la base de datos sabe lo que *debería* haber, y comparar las dos listas es
- * lo que descubre las imágenes que quedaron sueltas.
+ * Usa l'API di amministrazione, che va con autenticazione basic —chiave e
+ * segreto— e non con la firma. È l'unico modo per sapere cosa c'è lassù: il
+ * database sa quello che *dovrebbe* esserci, e confrontare le due liste è
+ * quello che scopre le immagini rimaste sciolte.
  */
 export async function listarDeCloudinary(): Promise<ImagenEnCuenta[]> {
   const config = configCloudinary();
@@ -145,9 +147,9 @@ export async function listarDeCloudinary(): Promise<ImagenEnCuenta[]> {
   const imagenes: ImagenEnCuenta[] = [];
   let cursor: string | undefined;
 
-  // La API pagina de a 500. Una cuenta de portfolio no va a llegar nunca,
-  // pero un bucle que sólo mira la primera página borraría de menos y diría
-  // que terminó.
+  // L'API pagina a gruppi di 500. Un account da portfolio non ci arriverà
+  // mai, ma un ciclo che guarda solo la prima pagina cancellerebbe di meno e
+  // direbbe di aver finito.
   do {
     const url = new URL(`https://api.cloudinary.com/v1_1/${config.cloudName}/resources/image`);
     url.searchParams.set("type", "upload");

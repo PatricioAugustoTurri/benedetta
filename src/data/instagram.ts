@@ -1,43 +1,44 @@
 /**
- * Las publicaciones de Instagram que se ven en el pie.
+ * I post di Instagram che si vedono nel footer.
  *
- * **Estas tres son reales.** Las eligió el cliente, una por una, y son las
- * primeras ilustraciones de ella que entran al sitio: todo lo demás que se ve
- * en `public/ilustraciones/` sigue siendo relleno generado para la maqueta.
- * Los `href` van a las publicaciones de verdad, no al perfil.
+ * **Questi tre sono reali.** Li ha scelti la cliente, uno per uno, e sono le
+ * prime illustrazioni sue che entrano nel sito: tutto il resto che si vede in
+ * `public/ilustraciones/` resta materiale segnaposto generato per la bozza.
+ * Gli `href` puntano ai post veri, non al profilo.
  *
- * ## Por qué la lista está escrita a mano y no la trae una API
+ * ## Perché la lista è scritta a mano e non la porta un'API
  *
- * Meta cerró la Instagram Basic Display API el 4 de diciembre de 2024, que
- * era la que servía cuentas personales. Lo que quedó exige una cuenta
- * Professional (Creator o Business) y un token que vence a los 60 días y hay
- * que renovar; este sitio es estático y no tiene dónde guardar un secreto ni
- * dónde correr esa renovación. La salida habitual es un feed JSON de terceros
- * —Behold y parecidos— que sostiene la conexión y publica un array público.
+ * Meta ha chiuso la Instagram Basic Display API il 4 dicembre 2024, che era
+ * quella che serviva gli account personali. Quello che è rimasto richiede un
+ * account Professional (Creator o Business) e un token che scade dopo 60
+ * giorni e va rinnovato; questo sito è statico e non ha dove conservare un
+ * segreto né dove far girare quel rinnovo. La via d'uscita abituale è un feed
+ * JSON di terze parti —Behold e simili— che mantiene la connessione e pubblica
+ * un array pubblico.
  *
- * Se descartó a pedido del cliente, y la decisión es buena mientras sean tres
- * piezas elegidas: **esto no es un feed, es una selección**. Un feed muestra
- * lo último que subió; esto muestra lo que ella quiere que se vea. Para
- * cambiarlas se cambian estas tres entradas y las tres imágenes.
+ * È stata scartata su richiesta della cliente, e la decisione è buona finché
+ * si tratta di tre pezzi scelti: **questo non è un feed, è una selezione**. Un
+ * feed mostra l'ultima cosa caricata; questo mostra quello che lei vuole che
+ * si veda. Per cambiarle si cambiano queste tre voci e le tre immagini.
  *
- * ## Las imágenes
+ * ## Le immagini
  *
- * Están servidas desde `public/instagram/` y no desde el CDN de Instagram, y
- * eso no es preferencia: las URL de `scontent-*.cdninstagram.com` vienen
- * firmadas y con vencimiento, así que un link directo se rompe solo en
- * cuestión de días.
+ * Sono servite da `public/instagram/` e non dal CDN di Instagram, e non è una
+ * preferenza: gli URL di `scontent-*.cdninstagram.com` arrivano firmati e con
+ * scadenza, quindi un link diretto si rompe da solo nel giro di pochi giorni.
  *
- * Son los archivos que mandó ella, numerados `1`, `2` y `3`, y el número es
- * el orden en que quiere verlos. Reemplazaron a un recorte anterior de las
- * mismas tres ilustraciones: éstos vienen en el encuadre completo —se ve el
- * pie del mapamundi, la nube entera, el chaleco a cuadros— y a resolución de
- * original, entre 2048 y 2953 px de lado. Cuadradas las tres, que es lo que
- * la cinta necesita: se muestran en un recorte 1:1 y ninguna pierde nada.
+ * Sono i file che ha mandato lei, numerati `1`, `2` e `3`, e il numero è
+ * l'ordine in cui li vuole vedere. Hanno sostituito un ritaglio precedente
+ * delle stesse tre illustrazioni: questi arrivano con l'inquadratura completa
+ * —si vede il piede del mappamondo, la nuvola intera, il gilet a quadri— e
+ * alla risoluzione originale, fra 2048 e 2953 px di lato. Tutte e tre quadrate,
+ * che è quello che serve alla striscia: si mostrano in un ritaglio 1:1 e
+ * nessuna perde niente.
  *
- * **Pesan mucho más de lo que se descarga.** Entre las tres suman unos 4,5 MB
- * en el repositorio, pero el visitante no los recibe: `next/image` las sirve
- * redimensionadas al tamaño de la cinta —unos 200 px— y en el formato que
- * acepte su navegador. El costo es de disco y de build, no de carga.
+ * **Pesano molto più di quello che si scarica.** Fra tutte e tre fanno circa
+ * 4,5 MB nel repository, ma il visitatore non li riceve: `next/image` le serve
+ * ridimensionate alla misura della striscia —circa 200 px— e nel formato che
+ * accetta il suo browser. Il costo è di disco e di build, non di caricamento.
  */
 export type Post = {
   id: string;
@@ -54,10 +55,10 @@ export const profileUrl = PROFILE;
 export const handle = "@illustrando.adocchichiusi";
 
 /*
-  Los `alt` los escribí mirando cada imagen, en italiano como el resto del
-  pie. Describen lo que se ve y nada más: no inventan título, ni encargo, ni
-  fecha. Si ella les pone un texto alternativo propio en Instagram, ése gana
-  y estos se reemplazan.
+  Gli `alt` li ho scritti guardando ogni immagine, in italiano come il resto
+  del footer. Descrivono quello che si vede e nient'altro: non inventano
+  titolo, né committente, né data. Se lei mette loro un testo alternativo
+  suo su Instagram, vince quello e questi si sostituiscono.
 */
 export const posts: Post[] = [
   {

@@ -7,35 +7,36 @@ import { footerNav, site } from "@/data/site";
 import { posts } from "@/data/instagram";
 
 /**
- * El pie.
+ * Il footer.
  *
- * Tres franjas separadas por filetes:
+ * Tre fasce separate da filetti:
  *
- *   1. El canal       — la cinta de Instagram, para quien todavía no escribe.
- *   2. El índice      — marca, dirección, rutas, alta al correo.
- *   3. La letra chica — copyright y volver arriba.
+ *   1. Il canale       — la striscia di Instagram, per chi ancora non scrive.
+ *   2. L'indice        — marchio, indirizzo, percorsi, iscrizione alla newsletter.
+ *   3. Il testo piccolo — copyright e ritorno in cima.
  *
- * **El pie no cierra el sitio con un pedido.** Hubo una franja de apertura
- * con una frase grande y el mail, y se sacó a pedido del cliente: el archivo
- * termina en la obra y el pie es un índice, no una última insistencia. La
- * consecuencia es que la dirección de correo tiene que estar a la vista acá
- * abajo —es la única que queda fuera de /contatti—, y por eso va en la
- * columna de la firma con el sobre dibujado, que es el mismo gesto del
- * "Chiedi info" de cada obra.
+ * **Il footer non chiude il sito con una richiesta.** C'è stata una fascia di
+ * apertura con una frase grande e la mail, ed è stata tolta su richiesta della
+ * cliente: l'archivio finisce con l'opera e il footer è un indice, non
+ * un'ultima insistenza. La conseguenza è che l'indirizzo di posta deve essere
+ * in vista qui sotto —è l'unico che resta fuori da /contatti—, e per questo va
+ * nella colonna della firma con la busta disegnata, che è lo stesso gesto del
+ * "Chiedi info" di ogni opera.
  *
- * El aire que lo separa del contenido se acortó a pedido del cliente: eran
- * 7rem y 9rem, quedaron en 5rem y 7rem. El pie suma los suyos —la primera
- * franja abre con `py-10 md:py-12`— así que del último renglón de la página
- * al primero del pie sigue habiendo aire de sobra; lo que se sacó es el vacío
- * que hacía dudar de si la página había terminado.
+ * L'aria che lo separa dal contenuto si è accorciata su richiesta della
+ * cliente: erano 7rem e 9rem, sono rimasti 5rem e 7rem. Il footer aggiunge i
+ * suoi —la prima fascia apre con `py-10 md:py-12`— quindi dall'ultima riga
+ * della pagina alla prima del footer c'è ancora aria in abbondanza; quello che
+ * si è tolto è il vuoto che faceva dubitare che la pagina fosse finita.
  *
- * El filete de apertura vive en cada franja y no en el `<footer>`: si la
- * cinta se queda sin publicaciones no se dibuja, y un borde en el elemento
- * padre habría quedado pegado al de la franja siguiente, con dos hairlines
- * donde el sistema tiene una.
+ * Il filetto di apertura vive in ogni fascia e non nel `<footer>`: se la
+ * striscia resta senza post non si disegna, e un bordo sull'elemento genitore
+ * sarebbe rimasto attaccato a quello della fascia successiva, con due hairline
+ * dove il sistema ne ha una.
  *
- * Esto es un componente de servidor. Lo único cliente es el alta al correo,
- * que es un formulario; el resto del pie de cada página se sirve como HTML.
+ * Questo è un componente server. L'unica parte client è l'iscrizione alla
+ * newsletter, che è un modulo; il resto del footer di ogni pagina si serve
+ * come HTML.
  */
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -43,33 +44,33 @@ export default function Footer() {
   return (
     <footer className="mt-20 md:mt-28">
       {/*
-        La cinta de Instagram: las tres piezas que eligió ella, en fila. No es
-        una segunda galería, y lo que la separa de la grilla de obra ya no es
-        la proporción —las dos son cuadradas desde que la grilla dejó de
-        recortar en vertical— sino todo lo demás: acá las piezas van mudas,
-        sin título ni año ni ficha, más chicas, y en una sola fila contra la
-        columna del rótulo. La cinta dice "hay más y sigue en otro lado", no
-        "mirá estas tres".
+        La striscia di Instagram: i tre pezzi che ha scelto lei, in fila. Non è
+        una seconda galleria, e quello che la separa dalla griglia dell'opera
+        non è più la proporzione —sono quadrate entrambe da quando la griglia
+        ha smesso di ritagliare in verticale— ma tutto il resto: qui i pezzi
+        vanno muti, senza titolo né anno né scheda, più piccoli, e su un'unica
+        riga contro la colonna dell'etichetta. La striscia dice "ce n'è altra e
+        continua altrove", non "guarda queste tre".
 
-        Si algún día las dos se confunden, lo que hay que separar es el
-        tamaño y el silencio, no volver a torcer una de las dos.
+        Se un giorno le due si confondessero, quello da separare è la misura e
+        il silenzio, non tornare a storcere una delle due.
 
-        El número de columnas sale de la lista y no está escrito a mano: con
-        tres piezas la fila es de tres, y si mañana entra una cuarta se
-        reparte sola en vez de dejar un hueco al margen.
+        Il numero di colonne esce dalla lista e non è scritto a mano: con tre
+        pezzi la riga è di tre, e se domani ne entra un quarto si distribuisce
+        da sola invece di lasciare un buco al margine.
       */}
       {posts.length > 0 && (
         <section className="shell border-t border-line py-10 md:py-12" aria-labelledby="footer-social">
           <Reveal>
             {/*
-              A lo ancho, la cinta se comía la mitad de la pantalla y dejaba
-              de ser una cinta: cuatro cuadrados de 300px compiten con la
-              grilla de obra en vez de rematarla. Desde 768px pasa a la
-              geometría que ya usan las páginas interiores —rótulo en la
-              columna angosta de la izquierda, lámina en las ocho de la
-              derecha— y las piezas bajan a unos 200px. En el teléfono no hay
-              dos columnas que repartir, así que el rótulo va arriba, la cinta
-              debajo, y a ese tamaño ya es una cinta sin ayuda.
+              A tutta larghezza, la striscia si mangiava metà schermo e smetteva
+              di essere una striscia: quattro quadrati da 300px fanno
+              concorrenza alla griglia dell'opera invece di chiuderla. Da 768px
+              passa alla geometria che usano già le pagine interne —etichetta
+              nella colonna stretta di sinistra, tavola nelle otto di destra— e
+              i pezzi scendono a circa 200px. Sul telefono non ci sono due
+              colonne da distribuire, quindi l'etichetta va sopra, la striscia
+              sotto, e a quella misura è già una striscia senza aiuto.
             */}
             <div className="md:grid md:grid-cols-12 md:items-start md:gap-8">
               <div className="flex items-baseline justify-between gap-6 md:col-span-3 md:block">
@@ -78,9 +79,10 @@ export default function Footer() {
                 </h2>
 
               {/*
-                Recorre `site.socials` en vez de escribir Instagram a mano: hoy
-                hay una sola cuenta, pero Behance existe y le falta la URL, y
-                el día que llegue tiene que aparecer acá sin tocar el pie.
+                Percorre `site.socials` invece di scrivere Instagram a mano:
+                oggi c'è un solo account, ma Behance esiste e gli manca l'URL,
+                e il giorno in cui arriva deve comparire qui senza toccare il
+                footer.
               */}
                 <ul className="flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm md:mt-4 md:block md:space-y-2">
                   {site.socials.map((s) => (
@@ -130,28 +132,29 @@ export default function Footer() {
       )}
 
       {/*
-        El índice. Cuatro bloques sobre la grilla de 12 del sitio, con los
-        mismos cortes de columna que usan las páginas interiores. En el
-        teléfono es una pila; a 640px son dos columnas; recién a 768px se
-        abre la grilla completa.
+        L'indice. Quattro blocchi sulla griglia da 12 del sito, con gli stessi
+        tagli di colonna che usano le pagine interne. Sul telefono è una pila;
+        a 640px sono due colonne; solo a 768px si apre la griglia completa.
 
-        Todo lo que cuelga de unas versalitas va a 14px, que es la regla que
-        ya siguen la ficha de una obra y la columna lateral de contacto.
+        Tutto quello che pende da un maiuscoletto va a 14px, che è la regola
+        che seguono già la scheda di un'opera e la colonna laterale dei
+        contatti.
       */}
       <div className="shell border-t border-line py-12 md:py-16">
         {/*
-          La grilla de 12 del sitio, que en el teléfono se reparte en dos
-          medias columnas. Hoy todos los bloques toman el ancho entero ahí
-          —son una firma, una lista corta y un formulario— y la partición
-          queda disponible para cuando el índice vuelva a tener dos listas.
+          La griglia da 12 del sito, che sul telefono si divide in due mezze
+          colonne. Oggi tutti i blocchi prendono lì la larghezza intera —sono
+          una firma, una lista corta e un modulo— e la divisione resta
+          disponibile per quando l'indice tornerà ad avere due liste.
         */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-12">
           <div className="col-span-2 md:col-span-3">
             {/*
-              El logotipo sin link: es la firma al pie de la hoja, no un botón
-              de vuelta al inicio —eso ya lo hacen el logotipo de la cabecera y
-              "Opera" acá mismo, dos filas a la derecha. Acá el `alt` sí lleva
-              el nombre, porque no hay un link con aria-label que lo diga.
+              Il logotipo senza link: è la firma in fondo al foglio, non un
+              pulsante di ritorno all'inizio —quello lo fanno già il logotipo
+              dell'header e "Works" qui accanto, due colonne a destra. Qui
+              l'`alt` porta il nome, perché non c'è un link con aria-label che
+              lo dica.
             */}
             <Image
               src="/illustrando-wordmark.png"
@@ -168,22 +171,23 @@ export default function Footer() {
             <p className="text-sm text-ink-soft">{site.location}</p>
 
             {/*
-              La única afirmación que el pie hace sobre el trabajo, y es la
-              posición de la marca: el papel primero. Va en tinta pálida y
-              acotada a la medida de lectura para que sea una nota al pie de
-              la firma y no un párrafo de presentación.
+              L'unica affermazione che il footer fa sul lavoro, ed è la
+              posizione del marchio: la carta per prima. Va in inchiostro
+              pallido e limitata alla misura di lettura perché sia una nota in
+              calce alla firma e non un paragrafo di presentazione.
             */}
             <p className="prose-measure mt-5 max-w-[34ch] text-sm leading-relaxed text-ink-faint">
               {site.craft}
             </p>
 
             {/*
-              La dirección, que sin la franja de cierre es la única salida a un
-              mail que hay fuera de /contatti. Va con el dibujo de la acción
-              principal del sistema —sobre en tinta pálida que pasa a terracota
-              al apoyarse, palabra subrayada de forma permanente— pero a 14px,
-              como todo lo que vive en una columna del pie: es una dirección
-              disponible, no el remate de la página.
+              L'indirizzo, che senza la fascia di chiusura è l'unica via verso
+              una mail fuori da /contatti. Va con il disegno dell'azione
+              principale del sistema —busta in inchiostro pallido che passa a
+              terracotta quando ci si appoggia, parola sottolineata in modo
+              permanente— ma a 14px, come tutto quello che vive in una colonna
+              del footer: è un indirizzo disponibile, non la chiusura della
+              pagina.
             */}
             <a href={`mailto:${site.email}`} className="group mt-6 flex items-center gap-2 text-ink">
               <Mail
@@ -222,9 +226,9 @@ export default function Footer() {
       </div>
 
       {/*
-        La letra chica. Una sola fila: a la izquierda lo que hay que declarar,
-        a la derecha la vuelta arriba. En el teléfono se apilan y la vuelta
-        queda última, que es donde el pulgar ya está.
+        Il testo piccolo. Un'unica riga: a sinistra quello che va dichiarato, a
+        destra il ritorno in cima. Sul telefono si impilano e il ritorno resta
+        ultimo, che è dove il pollice si trova già.
       */}
       <div className="shell border-t border-line py-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -235,18 +239,20 @@ export default function Footer() {
           </p>
 
           {/*
-            `#top` no necesita un elemento con ese id: el HTML lo define como
-            el principio del documento. Así la vuelta arriba es un link de
-            verdad —tabula, se abre en pestaña nueva, funciona sin JavaScript—
-            en vez de un botón con un listener, y hereda el scroll suave que
-            ya está en `html`, con la parada que le pone movimiento reducido.
+            `#top` non ha bisogno di un elemento con quell'id: l'HTML lo
+            definisce come l'inizio del documento. Così il ritorno in cima è un
+            link vero —si raggiunge con il tab, si apre in una scheda nuova,
+            funziona senza JavaScript— invece di un pulsante con un listener, ed
+            eredita lo scorrimento morbido che è già su `html`, con lo stop che
+            gli mette il movimento ridotto.
           */}
           <a
             href="#top"
             /*
-              `py-2 -my-2` no cambia nada de lo que se ve y lleva el blanco de
-              toque de 16 a 32px: dos palabras de 12px son el objetivo más
-              chico del pie y en el teléfono quedan solas contra el borde.
+              `py-2 -my-2` non cambia niente di quello che si vede e porta
+              l'area di tocco da 16 a 32px: due parole da 12px sono il
+              bersaglio più piccolo del footer e sul telefono restano sole
+              contro il bordo.
             */
             className="group -my-2 inline-flex shrink-0 items-center gap-1.5 self-start py-2 text-xs text-ink-faint transition-colors hover:text-ink sm:self-auto"
           >

@@ -3,12 +3,12 @@ import Reveal from "@/components/Reveal";
 import { site } from "@/data/site";
 
 /**
- * La columna lateral de Contatti.
+ * La colonna laterale di Contatti.
  *
- * La dirección queda a la vista siempre, no sólo después de enviar: es la
- * salida de quien no quiere llenar un formulario y la red de seguridad de
- * quien no tiene programa de correo. 14px, como toda columna lateral
- * encabezada por versalitas.
+ * L'indirizzo resta sempre in vista, non solo dopo l'invio: è la via d'uscita
+ * per chi non vuole compilare un modulo e la rete di sicurezza per chi non ha
+ * un programma di posta. 14px, come ogni colonna laterale aperta da un
+ * maiuscoletto.
  */
 export default function ContactAside() {
   return (
@@ -43,7 +43,7 @@ export default function ContactAside() {
           </ul>
         </div>
 
-        {/* "Studio" acá es el taller, no la página: encabeza la ubicación. */}
+        {/* "Studio" qui è il laboratorio, non la pagina: introduce il luogo. */}
         <div className="mt-10 border-t border-line pt-5">
           <h2 className="label">Studio</h2>
           <p className="mt-4 text-sm text-ink-soft">{site.location}</p>

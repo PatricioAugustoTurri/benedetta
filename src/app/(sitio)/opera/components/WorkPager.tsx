@@ -4,21 +4,22 @@ import { ArrowLeft, ArrowRight } from "@/components/Icon";
 import { neighbours, type Work } from "@/lib/works";
 
 /**
- * Seguir recorriendo sin volver al archivo.
+ * Continuare a guardare senza tornare all'archivio.
  *
- * Recibe el slug y busca a los vecinos por su cuenta: quién está antes y
- * quién después es asunto de este bloque, y la página no gana nada sabiéndolo.
- * El orden es el que ella le dio al archivo en /admin, el mismo de la grilla:
- * si acá fuera otro, el paginado contradiría a la página de la que se salió.
+ * Riceve lo slug e cerca le vicine per conto suo: chi viene prima e chi dopo
+ * è affare di questo blocco, e la pagina non ci guadagna niente a saperlo.
+ * L'ordine è quello che lei ha dato all'archivio in /admin, lo stesso della
+ * griglia: se qui fosse un altro, la paginazione contraddirebbe la pagina da
+ * cui si è usciti.
  *
- * Las dos columnas se dibujan siempre, aunque una esté vacía —la primera obra
- * no tiene anterior y la última no tiene siguiente—: así "Successiva" no se
- * corre al centro al llegar a las puntas del archivo.
+ * Le due colonne si disegnano sempre, anche se una è vuota —la prima opera non
+ * ha una precedente e l'ultima non ha una successiva—: così "Successiva" non
+ * scivola al centro quando si arriva agli estremi dell'archivio.
  *
- * **Cada vecina se muestra.** Un nombre solo no dice a qué se va: el visitante
- * está acá por la obra, no por cómo se llama, y "Carnevale andino" no le
- * adelanta nada a quien no la vio. Con la pieza a la vista, seguir de largo es
- * una decisión y no una apuesta.
+ * **Ogni vicina si mostra.** Un nome da solo non dice dove si va: il
+ * visitatore è qui per l'opera, non per come si chiama, e "Carnevale andino"
+ * non anticipa niente a chi non l'ha vista. Con il pezzo in vista, tirare
+ * dritto è una decisione e non una scommessa.
  */
 export default async function WorkPager({ slug }: { slug: string }) {
   const { prev, next } = await neighbours(slug);
@@ -26,15 +27,15 @@ export default async function WorkPager({ slug }: { slug: string }) {
   return (
     <nav className="mt-14 border-t border-line pt-6 md:mt-20" aria-label="Altre opere">
       {/*
-        El filete cruza toda la medida, porque cierra la página; el par vive en
-        una banda más angosta y centrada debajo.
+        Il filetto attraversa tutta la misura, perché chiude la pagina; la
+        coppia vive in una fascia più stretta e centrata sotto.
 
-        No es un capricho de ancho. Repartidas al medio de las 82rem del
-        contenedor, las dos vecinas quedaban clavadas contra los bordes
-        opuestos con ochocientos píxeles de papel vacío entremedio: dejaban de
-        leerse como dos opciones entre las que se elige y pasaban a ser dos
-        cosas sueltas que casualmente comparten renglón. Acotado, el par se ve
-        de una mirada, que es lo que hace falta para decidir a cuál seguir.
+        Non è un capriccio di larghezza. Distribuite in mezzo alle 82rem del
+        contenitore, le due vicine restavano inchiodate contro i bordi opposti
+        con ottocento pixel di carta vuota in mezzo: smettevano di leggersi
+        come due opzioni fra cui si sceglie e diventavano due cose sparse che
+        per caso condividono la riga. Ristretta, la coppia si vede in un solo
+        colpo d'occhio, che è quello che serve per decidere quale seguire.
       */}
       <div className="mx-auto grid max-w-3xl grid-cols-2 gap-8">
         <Vecina obra={prev} sentido="anterior" />
@@ -45,12 +46,12 @@ export default async function WorkPager({ slug }: { slug: string }) {
 }
 
 /**
- * Una de las dos columnas. Se dibuja aunque no haya obra: es el hueco que
- * mantiene a la otra en su lado de la página.
+ * Una delle due colonne. Si disegna anche se non c'è un'opera: è il vuoto che
+ * tiene l'altra dalla sua parte della pagina.
  *
- * Las dos son la misma función y no dos bloques casi iguales, porque eran casi
- * iguales y esa es la forma en que dos columnas se despegan: alguien corrige el
- * tamaño de una lámina y deja la otra como estaba.
+ * Le due sono la stessa funzione e non due blocchi quasi uguali, perché erano
+ * quasi uguali ed è così che due colonne si staccano: qualcuno corregge la
+ * misura di una tavola e lascia l'altra com'era.
  */
 function Vecina({ obra, sentido }: { obra: Work | null; sentido: "anterior" | "siguiente" }) {
   if (!obra) return <div />;
@@ -61,17 +62,17 @@ function Vecina({ obra, sentido }: { obra: Work | null; sentido: "anterior" | "s
   return (
     <div className={siguiente ? "text-right" : undefined}>
       {/*
-        Columna en flex y de alto completo para que las dos láminas compartan
-        la línea de abajo. Sin eso, la columna cuyo título ocupa tres renglones
-        —en el teléfono, donde cada una mide media pantalla— empuja su lámina
-        más abajo que la de al lado y el par queda desparejo. Con `mt-auto` la
-        diferencia la absorbe el aire entre el título y la lámina, que es donde
-        no se nota.
+        Colonna in flex e ad altezza piena perché le due tavole condividano la
+        linea di base in basso. Senza questo, la colonna il cui titolo occupa
+        tre righe —sul telefono, dove ognuna misura mezzo schermo— spinge la
+        sua tavola più in basso di quella accanto e la coppia resta sbilenca.
+        Con `mt-auto` la differenza la assorbe l'aria fra il titolo e la
+        tavola, che è dove non si nota.
 
-        `items-end` del lado de la siguiente, y no `text-right` a secas: un
-        hijo de un contenedor flex no lo alinea el `text-align` del padre, así
-        que la etiqueta «Successiva» se estiraba a todo el ancho de la columna
-        y quedaba a medio camino de su propio título.
+        `items-end` dal lato della successiva, e non `text-right` e basta: un
+        figlio di un contenitore flex non lo allinea il `text-align` del
+        genitore, così l'etichetta «Successiva» si stirava per tutta la
+        larghezza della colonna e restava a metà strada dal suo stesso titolo.
       */}
       <Link
         href={`/opera/${obra.slug}`}
@@ -88,18 +89,20 @@ function Vecina({ obra, sentido }: { obra: Work | null; sentido: "anterior" | "s
         </span>
 
         {/*
-          La lámina es la celda del archivo, no una miniatura nueva: misma
-          proporción 4:5, mismo fondo de papel profundo, misma escala de 1.03
-          en 900ms al apoyarse. Si el archivo cambia de encuadre, esto cambia
-          con él —son el mismo objeto, y verlos distintos haría que la vecina
-          no se reconozca como la pieza que después se va a encontrar. Que sea el mismo objeto es el punto — quien baja
-          hasta acá reconoce la pieza como una del archivo y sabe qué va a
-          pasar si la toca.
+          La tavola è la cella dell'archivio, non una miniatura nuova: stessa
+          proporzione 4:5, stesso fondo di carta profonda, stessa scala di 1.03
+          in 900ms quando ci si appoggia. Se l'archivio cambia inquadratura,
+          questo cambia con lui —sono lo stesso oggetto, e vederli diversi
+          impedirebbe di riconoscere nella vicina il pezzo che poi si
+          incontrerà. Che sia lo stesso oggetto è il punto: chi scende fin qui
+          riconosce il pezzo come uno dell'archivio e sa cosa succederà se lo
+          tocca.
 
-          Recortada por lo mismo que la grilla: lo que se compara entre una
-          obra y la vecina es la obra, no la forma del marco. La lámina de
-          arriba, que es la obra de esta página, sigue saliendo entera y sin
-          recortar: ahí se viene a mirar, acá a elegir.
+          Ritagliata per lo stesso motivo della griglia: quello che si
+          confronta fra un'opera e la vicina è l'opera, non la forma della
+          cornice. La tavola in alto, che è l'opera di questa pagina, continua
+          a uscire intera e senza ritaglio: lì si viene a guardare, qui a
+          scegliere.
         */}
         {portada && (
           <span className="mt-auto block pt-4">

@@ -3,26 +3,27 @@ import type { Work } from "@/lib/works";
 import WorkAside from "./WorkAside";
 
 /**
- * Lo que se lee debajo de las láminas: el texto de la obra a la izquierda, la
- * ficha y el «Chiedi info» en la columna lateral.
+ * Quello che si legge sotto le tavole: il testo dell'opera a sinistra, la
+ * scheda e il «Chiedi info» nella colonna laterale.
  *
- * El título ya no está acá: subió al principio de la página, antes de las
- * láminas. Lo que queda es contexto de algo que el visitante ya vio, que es
- * exactamente el orden en que se quiso dejar la página.
+ * Il titolo non è più qui: è salito all'inizio della pagina, prima delle
+ * tavole. Quello che resta è contesto di qualcosa che il visitatore ha già
+ * visto, che è esattamente l'ordine in cui si è voluta lasciare la pagina.
  *
- * La sección es dueña de su grilla y se trae el lateral adentro, igual que la
- * presentación de About me.
+ * La sezione è padrona della sua griglia e si porta la colonna laterale
+ * dentro, come la presentazione di About me.
  */
 export default function WorkDetails({ work }: { work: Work }) {
   return (
     <div className="mt-10 grid gap-10 md:mt-14 md:grid-cols-12 md:gap-8">
       {/*
-        La columna del texto no se dibuja si no hay texto. Antes siempre tenía
-        algo —el título— así que el caso no existía; ahora una obra cargada sin
-        descripción, que es un estado que el admin admite y marca, dejaría acá
-        siete columnas en blanco y, en el teléfono, un hueco de 2.5rem antes de
-        la ficha. El lateral no se mueve: su lugar lo fija `col-start-9`, no la
-        presencia del vecino.
+        La colonna del testo non si disegna se non c'è testo. Prima aveva
+        sempre qualcosa —il titolo— quindi il caso non esisteva; adesso
+        un'opera caricata senza descrizione, che è uno stato che l'admin
+        ammette e segnala, lascerebbe qui sette colonne in bianco e, sul
+        telefono, un buco di 2.5rem prima della scheda. La colonna laterale non
+        si muove: il suo posto lo fissa `col-start-9`, non la presenza del
+        vicino.
       */}
       {work.description && (
         <div className="md:col-span-7">

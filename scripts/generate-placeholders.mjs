@@ -1,8 +1,8 @@
 /**
- * Genera ilustraciones placeholder ORIGINALES (composiciones abstractas).
- * Su unico proposito es poblar la grilla mientras no estan las obras reales.
- * Para reemplazarlas: borra public/ilustraciones/*.svg y pone los archivos
- * de la clienta, despues actualiza src/data/illustrations.ts.
+ * Genera illustrazioni segnaposto ORIGINALI (composizioni astratte).
+ * Il loro unico scopo e popolare la griglia finche non ci sono le opere vere.
+ * Per sostituirle: cancella public/ilustraciones/*.svg e metti i file della
+ * cliente, poi aggiorna src/data/illustrations.ts.
  *
  * Uso: node scripts/generate-placeholders.mjs
  */
@@ -20,7 +20,7 @@ const palettes = {
   ochre:      { bg: "#F4EDDD", ink: "#2C2720", a: "#D9A03F", b: "#9A7B4F", c: "#6B5636" },
 };
 
-/* --- motivos abstractos, todos dibujados desde cero --- */
+/* --- motivi astratti, tutti disegnati da zero --- */
 
 const motifs = {
   arcs: (w, h, p) => {
@@ -166,4 +166,4 @@ for (const it of items) {
   n++;
 }
 
-console.log(`Generadas ${items.length} ilustraciones placeholder en ${OUT}/`);
+console.log(`Generate ${items.length} illustrazioni segnaposto in ${OUT}/`);

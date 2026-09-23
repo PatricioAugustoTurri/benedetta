@@ -4,18 +4,20 @@ import Reveal from "@/components/Reveal";
 import type { Work } from "@/lib/works";
 
 /**
- * La ficha de la obra y la acción primaria del sitio entero, que acá es la
- * única forma cerrada y lo único redondeado que el sitio se permite.
+ * La scheda dell'opera e l'azione primaria di tutto il sito, che qui è
+ * l'unica forma chiusa e l'unica cosa arrotondata che il sito si concede.
  *
- * La ficha es una lista de definición abierta y cerrada por filetes, una
- * regla por fila: rótulo en versalitas a la izquierda, valor alineado a la
- * derecha con cifras de ancho fijo. Sin fondo, sin cebra, sin radio.
+ * La scheda è una lista di definizione aperta e chiusa da filetti, una riga
+ * per voce: etichetta in maiuscoletto a sinistra, valore allineato a destra
+ * con cifre a larghezza fissa. Senza sfondo, senza righe alternate, senza
+ * raggio.
  *
- * Hoy son dos filas, año y técnica, que es lo que la tabla `works` guarda.
- * Llegó a tener cinco —categoría, comitente y medidas— cuando la obra vivía
- * en un archivo TypeScript. Si esas tres vuelven a hacer falta, vuelven como
- * columnas de la tabla y como campos del admin; inventarlas acá dejaría la
- * ficha diciendo cosas que nadie cargó.
+ * Oggi sono due righe, anno e tecnica, che è quello che conserva la tabella
+ * `works`. È arrivata ad averne cinque —categoria, committente e misure—
+ * quando l'opera viveva in un file TypeScript. Se quelle tre dovessero
+ * tornare a servire, tornano come colonne della tabella e come campi
+ * dell'admin; inventarle qui lascerebbe la scheda a dire cose che nessuno ha
+ * caricato.
  */
 export default function WorkAside({ work }: { work: Work }) {
   const ficha = [
@@ -39,52 +41,55 @@ export default function WorkAside({ work }: { work: Work }) {
         </dl>
 
         {/*
-          La acción primaria del sitio entero vive acá, en la obra concreta.
+          L'azione primaria di tutto il sito vive qui, sull'opera concreta.
 
-          **Es la única forma cerrada del sitio**, y contradice a propósito dos
-          reglas del sistema: que la terracota no sea más que filetes y marcas,
-          y que nada lleve borde en los cuatro lados. Se hace a pedido del
-          cliente y por una razón defendible: el sitio no vende ni tiene
-          checkout, y todo el recorrido termina en un mail. Hay exactamente una
-          acción, y ésta es.
+          **È l'unica forma chiusa del sito**, e contraddice di proposito due
+          regole del sistema: che la terracotta non sia altro che filetti e
+          segni, e che niente porti un bordo su tutti e quattro i lati. Si fa
+          su richiesta della cliente e per una ragione difendibile: il sito non
+          vende e non ha un checkout, e tutto il percorso finisce in una mail.
+          C'è esattamente un'azione, ed è questa.
 
-          **Probado en tres formas, y ésta es la elegida.** Fue un bloque de
-          terracota lleno —demasiado: un rectángulo saturado al lado de una
-          ilustración compite con ella—, después volvió un rato al ícono con la
-          palabra subrayada, y quedó acá. El reposo es un filete de 1px y la
-          palabra en terracota sobre papel: se ve cálido y se lee como algo que
-          se toca, sin poner un bloque de color al lado de la obra. El relleno
-          no desapareció, se movió al hover, que es donde el peso no compite
-          con nada porque ya hay alguien apuntando.
+          **Provata in tre forme, e questa è quella scelta.** È stata un blocco
+          di terracotta pieno —troppo: un rettangolo saturo accanto a
+          un'illustrazione le fa concorrenza—, poi è tornata per un po'
+          all'icona con la parola sottolineata, ed è rimasta qui. Lo stato di
+          riposo è un filetto da 1px e la parola in terracotta su carta: si
+          vede calda e si legge come qualcosa che si tocca, senza mettere un
+          blocco di colore accanto all'opera. Il pieno non è sparito, si è
+          spostato sull'hover, dove il peso non fa concorrenza a niente perché
+          c'è già qualcuno che sta puntando.
 
-          El radio es de 6px sobre 42 de alto, y es lo único redondeado del
-          sitio: el escalón más suave que todavía se nota. Más que esto empieza
-          a leerse como una píldora y este mundo no tiene ninguna.
+          Il raggio è di 6px su 42 di altezza, ed è l'unica cosa arrotondata
+          del sito: il gradino più morbido che ancora si noti. Più di così
+          comincia a leggersi come una pillola e questo mondo non ne ha
+          nessuna.
 
-          **A dónde lleva.** Ya no abre un `mailto:`, que dependía de que el
-          visitante tuviera un programa de correo configurado y en un teléfono
-          o en un webmail muchas veces no abre nada ni avisa. Ahora va al
-          formulario de Contatti con el asunto puesto: viaja el slug y el
-          título lo resuelve esa página contra la tabla.
+          **Dove porta.** Non apre più un `mailto:`, che dipendeva dal fatto
+          che il visitatore avesse un programma di posta configurato e che su
+          un telefono o su una webmail spesso non apre niente e non avvisa.
+          Adesso va al modulo di Contatti con l'oggetto già compilato: viaggia
+          lo slug e il titolo lo risolve quella pagina contro la tabella.
 
-          El subrayado se fue con la forma: dentro de una forma cerrada sería
-          decir dos veces que esto se toca.
+          La sottolineatura se n'è andata con la forma: dentro una forma chiusa
+          sarebbe dire due volte che questo si tocca.
         */}
         <Link
           href={`/contatti?opera=${work.slug}`}
           className="mt-8 inline-flex items-center gap-2.5 rounded-md border border-accent px-5 py-2.5 text-sm text-accent transition-colors duration-300 hover:bg-accent hover:text-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-ink"
         >
           {/*
-            El ícono toma `currentColor`: viaja en terracota con la palabra y
-            pasa a papel con ella cuando el fondo se llena. No cambia de color
-            por su cuenta —lo que responde al puntero es la forma entera— así
-            que nunca hay dos cosas moviéndose por un solo gesto.
+            L'icona prende `currentColor`: viaggia in terracotta con la parola
+            e passa a carta con lei quando lo sfondo si riempie. Non cambia
+            colore per conto suo —quello che risponde al puntatore è la forma
+            intera— così non ci sono mai due cose che si muovono per un solo
+            gesto.
           */}
           <Mail size={18} className="shrink-0" />
           Chiedi info
         </Link>
         <p className="mt-3 text-xs text-ink-faint">
-          Te lleva al formulario con el asunto ya puesto.
+          Ti porta al modulo con l&apos;oggetto già compilato.
         </p>
       </Reveal>
     </aside>

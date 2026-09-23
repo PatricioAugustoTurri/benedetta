@@ -2,13 +2,13 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 
 /**
- * Cierre de página: la invitación a escribir, en la voz de la obra.
- * No lleva rótulo encima — el titular se sostiene solo.
+ * Chiusura di pagina: l'invito a scrivere, nella voce dell'opera.
+ * Non ha un'etichetta sopra — il titolo si regge da solo.
  */
 export default function ContactClose({
   children,
   href = "/contatti",
-  cta = "Escribime",
+  cta = "Scrivimi",
 }: {
   children: React.ReactNode;
   href?: string;

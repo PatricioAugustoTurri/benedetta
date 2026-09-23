@@ -4,12 +4,12 @@ import { useActionState, useId } from "react";
 import { entrar, type EstadoFormulario } from "../actions";
 
 /**
- * La pantalla de acceso: un campo y un botón.
+ * La schermata di accesso: un campo e un pulsante.
  *
- * El mensaje de error dice «esa clave no es» y nada más. No distingue entre
- * clave vacía, corta o equivocada más allá de lo obvio, y sobre todo no dice
- * si la clave existe: cada detalle de más es una pista para quien está
- * probando claves.
+ * Il messaggio di errore dice «questa password non è quella giusta» e
+ * nient'altro. Non distingue fra password vuota, corta o sbagliata oltre
+ * l'ovvio, e soprattutto non dice se la password esiste: ogni dettaglio in più
+ * è un indizio per chi sta provando password.
  */
 export default function LoginForm({ desde }: { desde: string }) {
   const [estado, enviar, enviando] = useActionState<EstadoFormulario, FormData>(entrar, {});
@@ -20,7 +20,7 @@ export default function LoginForm({ desde }: { desde: string }) {
       <input type="hidden" name="desde" value={desde} />
 
       <label htmlFor={id} className="label block text-ink-faint">
-        Clave
+        Password
       </label>
       <input
         id={id}
@@ -45,7 +45,7 @@ export default function LoginForm({ desde }: { desde: string }) {
         disabled={enviando}
         className="mt-8 bg-ink px-6 py-3 text-sm text-paper transition-opacity hover:opacity-85 disabled:opacity-50"
       >
-        {enviando ? "Entrando…" : "Entrar"}
+        {enviando ? "Accesso in corso…" : "Accedi"}
       </button>
     </form>
   );

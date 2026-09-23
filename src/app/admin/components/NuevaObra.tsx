@@ -2,15 +2,17 @@ import Link from "next/link";
 import { Plus } from "@/components/Icon";
 
 /**
- * El hueco de alta: la primera celda de la grilla.
+ * La casella di inserimento: la prima cella della griglia.
  *
- * Tiene la medida y la proporción de una obra, con filete punteado en vez de
- * imagen. Es la acción primaria de la pantalla y está donde el ojo empieza a
- * leer la grilla, sin necesidad de un botón flotante ni una barra de acciones:
- * el lugar vacío donde va a ir la obra *es* el control para cargarla.
+ * Ha la misura e la proporzione di un'opera, con filetto tratteggiato al posto
+ * dell'immagine. È l'azione primaria della schermata e sta dove l'occhio
+ * comincia a leggere la griglia, senza bisogno di un pulsante flottante né di
+ * una barra di azioni: il posto vuoto dove andrà l'opera *è* il controllo per
+ * caricarla.
  *
- * El punteado no es decoración. Un filete lleno lo haría leer como una pieza
- * más, todavía sin cargar; punteado dice que no hay nada y que se puede poner.
+ * Il tratteggio non è decorazione. Un filetto pieno la farebbe leggere come un
+ * pezzo in più, ancora da caricare; tratteggiato dice che non c'è niente e che
+ * ci si può mettere qualcosa.
  */
 export default function NuevaObra() {
   return (
@@ -19,11 +21,11 @@ export default function NuevaObra() {
       className="group block focus-visible:outline-none"
     >
       {/*
-        En el teléfono la grilla es de una sola columna, así que el hueco no
-        tiene con quién alinearse y una celda vertical se come más que la
-        pantalla entera antes de que aparezca la primera obra. Ahí va apaisado;
-        desde 640px, donde la grilla se arma de verdad, toma la proporción de
-        una pieza, que es 4:5 como en el sitio.
+        Sul telefono la griglia è a colonna singola, quindi la casella non ha
+        con chi allinearsi e una cella verticale si mangia più dello schermo
+        intero prima che compaia la prima opera. Lì va orizzontale; da 640px,
+        dove la griglia si costruisce davvero, prende la proporzione di un
+        pezzo, che è 4:5 come nel sito.
       */}
       <span className="flex aspect-[2/1] w-full flex-col items-center justify-center gap-3 border border-dashed border-line bg-paper-deep/40 sm:aspect-[4/5] transition-colors duration-300 group-hover:border-accent/50 group-hover:bg-paper-deep/70 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-[3px] group-focus-visible:outline-accent">
         <Plus
@@ -31,16 +33,16 @@ export default function NuevaObra() {
           className="text-ink-faint transition-colors duration-300 group-hover:text-accent"
         />
         <span className="label text-ink-faint transition-colors duration-300 group-hover:text-ink-soft">
-          Nueva obra
+          Nuova opera
         </span>
       </span>
 
       {/*
-        Los dos renglones vacíos reservan lo que en una obra cargada ocupan el
-        título y la técnica, para que las celdas de una misma fila terminen a
-        la misma altura. Sólo existen desde 640px: en una columna no hay fila
-        que emparejar y acá abajo serían cuarenta píxeles de nada entre el
-        hueco y la primera obra.
+        Le due righe vuote riservano quello che in un'opera caricata occupano
+        il titolo e la tecnica, perché le celle di una stessa riga finiscano
+        alla stessa altezza. Esistono solo da 640px: in una colonna non c'è
+        riga da pareggiare e qui sotto sarebbero quaranta pixel di niente fra
+        la casella e la prima opera.
       */}
       <span aria-hidden="true" className="mt-3 hidden text-base leading-normal sm:block">
         &nbsp;

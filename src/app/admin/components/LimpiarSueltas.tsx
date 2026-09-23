@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { limpiarSueltas, type Limpieza } from "../actions";
 
-/** El resultado, dicho en una línea. */
+/** Il risultato, detto in una riga. */
 function Resultado({ r }: { r: Limpieza }) {
   if (r.error) return <span className="text-accent">{r.error}</span>;
 
@@ -13,23 +13,23 @@ function Resultado({ r }: { r: Limpieza }) {
     <>
       {r.borradas > 0 && (
         <>
-          Se {r.borradas === 1 ? "borró" : "borraron"} {cifra(r.borradas)}
-          {r.borradas === 1 ? " imagen" : " imágenes"} ·{" "}
-          {cifra(Number((r.bytes / 1024 / 1024).toFixed(1)))} MB liberados.
+          {r.borradas === 1 ? "Cancellata " : "Cancellate "}{cifra(r.borradas)}
+          {r.borradas === 1 ? " immagine" : " immagini"} ·{" "}
+          {cifra(Number((r.bytes / 1024 / 1024).toFixed(1)))} MB liberati.
         </>
       )}
 
-      {r.borradas === 0 && r.recientes === 0 && "No había ninguna."}
+      {r.borradas === 0 && r.recientes === 0 && "Non ce n'era nessuna."}
 
       {/*
-        Las recientes se nombran aparte y siempre. Decir «no había ninguna»
-        cuando hay tres esperando el margen haría que quien lo lee dé la
-        cuenta por limpia y no vuelva a mirar.
+        Le recenti si nominano a parte e sempre. Dire «non ce n'era nessuna»
+        quando ce ne sono tre in attesa del margine farebbe dare per pulito
+        l'account a chi legge, e non tornerebbe a guardare.
       */}
       {r.recientes > 0 && (
         <>
-          {r.borradas > 0 ? " Quedan " : "Hay "}
-          {cifra(r.recientes)} de hace menos de una hora, sin tocar. Probá de nuevo más tarde.
+          {r.borradas > 0 ? " Ne restano " : "Ce ne sono "}
+          {cifra(r.recientes)} di meno di un&apos;ora fa, non toccate. Riprova più tardi.
         </>
       )}
     </>
@@ -37,15 +37,16 @@ function Resultado({ r }: { r: Limpieza }) {
 }
 
 /**
- * Sacar de Cloudinary las imágenes que ninguna obra usa.
+ * Togliere da Cloudinary le immagini che nessuna opera usa.
  *
- * Va al pie del archivo, en tinta pálida y sin adorno: es mantenimiento, se
- * usa cada tanto, y no tiene por qué competir con cargar una obra.
+ * Va in fondo all'archivio, in inchiostro pallido e senza ornamenti: è
+ * manutenzione, si usa ogni tanto, e non deve fare concorrenza al caricamento
+ * di un'opera.
  *
- * No se ejecuta sola al abrir el admin, aunque podría. Preguntarle a
- * Cloudinary qué hay guardado es una llamada de red, y ponerla en cada carga
- * de la pantalla haría más lenta la tarea de todos los días para resolver
- * algo que pasa de vez en cuando.
+ * Non si esegue da sola all'apertura dell'admin, anche se potrebbe. Chiedere a
+ * Cloudinary cosa c'è conservato è una chiamata di rete, e metterla a ogni
+ * caricamento della schermata rallenterebbe il lavoro di tutti i giorni per
+ * risolvere qualcosa che succede ogni tanto.
  */
 export default function LimpiarSueltas() {
   const [resultado, setResultado] = useState<Limpieza | null>(null);
@@ -60,13 +61,13 @@ export default function LimpiarSueltas() {
           onClick={() => empezar(async () => setResultado(await limpiarSueltas()))}
           className="link-underline text-xs text-ink-faint transition-colors hover:text-ink disabled:opacity-50"
         >
-          {corriendo ? "Buscando…" : "Limpiar imágenes sueltas"}
+          {corriendo ? "Ricerca in corso…" : "Pulisci le immagini sciolte"}
         </button>
 
         {/*
-          El resultado va en la misma línea y con el mismo cuerpo: es una
-          respuesta, no un anuncio. `aria-live` lo hace llegar a quien no está
-          mirando esta esquina de la pantalla.
+          Il risultato va sulla stessa riga e con lo stesso corpo: è una
+          risposta, non un annuncio. `aria-live` lo fa arrivare a chi non sta
+          guardando questo angolo dello schermo.
         */}
         <span aria-live="polite" className="text-xs text-ink-faint">
           {resultado && <Resultado r={resultado} />}
@@ -74,9 +75,10 @@ export default function LimpiarSueltas() {
       </div>
 
       <p className="mt-2 max-w-[52ch] text-xs leading-relaxed text-ink-faint">
-        Las imágenes suben apenas las elegís, así que si alguna vez cerrás el formulario sin
-        guardar, quedan ocupando la cuenta sin pertenecer a ninguna obra. Esto las saca. No
-        toca las de menos de una hora, por si estás cargando algo en otra pestaña.
+        Le immagini si caricano appena le scegli, quindi se una volta chiudi il modulo senza
+        salvare, restano a occupare l&apos;account senza appartenere a nessuna opera. Questo
+        le toglie. Non tocca quelle di meno di un&apos;ora, nel caso tu stia caricando
+        qualcosa in un&apos;altra scheda.
       </p>
     </div>
   );

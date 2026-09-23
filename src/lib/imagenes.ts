@@ -2,19 +2,20 @@ import { configCloudinary } from "@/lib/cloudinary";
 import type { WorkImage } from "@/lib/works";
 
 /**
- * Qué se acepta como imagen de una obra, del lado del servidor.
+ * Cosa si accetta come immagine di un'opera, dal lato server.
  *
- * Existe porque desde que las imágenes suben directo del navegador a
- * Cloudinary, lo que llega al servidor al guardar ya no es un archivo: es una
- * dirección. Y una dirección la escribe quien manda el formulario.
+ * Esiste perché da quando le immagini salgono direttamente dal browser a
+ * Cloudinary, quello che arriva al server al salvataggio non è più un file: è
+ * un indirizzo. E un indirizzo lo scrive chi manda il modulo.
  *
- * Sin esta comprobación, alguien con sesión —o con un POST armado a mano a la
- * Server Action— podría meter en la base la URL de cualquier imagen de
- * internet, y el sitio de ella la mostraría como obra suya. Peor: podría
- * apuntar a un servidor que registre quién mira el portfolio.
+ * Senza questo controllo, qualcuno con una sessione —o con un POST costruito a
+ * mano verso la Server Action— potrebbe infilare nel database l'URL di una
+ * qualsiasi immagine di internet, e il sito di lei la mostrerebbe come opera
+ * sua. Peggio: potrebbe puntare a un server che registra chi guarda il
+ * portfolio.
  *
- * La regla es una sola y es estrecha a propósito: tiene que venir de
- * `res.cloudinary.com` y de la cuenta configurada en este proyecto.
+ * La regola è una sola ed è stretta di proposito: deve venire da
+ * `res.cloudinary.com` e dall'account configurato in questo progetto.
  */
 export function esImagenPropia(url: string): boolean {
   const config = configCloudinary();
@@ -30,14 +31,14 @@ export function esImagenPropia(url: string): boolean {
   return (
     parsed.protocol === "https:" &&
     parsed.hostname === "res.cloudinary.com" &&
-    // El primer tramo del camino es el nombre de la cuenta. Comparar sobre
-    // `pathname` y no sobre la URL entera evita que un `?` o un `#` colado
-    // haga pasar algo que no es de acá.
+    // Il primo tratto del percorso è il nome dell'account. Confrontare su
+    // `pathname` e non sull'URL intero evita che un `?` o un `#` infilato
+    // faccia passare qualcosa che non è di qui.
     parsed.pathname.startsWith(`/${config.cloudName}/`)
   );
 }
 
-/** Las medidas tienen que ser números de verdad, no texto que parezca número. */
+/** Le misure devono essere numeri veri, non testo che sembra un numero. */
 export function medidasPlausibles(img: WorkImage): boolean {
   return (
     Number.isInteger(img.width) &&

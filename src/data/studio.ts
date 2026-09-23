@@ -1,71 +1,73 @@
 /**
- * Lo que dice la página About.
+ * Quello che dice la pagina About.
  *
- * El texto vive acá y no adentro del componente porque lo lee la página real
- * y también las vistas previas de composición: si estuviera escrito en una de
- * las dos, comparar dos maquetas sería comparar dos textos distintos.
+ * Il testo vive qui e non dentro il componente perché lo legge la pagina vera
+ * e anche le anteprime di composizione: se fosse scritto in una delle due,
+ * confrontare due bozze significherebbe confrontare due testi diversi.
  */
 
 /**
- * El video que abre la página, como lámina sobre el pliego: mismos márgenes
- * que una obra del archivo, proporción 16:9.
+ * Il video che apre la pagina, come tavola sul foglio: stessi margini di
+ * un'opera dell'archivio, proporzione 16:9.
  *
- * PLACEHOLDER: todavía no hay archivo. Mientras `src` sea `null`, el marco
- * dibuja el cuadro de portada y nada más —ver `StudioFilm`—, así que la
- * página no tiene un reproductor roto ni un hueco negro esperando.
+ * PLACEHOLDER: il file non c'è ancora. Finché `src` è `null`, la cornice
+ * disegna il fotogramma di copertina e nient'altro —vedi `StudioFilm`—, così
+ * la pagina non ha un lettore rotto né un buco nero in attesa.
  *
- * El día que llegue el video, cambia una línea: `src: "/studio.mp4"`. Lo que
- * conviene que traiga el archivo:
+ * Il giorno in cui arriva il video cambia una riga: `src: "/studio.mp4"`.
+ * Quello che conviene che porti con sé il file:
  *
- * - **Sin sonido y corto.** Arranca solo, en loop, y un video que arranca
- *   solo con sonido es una emboscada. Si tuviera que tener sonido, deja de
- *   arrancar solo y pasa a tener controles.
- * - **La proporción la decide la maqueta elegida**, no al revés: 16:9 para
- *   las horizontales, 4:5 o 3:4 para la vertical.
- * - **Un cuadro de portada real** (`poster`), que es lo que se ve mientras
- *   carga y lo que queda si el visitante pidió menos movimiento.
+ * - **Senza audio e breve.** Parte da solo, in loop, e un video che parte da
+ *   solo con l'audio è un'imboscata. Se dovesse avere audio, smette di partire
+ *   da solo e passa ad avere i controlli.
+ * - **La proporzione la decide la bozza scelta**, non il contrario: 16:9 per
+ *   le orizzontali, 4:5 o 3:4 per la verticale.
+ * - **Un fotogramma di copertina vero** (`poster`), che è quello che si vede
+ *   mentre carica e quello che resta se il visitatore ha chiesto meno
+ *   movimento.
  */
 export const studioFilm = {
   src: null as string | null,
   poster: "/retrato.svg",
-  /* PLACEHOLDER: el retrato es un SVG de relleno, no es ella. */
-  alt: "La ilustradora trabajando en su taller.",
+  /* PLACEHOLDER: il ritratto è un SVG segnaposto, non è lei. */
+  alt: "L'illustratrice al lavoro nel suo studio.",
 };
 
-/** PLACEHOLDER: la bio es de relleno y está en español, no en italiano. */
+/** PLACEHOLDER: la bio è testo segnaposto. */
 export const bio = [
-  "Ilustro desde {location}. Estudié diseño y pasé de las tipografías a los pinceles sin mirar atrás: hoy la mayor parte de lo que hago empieza en papel, con acuarela y lápiz, y sólo pasa a digital cuando el encargo lo pide.",
-  "Me interesa el detalle chico —la nervadura de una hoja, el gesto de una mano— y el silencio alrededor. Trabajo mejor cuando hay espacio para probar, así que suelo arrancar con bocetos rápidos antes de comprometerme con una dirección.",
-  "Mis trabajos aparecieron en revistas, libro álbum y colecciones privadas. Si querés ver el proceso más de cerca, lo comparto seguido en Instagram.",
+  "Illustro da {location}. Ho studiato design e sono passata dai caratteri tipografici ai pennelli senza voltarmi indietro: oggi la maggior parte di quello che faccio comincia sulla carta, con acquerello e matita, e passa al digitale solo quando il lavoro lo chiede.",
+  "Mi interessa il dettaglio piccolo —la nervatura di una foglia, il gesto di una mano— e il silenzio intorno. Lavoro meglio quando c'è spazio per provare, così parto quasi sempre da schizzi rapidi prima di impegnarmi in una direzione.",
+  "I miei lavori sono apparsi su riviste, in libri illustrati e in collezioni private. Se vuoi vedere il processo più da vicino, lo condivido spesso su Instagram.",
 ];
 
-/** PLACEHOLDER: los tres servicios son descripciones de relleno. */
+/** PLACEHOLDER: i tre servizi sono descrizioni segnaposto. */
 export const servicios = [
   {
-    title: "Editorial",
-    body: "Ilustración para notas, tapas y suplementos. Entrego en los formatos y plazos que pide la redacción.",
+    title: "Editoriale",
+    body: "Illustrazione per articoli, copertine e inserti. Consegno nei formati e nei tempi che chiede la redazione.",
   },
   {
-    title: "Libro infantil",
-    body: "Desarrollo de personajes, storyboard y arte final para libro álbum, en diálogo con autores y editores.",
+    title: "Libro per l'infanzia",
+    body: "Sviluppo dei personaggi, storyboard e arte finale per il libro illustrato, in dialogo con autori ed editori.",
   },
   {
-    title: "Series botánicas",
-    body: "Láminas y herbarios por encargo, en acuarela o lápiz de color, con opción de impresión fine art.",
+    title: "Serie botaniche",
+    body: "Tavole ed erbari su commissione, ad acquerello o matita colorata, con opzione di stampa fine art.",
   },
 ];
 
 /**
- * PLACEHOLDER — el riesgo más alto de la página. Ninguno de estos clientes
- * existe: los inventé para la maqueta. Es el sitio de una persona real que le
- * va a mandar el link a editores reales, así que esta lista se reemplaza por
- * la verdadera o se borra entera. No se completa con más nombres plausibles.
+ * PLACEHOLDER — il rischio più alto della pagina. Nessuno di questi clienti
+ * esiste: li ho inventati per la bozza. È il sito di una persona vera che
+ * manderà il link a editori veri, quindi questa lista si sostituisce con
+ * quella autentica o si cancella del tutto. Non si completa con altri nomi
+ * plausibili.
  */
 export const clientes = [
-  "Revista Campo",
-  "Ediciones Sur",
-  "La Nube",
-  "Cuadernos del Este",
-  "Estudio Pampa",
-  "Fundación Raíz",
+  "Rivista Campo",
+  "Edizioni Sud",
+  "La Nuvola",
+  "Quaderni dell'Est",
+  "Studio Pampa",
+  "Fondazione Radice",
 ];

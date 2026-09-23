@@ -1,11 +1,11 @@
 /**
- * Íconos dibujados, un solo grosor de trazo (1.25) y un solo tamaño base.
- * No usamos glifos unicode como íconos: no comparten métrica ni peso
- * con la tipografía y cambian de forma según el sistema operativo.
+ * Icone disegnate, un solo spessore di tratto (1.25) e una sola misura base.
+ * Non usiamo glifi unicode come icone: non condividono né metrica né peso con
+ * il carattere e cambiano forma a seconda del sistema operativo.
  */
 type Props = {
   className?: string;
-  /** Lado del cuadro en px. El trazo se mantiene óptico. */
+  /** Lato del riquadro in px. Il tratto resta ottico. */
   size?: number;
 };
 
@@ -38,7 +38,7 @@ export function ArrowRight({ className, size = 20 }: Props) {
   );
 }
 
-/** Flecha diagonal para links que salen del sitio. */
+/** Freccia diagonale per i link che escono dal sito. */
 export function ArrowUpRight({ className, size = 16 }: Props) {
   return (
     <svg {...base(size)} className={className}>
@@ -75,9 +75,9 @@ export function Close({ className, size = 20 }: Props) {
 }
 
 /**
- * Copiar: dos hojas corridas. Se dibuja porque la acción no es "mandar un
- * mail" y usar el sobre para las dos cosas haría que el sobre no signifique
- * ninguna.
+ * Copiare: due fogli sfalsati. Si disegna perché l'azione non è "mandare una
+ * mail" e usare la busta per tutte e due le cose farebbe sì che la busta non
+ * significhi nessuna delle due.
  */
 export function Copy({ className, size = 18 }: Props) {
   return (
@@ -89,9 +89,9 @@ export function Copy({ className, size = 18 }: Props) {
 }
 
 /**
- * Volver arriba. Lleva asta, como la flecha diagonal de los links externos y
- * a diferencia de las de paginado, que son cabezas sueltas: ésta no dice
- * "siguiente", dice "hasta el principio", y esa distancia es el asta.
+ * Tornare in cima. Ha l'asta, come la freccia diagonale dei link esterni e a
+ * differenza di quelle della paginazione, che sono punte sole: questa non dice
+ * "successiva", dice "fino all'inizio", e quella distanza è l'asta.
  */
 export function ArrowUp({ className, size = 16 }: Props) {
   return (
@@ -102,16 +102,16 @@ export function ArrowUp({ className, size = 16 }: Props) {
 }
 
 /*
-  Los tres del admin. Entran acá y no en una carpeta aparte porque un segundo
-  juego de íconos con otro trazo es exactamente lo que este archivo existe
-  para evitar: la pantalla de carga tiene que verse hecha por la misma mano
-  que el sitio.
+  Le tre dell'admin. Entrano qui e non in una cartella a parte perché un
+  secondo gruppo di icone con un altro tratto è esattamente quello che questo
+  file esiste per evitare: la schermata di caricamento deve sembrare fatta
+  dalla stessa mano del sito.
 */
 
 /**
- * Sumar. Dos trazos del mismo largo, sin caja alrededor: la caja ya la pone
- * el hueco punteado de la grilla, y repetirla adentro sería dibujar dos veces
- * la misma idea.
+ * Aggiungere. Due tratti della stessa lunghezza, senza riquadro intorno: il
+ * riquadro lo mette già la casella tratteggiata della griglia, e ripeterlo
+ * dentro sarebbe disegnare due volte la stessa idea.
  */
 export function Plus({ className, size = 20 }: Props) {
   return (
@@ -122,9 +122,9 @@ export function Plus({ className, size = 20 }: Props) {
 }
 
 /**
- * Editar: el lápiz, que es la herramienta de ella. Va inclinado a 45° como
- * las flechas diagonales del sistema, y con la punta marcada aparte para que
- * a 16px todavía se lea como lápiz y no como una barra torcida.
+ * Modificare: la matita, che è il suo strumento. Va inclinata a 45° come le
+ * frecce diagonali del sistema, e con la punta segnata a parte perché a 16px
+ * si legga ancora come una matita e non come una sbarra storta.
  */
 export function Pencil({ className, size = 20 }: Props) {
   return (
@@ -136,9 +136,10 @@ export function Pencil({ className, size = 20 }: Props) {
 }
 
 /**
- * Borrar. La papelera y no una cruz: una cruz en este sistema cierra —es el
- * botón del cajón del menú— y el mismo signo para cerrar y para destruir es
- * el que hace que alguien borre una obra creyendo que cerraba algo.
+ * Cancellare. Il cestino e non una croce: una croce in questo sistema chiude
+ * —è il pulsante del pannello del menu— e lo stesso segno per chiudere e per
+ * distruggere è quello che fa cancellare un'opera a qualcuno che credeva di
+ * chiudere qualcosa.
  */
 export function Trash({ className, size = 20 }: Props) {
   return (
@@ -151,23 +152,25 @@ export function Trash({ className, size = 20 }: Props) {
 }
 
 /**
- * Mover: la manija por la que se arrastra una obra a otro lugar de la grilla.
+ * Spostare: la maniglia con cui si trascina un'opera in un altro punto della
+ * griglia.
  *
- * Cuatro flechas desde un centro, y no las tres rayas de una manija de lista,
- * por dos razones. La primera es que esas tres rayas ya son el botón del menú
- * en el teléfono, y el mismo dibujo para abrir la navegación y para agarrar
- * una pieza es el que hace que alguien toque uno creyendo que tocaba el otro.
- * La segunda es que la grilla es una grilla: una pieza se mueve en dos ejes,
- * no arriba y abajo en una lista, y el ícono lo tiene que decir antes de que
- * la mano lo pruebe.
+ * Quattro frecce da un centro, e non le tre righe di una maniglia da lista,
+ * per due ragioni. La prima è che quelle tre righe sono già il pulsante del
+ * menu sul telefono, e lo stesso disegno per aprire la navigazione e per
+ * afferrare un pezzo è quello che fa toccare l'uno a chi credeva di toccare
+ * l'altro. La seconda è che la griglia è una griglia: un pezzo si muove su due
+ * assi, non su e giù in una lista, e l'icona lo deve dire prima che la mano lo
+ * provi.
  *
- * Las puntas van en trazos aparte de la cruz para que a 16px, que es donde
- * vive, sigan leyéndose como flechas y no como un engrosamiento del extremo.
+ * Le punte vanno in tratti separati dalla croce perché a 16px, che è dove
+ * vive, continuino a leggersi come frecce e non come un ispessimento
+ * dell'estremità.
  *
- * La cruz no llega al borde del cuadro: recortada a 13 unidades de las 24, el
- * dibujo ocupa lo mismo que el lápiz y la papelera de al lado. Estirada hasta
- * el borde pesaba más que sus dos vecinos y el grupo dejaba de leerse como
- * tres controles del mismo rango.
+ * La croce non arriva al bordo del riquadro: ridotta a 13 unità sulle 24, il
+ * disegno occupa quanto la matita e il cestino accanto. Stirata fino al bordo
+ * pesava più dei due vicini e il gruppo smetteva di leggersi come tre
+ * controlli dello stesso rango.
  */
 export function Move({ className, size = 20 }: Props) {
   return (

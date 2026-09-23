@@ -23,19 +23,20 @@ import {
 } from "@/lib/works";
 
 /**
- * Lo que devuelve una acción de formulario. `useActionState` lo recibe en el
- * cliente y la pantalla muestra `error` donde corresponda.
+ * Quello che restituisce un'azione di modulo. `useActionState` lo riceve sul
+ * client e la schermata mostra `error` dove serve.
  */
 export type EstadoFormulario = { error?: string; ok?: boolean };
 
 /*
-  Cada acción vuelve a comprobar la sesión. No es redundante con proxy.ts: una
-  Server Action es un POST a una dirección propia y se puede invocar sin pasar
-  por ninguna página, así que el proxy no la ve. La documentación de Next lo
-  dice con todas las letras, y es el error de seguridad más común del patrón.
+  Ogni azione ricontrolla la sessione. Non è ridondante con proxy.ts: una
+  Server Action è un POST a un indirizzo proprio e si può invocare senza
+  passare da nessuna pagina, quindi il proxy non la vede. La documentazione di
+  Next lo dice a chiare lettere, ed è l'errore di sicurezza più comune di
+  questo schema.
 */
 
-/* ----------------------------------------------------------------- acceso */
+/* ----------------------------------------------------------------- accesso */
 
 export async function entrar(
   _previo: EstadoFormulario,
@@ -43,8 +44,8 @@ export async function entrar(
 ): Promise<EstadoFormulario> {
   const clave = String(formData.get("clave") ?? "");
 
-  if (clave.length === 0) return { error: "Escribí la clave." };
-  if (!checkPassword(clave)) return { error: "Esa clave no es." };
+  if (clave.length === 0) return { error: "Scrivi la password." };
+  if (!checkPassword(clave)) return { error: "Questa password non è quella giusta." };
 
   await openSession();
 
@@ -57,20 +58,20 @@ export async function salir(): Promise<void> {
   redirect("/admin/login");
 }
 
-/* --------------------------------------------------------- subida directa */
+/* ------------------------------------------------------ caricamento diretto */
 
 /**
- * El permiso para que el navegador suba una imagen a Cloudinary.
+ * Il permesso perché il browser carichi un'immagine su Cloudinary.
  *
- * El archivo no pasa por este servidor: el navegador lo manda directo. Eso
- * es lo que hace que un escaneo de 30 MB suba sin chocar contra el tope del
- * cuerpo de una Server Action, y lo que deja el proyecto sin una carpeta de
- * fotos que crece sola.
+ * Il file non passa da questo server: il browser lo manda direttamente. È
+ * questo che permette a una scansione da 30 MB di salire senza sbattere contro
+ * il limite del corpo di una Server Action, ed è questo che lascia il progetto
+ * senza una cartella di foto che cresce da sola.
  *
- * Lo que sí pasa por acá es la autorización. La firma se calcula con el
- * secreto de la cuenta, que nunca sale del servidor, y sólo se entrega a
- * quien ya tiene sesión: sin esto, el formulario sería una puerta abierta
- * para subir cualquier cosa a la cuenta de ella.
+ * Quello che passa di qui è invece l'autorizzazione. La firma si calcola con
+ * il segreto dell'account, che non esce mai dal server, e si consegna solo a
+ * chi ha già una sessione: senza questo, il modulo sarebbe una porta aperta
+ * per caricare qualsiasi cosa sull'account di lei.
  */
 export async function pedirPermisoDeSubida(): Promise<
   { ok: true; permiso: PermisoDeSubida } | { ok: false; error: string }
@@ -82,7 +83,7 @@ export async function pedirPermisoDeSubida(): Promise<
     return {
       ok: false,
       error:
-        "Faltan las claves de Cloudinary. Completá CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY y CLOUDINARY_API_SECRET en .env.local y reiniciá el servidor.",
+        "Mancano le chiavi di Cloudinary. Completa CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY e CLOUDINARY_API_SECRET in .env.local e riavvia il server.",
     };
   }
 
@@ -90,64 +91,67 @@ export async function pedirPermisoDeSubida(): Promise<
 }
 
 /**
- * Saca de Cloudinary una imagen que se quitó del formulario antes de guardar.
+ * Toglie da Cloudinary un'immagine che è stata rimossa dal modulo prima del
+ * salvataggio.
  *
- * Como la subida ocurre al elegir el archivo y no al guardar, quitar una
- * imagen del formulario deja una huérfana en la cuenta. Esto la limpia en el
- * momento. No devuelve nada ni falla: es limpieza, no una operación que la
- * pantalla esté esperando.
+ * Siccome il caricamento avviene quando si sceglie il file e non quando si
+ * salva, togliere un'immagine dal modulo ne lascia una orfana sull'account.
+ * Questo la ripulisce sul momento. Non restituisce niente e non fallisce: è
+ * pulizia, non un'operazione che la schermata stia aspettando.
  */
 export async function descartarImagen(publicId: string): Promise<void> {
   await requireSession();
   await borrarDeCloudinary(publicId);
 }
 
-/* --------------------------------------------------- imágenes sueltas */
+/* --------------------------------------------------- immagini sciolte */
 
 /**
- * Cuánto margen se le da a una imagen recién subida antes de considerarla
- * suelta. Una hora.
+ * Quanto margine si dà a un'immagine appena caricata prima di considerarla
+ * sciolta. Un'ora.
  *
- * No es prudencia de más: las imágenes suben al elegirlas y la obra se guarda
- * después, así que mientras alguien está llenando el formulario hay imágenes
- * en Cloudinary que todavía no figuran en ninguna fila. Sin este margen, una
- * limpieza hecha en ese momento le borraría las fotos a quien está cargando.
+ * Non è prudenza di troppo: le immagini salgono quando si scelgono e l'opera
+ * si salva dopo, quindi mentre qualcuno sta compilando il modulo ci sono
+ * immagini su Cloudinary che non figurano ancora in nessuna riga. Senza questo
+ * margine, una pulizia fatta in quel momento cancellerebbe le foto a chi sta
+ * caricando.
  */
 const MARGEN_MS = 60 * 60 * 1000;
 
 export type Limpieza = {
-  /** Borradas de verdad. */
+  /** Cancellate davvero. */
   borradas: number;
-  /** Lo que ocupaban. */
+  /** Quello che occupavano. */
   bytes: number;
   /**
-   * Sueltas que existen pero todavía no se tocan por ser de hace poco.
+   * Sciolte che esistono ma non si toccano ancora perché sono recenti.
    *
-   * Se informa aparte y no se suma a las borradas porque decir «no había
-   * ninguna» cuando hay tres esperando el margen es mentir: quien lo lee
-   * concluiría que la cuenta está limpia y no volvería a mirar.
+   * Si segnala a parte e non si somma alle cancellate perché dire «non ce
+   * n'era nessuna» quando ce ne sono tre in attesa del margine è mentire: chi
+   * legge concluderebbe che l'account è pulito e non tornerebbe a guardare.
    */
   recientes: number;
   error?: string;
 };
 
 /**
- * Busca imágenes en Cloudinary que ninguna obra nombra, y las borra.
+ * Cerca su Cloudinary le immagini che nessuna opera nomina, e le cancella.
  *
- * Existen porque las imágenes suben al elegirlas: si alguien elige tres
- * escaneos y cierra la pestaña sin guardar, esos tres quedan ocupando la
- * cuenta sin que nada los reclame. Quitar una imagen del formulario ya la
- * borra en el momento; esto es para lo que no pasó por ahí.
+ * Esistono perché le immagini salgono quando si scelgono: se qualcuno sceglie
+ * tre scansioni e chiude la scheda senza salvare, quelle tre restano a
+ * occupare l'account senza che niente le reclami. Togliere un'immagine dal
+ * modulo la cancella già sul momento; questo serve per quello che non è
+ * passato di lì.
  *
- * Compara contra **todas** las obras, no contra una: una imagen puede estar
- * en cualquier fila, y mirar sólo la que se está editando borraría las de las
- * demás.
+ * Confronta con **tutte** le opere, non con una: un'immagine può stare in
+ * qualsiasi riga, e guardare solo quella che si sta modificando cancellerebbe
+ * quelle delle altre.
  */
 export async function limpiarSueltas(): Promise<Limpieza> {
   await requireSession();
 
   if (!configCloudinary()) {
-    return { borradas: 0, bytes: 0, recientes: 0, error: "Faltan las claves de Cloudinary." };
+    return { borradas: 0, bytes: 0, recientes: 0, error: "Mancano le chiavi di Cloudinary." };
   }
 
   let enUso: Set<string>;
@@ -157,12 +161,13 @@ export async function limpiarSueltas(): Promise<Limpieza> {
       obras.flatMap((o) => o.image.map((i) => i.publicId).filter((id): id is string => !!id)),
     );
   } catch {
-    // Sin la lista de lo que está en uso, cualquier borrado sería a ciegas.
+    // Senza la lista di quello che è in uso, qualsiasi cancellazione sarebbe
+    // alla cieca.
     return {
       borradas: 0,
       bytes: 0,
       recientes: 0,
-      error: "No se pudo leer la base. No se borró nada.",
+      error: "Non è stato possibile leggere il database. Non è stato cancellato niente.",
     };
   }
 
@@ -183,12 +188,13 @@ export async function limpiarSueltas(): Promise<Limpieza> {
   };
 }
 
-/* ------------------------------------------------------------ validación */
+/* ------------------------------------------------------------ validazione */
 
 /*
-  Las mismas reglas que tiene la tabla, acá arriba y en castellano. La base
-  sigue siendo la que manda —si algo se escapa, el CHECK lo frena igual— pero
-  un error de Postgres en pantalla no le dice a nadie qué corregir.
+  Le stesse regole che ha la tabella, qui sopra e in parole comprensibili. Il
+  database resta quello che comanda —se qualcosa sfugge, il CHECK lo ferma lo
+  stesso— ma un errore di Postgres a schermo non dice a nessuno cosa
+  correggere.
 */
 function validar(campos: {
   slug: string;
@@ -196,34 +202,35 @@ function validar(campos: {
   year: string;
   tecnica: string;
 }): string | null {
-  if (campos.title.trim().length === 0) return "La obra necesita un título.";
+  if (campos.title.trim().length === 0) return "L’opera ha bisogno di un titolo.";
 
-  if (campos.slug.trim().length === 0) return "Falta la dirección de la obra.";
+  if (campos.slug.trim().length === 0) return "Manca l’indirizzo dell’opera.";
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(campos.slug)) {
-    return "La dirección sólo admite minúsculas, números y guiones: «jardin-nocturno».";
+    return "L’indirizzo ammette solo minuscole, numeri e trattini: «giardino-notturno».";
   }
 
   const year = Number(campos.year);
-  if (!Number.isInteger(year)) return "El año tiene que ser un número.";
-  if (year < 1900 || year > 2200) return "Ese año no puede ser.";
+  if (!Number.isInteger(year)) return "L’anno deve essere un numero.";
+  if (year < 1900 || year > 2200) return "Questo anno non può essere giusto.";
 
-  if (campos.tecnica.trim().length === 0) return "Falta la técnica.";
+  if (campos.tecnica.trim().length === 0) return "Manca la tecnica.";
 
   return null;
 }
 
 /**
- * Arma la lista de imágenes a partir del formulario.
+ * Costruisce la lista delle immagini a partire dal modulo.
  *
- * Ya no llegan archivos: llegan direcciones de Cloudinary, porque el
- * navegador subió cada imagen apenas la eligió. Lo que viaja es el orden, el
- * texto alternativo y, por cada una, la URL, las medidas que devolvió
- * Cloudinary y su nombre dentro de la cuenta.
+ * Non arrivano più file: arrivano indirizzi di Cloudinary, perché il browser
+ * ha caricato ogni immagine appena è stata scelta. Quello che viaggia è
+ * l'ordine, il testo alternativo e, per ognuna, l'URL, le misure restituite da
+ * Cloudinary e il suo nome dentro l'account.
  *
- * **Todo eso lo escribe el cliente, así que nada se cree sin mirarlo.** Una
- * Server Action se puede invocar con un POST armado a mano; si esta función
- * confiara en lo que recibe, cualquiera con sesión podría meter en el archivo
- * la URL de una imagen ajena, o de un servidor que registre quién entra.
+ * **Tutto questo lo scrive il client, quindi non si crede a niente senza
+ * guardarlo.** Una Server Action si può invocare con un POST costruito a mano;
+ * se questa funzione si fidasse di quello che riceve, chiunque con una
+ * sessione potrebbe infilare nell'archivio l'URL di un'immagine altrui, o di
+ * un server che registra chi entra.
  */
 function armarImagenes(formData: FormData): WorkImage[] {
   const crudo = String(formData.get("imagenes") ?? "[]");
@@ -232,22 +239,22 @@ function armarImagenes(formData: FormData): WorkImage[] {
   try {
     lista = JSON.parse(crudo);
   } catch {
-    throw new ErrorDeImagenes("No se entendió la lista de imágenes.");
+    throw new ErrorDeImagenes("La lista delle immagini non si è capita.");
   }
 
-  if (!Array.isArray(lista)) throw new ErrorDeImagenes("La lista de imágenes vino mal.");
+  if (!Array.isArray(lista)) throw new ErrorDeImagenes("La lista delle immagini è arrivata male.");
 
   return lista.map((item, i) => {
     const n = i + 1;
     if (typeof item !== "object" || item === null) {
-      throw new ErrorDeImagenes(`La imagen ${n} vino mal.`);
+      throw new ErrorDeImagenes(`L’immagine ${n} è arrivata male.`);
     }
 
     const { url, alt, width, height, publicId } = item as Record<string, unknown>;
 
     if (typeof url !== "string" || !esImagenPropia(url)) {
       throw new ErrorDeImagenes(
-        `La imagen ${n} no viene de tu cuenta de Cloudinary. Volvé a subirla.`,
+        `L’immagine ${n} non viene dal tuo account Cloudinary. Caricala di nuovo.`,
       );
     }
 
@@ -260,17 +267,17 @@ function armarImagenes(formData: FormData): WorkImage[] {
     };
 
     if (!medidasPlausibles(imagen)) {
-      throw new ErrorDeImagenes(`No se leyeron bien las medidas de la imagen ${n}.`);
+      throw new ErrorDeImagenes(`Le misure dell’immagine ${n} non si sono lette bene.`);
     }
 
     return imagen;
   });
 }
 
-/** Un problema con lo que el formulario mandó como imágenes. */
+/** Un problema con quello che il modulo ha mandato come immagini. */
 class ErrorDeImagenes extends Error {}
 
-/* ------------------------------------------------------------ alta/edición */
+/* ---------------------------------------------------- inserimento/modifica */
 
 export async function guardarObra(
   _previo: EstadoFormulario,
@@ -297,11 +304,11 @@ export async function guardarObra(
   try {
     imagenes = armarImagenes(formData);
   } catch (e) {
-    return { error: e instanceof ErrorDeImagenes ? e.message : "No se entendieron las imágenes." };
+    return { error: e instanceof ErrorDeImagenes ? e.message : "Le immagini non si sono capite." };
   }
 
   if (imagenes.length === 0) {
-    return { error: "La obra necesita al menos una imagen: es la que sale en la grilla." };
+    return { error: "L’opera ha bisogno di almeno un’immagine: è quella che esce nella griglia." };
   }
 
   const entrada = {
@@ -322,19 +329,19 @@ export async function guardarObra(
       await createWork(entrada);
     }
   } catch (e) {
-    // Las imágenes que se acababan de subir ya no tienen dueño: si quedan,
-    // la cuenta de Cloudinary junta fotos de obras que nunca entraron.
+    // Le immagini appena caricate non hanno più un padrone: se restano,
+    // l'account Cloudinary raccoglie foto di opere che non sono mai entrate.
     const nuevas = imagenes.filter((img) => !anterior?.image.some((v) => v.url === img.url));
     await Promise.all(nuevas.map(quitarImagen));
 
     const mensaje = e instanceof Error ? e.message : "";
     if (mensaje.includes("works_slug_key")) {
-      return { error: `Ya hay una obra en «${campos.slug}». Cambiale la dirección.` };
+      return { error: `C’è già un’opera su «${campos.slug}». Cambiale l’indirizzo.` };
     }
-    return { error: "La base rechazó la obra. Revisá los campos." };
+    return { error: "Il database ha rifiutato l’opera. Controlla i campi." };
   }
 
-  // Las imágenes que la edición dejó afuera.
+  // Le immagini che la modifica ha lasciato fuori.
   if (anterior) {
     const sobrantes = anterior.image.filter((v) => !imagenes.some((img) => img.url === v.url));
     await Promise.all(sobrantes.map(quitarImagen));
@@ -344,7 +351,7 @@ export async function guardarObra(
   redirect("/admin");
 }
 
-/* ------------------------------------------------------------------ baja */
+/* ------------------------------------------------------------ eliminazione */
 
 export async function borrarObra(formData: FormData): Promise<void> {
   await requireSession();
@@ -355,34 +362,36 @@ export async function borrarObra(formData: FormData): Promise<void> {
   const borrada = await deleteWork(id);
   if (!borrada) return;
 
-  // Las imágenes se van con la obra: dejarlas sería juntar archivos que ya
-  // no se pueden alcanzar desde ningún lado.
+  // Le immagini se ne vanno con l'opera: lasciarle sarebbe accumulare file
+  // che non si possono più raggiungere da nessuna parte.
   await Promise.all(borrada.image.map(quitarImagen));
 
   revalidar(borrada.slug);
   redirect("/admin");
 }
 
-/* ------------------------------------------------------------ el orden */
+/* ------------------------------------------------------------ l'ordine */
 
 /**
- * Cómo se sale de un guardado que falló.
+ * Come si esce da un salvataggio fallito.
  *
- * Viaja con el error porque no todas las fallas se salen igual, y ofrecer la
- * salida equivocada es peor que no ofrecer ninguna: un «Reintentar» sobre un
- * orden que la base ya rechazó por viejo vuelve a fallar exactamente igual, y
- * el segundo mensaje idéntico hace pensar que la pantalla está rota.
+ * Viaggia insieme all'errore perché non da tutti i fallimenti si esce allo
+ * stesso modo, e offrire la via d'uscita sbagliata è peggio che non offrirne
+ * nessuna: un «Riprova» su un ordine che il database ha già rifiutato perché
+ * vecchio fallisce di nuovo esattamente uguale, e il secondo messaggio
+ * identico fa pensare che la schermata sia rotta.
  */
 export type Salida = "reintentar" | "recargar";
 
 /**
- * Guarda el orden de la grilla. `orden` son los ids de todas las obras, de la
- * primera a la última.
+ * Salva l'ordine della griglia. `orden` sono gli id di tutte le opere, dalla
+ * prima all'ultima.
  *
- * Lo llama la pantalla al soltar una pieza, no un formulario: por eso recibe
- * un arreglo y devuelve un resultado en vez de redirigir. Quien arrastra ya
- * está mirando el resultado —la grilla se acomodó al soltar—, así que lo
- * único que falta contarle es si eso quedó escrito.
+ * La chiama la schermata quando si lascia un pezzo, non un modulo: per questo
+ * riceve un array e restituisce un risultato invece di reindirizzare. Chi
+ * trascina sta già guardando il risultato —la griglia si è sistemata al
+ * rilascio—, quindi l'unica cosa che resta da dirgli è se quello è rimasto
+ * scritto.
  */
 export async function reordenarArchivo(
   orden: number[],
@@ -390,39 +399,40 @@ export async function reordenarArchivo(
   await requireSession();
 
   /*
-    Una Server Action es un POST a una dirección propia: lo que llega puede
-    venir de cualquier lado, no sólo de la pantalla que la escribió. Que sean
-    enteros se comprueba acá; que sean *estas* obras y estén todas, lo
-    comprueba reorderWorks contra la tabla, que es lo único que lo sabe.
+    Una Server Action è un POST a un indirizzo proprio: quello che arriva può
+    venire da qualsiasi parte, non solo dalla schermata che l'ha scritto. Che
+    siano interi si controlla qui; che siano *queste* opere e che ci siano
+    tutte, lo controlla reorderWorks contro la tabella, che è l'unica a
+    saperlo.
   */
   if (!Array.isArray(orden) || orden.some((id) => !Number.isInteger(id))) {
-    return { ok: false, error: "El orden vino mal.", salida: "reintentar" };
+    return { ok: false, error: "L’ordine è arrivato male.", salida: "reintentar" };
   }
 
   let guardado: boolean;
   try {
     guardado = await reorderWorks(orden);
   } catch {
-    return { ok: false, error: "La base no aceptó el orden.", salida: "reintentar" };
+    return { ok: false, error: "Il database non ha accettato l’ordine.", salida: "reintentar" };
   }
 
   /*
-    El rechazo tiene una sola causa práctica: la lista se armó cuando se abrió
-    la pantalla, y desde entonces el archivo cambió —otra pestaña, otro rato—.
-    Reintentar mandaría la misma lista vieja y fallaría igual, así que la
-    salida es recargar.
+    Il rifiuto ha una sola causa pratica: la lista è stata costruita
+    all'apertura della schermata, e da allora l'archivio è cambiato —un'altra
+    scheda, un altro momento—. Riprovare manderebbe la stessa lista vecchia e
+    fallirebbe uguale, quindi la via d'uscita è ricaricare.
 
-    El mensaje dice las dos cosas que ella necesita saber y ninguna es
-    obvia: que esto **no quedó escrito**, y que recargar descarta lo que
-    acomodó. Puede haber sido media hora de trabajo, y «el archivo cambió»
-    a secas se lee como un aviso, no como una pérdida.
+    Il messaggio dice le due cose che lei ha bisogno di sapere e nessuna delle
+    due è ovvia: che questo **non è rimasto scritto**, e che ricaricare scarta
+    quello che ha sistemato. Può essere stata mezz'ora di lavoro, e «l'archivio
+    è cambiato» e basta si legge come un avviso, non come una perdita.
   */
   if (!guardado) {
     return {
       ok: false,
       error:
-        "El archivo cambió desde que abriste esta pantalla, así que este orden no se guardó. " +
-        "Recargá y volvé a acomodarlo sobre lo que hay ahora.",
+        "L’archivio è cambiato da quando hai aperto questa schermata, quindi quest’ordine non è stato salvato. " +
+        "Ricarica e risistemalo su quello che c’è adesso.",
       salida: "recargar",
     };
   }
@@ -430,39 +440,39 @@ export async function reordenarArchivo(
   revalidatePath("/");
   revalidatePath("/admin");
   /*
-    Y cada página de obra, porque el paginado de abajo —la anterior y la
-    siguiente— sale del mismo orden que la grilla. Sin esto, mover una pieza
-    dejaría todas las fichas apuntando a vecinas que ya no lo son. Se
-    revalida la ruta entera y no un slug: cambió el orden, así que no hay
-    ninguna que se salve.
+    E ogni pagina d'opera, perché la paginazione in fondo —la precedente e la
+    successiva— esce dallo stesso ordine della griglia. Senza questo, spostare
+    un pezzo lascerebbe tutte le schede a puntare a vicine che non lo sono più.
+    Si rivalida il percorso intero e non uno slug: è cambiato l'ordine, quindi
+    non se ne salva nessuna.
   */
   revalidatePath("/opera/[slug]", "page");
 
   return { ok: true };
 }
 
-/* --------------------------------------------------------------- limpieza */
+/* --------------------------------------------------------------- pulizia */
 
 /**
- * Saca una imagen de donde esté.
+ * Toglie un'immagine da dovunque si trovi.
  *
- * Hay dos procedencias posibles y la URL dice cuál: las nuevas viven en
- * Cloudinary y se borran por su `publicId`; las que quedaron de cuando el
- * admin guardaba en disco empiezan con `/ilustraciones/` y se borran del
- * sistema de archivos. Una sola función para las dos, porque quien borra una
- * obra no tiene por qué saber de dónde salió cada foto.
+ * Ci sono due provenienze possibili e l'URL dice quale: le nuove vivono su
+ * Cloudinary e si cancellano tramite il loro `publicId`; quelle rimaste da
+ * quando l'admin salvava su disco cominciano con `/ilustraciones/` e si
+ * cancellano dal filesystem. Una sola funzione per entrambe, perché chi
+ * cancella un'opera non deve sapere da dove è uscita ogni foto.
  */
 async function quitarImagen(img: WorkImage): Promise<void> {
   if (img.publicId) return borrarDeCloudinary(img.publicId);
   if (img.url.startsWith("/")) return borrarImagen(img.url);
 }
 
-/* --------------------------------------------------------------- refresco */
+/* ------------------------------------------------------------ aggiornamento */
 
 /*
-  La portada y la página de la obra se rehacen. Si la edición cambió el slug,
-  también hay que rehacer la dirección vieja: ahí quedó una página que ahora
-  es un 404 y seguiría mostrándose de la caché.
+  La home e la pagina dell'opera si rifanno. Se la modifica ha cambiato lo
+  slug, bisogna rifare anche l'indirizzo vecchio: lì è rimasta una pagina che
+  adesso è un 404 e continuerebbe a mostrarsi dalla cache.
 */
 function revalidar(slug: string, slugAnterior?: string) {
   revalidatePath("/");

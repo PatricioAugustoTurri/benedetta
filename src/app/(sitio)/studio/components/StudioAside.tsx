@@ -2,14 +2,14 @@ import Reveal from "@/components/Reveal";
 import { site } from "@/data/site";
 
 /**
- * La columna lateral de la presentación.
+ * La colonna laterale della presentazione.
  *
- * 14px, como la ficha de la obra, el aside de contacto y las columnas del
- * pie: en este sitio una columna encabezada por versalitas lleva el escalón
- * chico.
+ * 14px, come la scheda dell'opera, l'aside dei contatti e le colonne del
+ * footer: in questo sito una colonna aperta da un maiuscoletto porta il
+ * gradino piccolo.
  *
- * "Studio" acá es el taller —encabeza la ubicación—, no el rótulo de la
- * página, que en el menú se llama "About me".
+ * "Studio" qui è il laboratorio —introduce il luogo—, non l'etichetta della
+ * pagina, che nel menu si chiama "About me".
  */
 export default function StudioAside() {
   return (

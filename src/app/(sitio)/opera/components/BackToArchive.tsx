@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "@/components/Icon";
 
-/** La vuelta al archivo, arriba de todo y antes de la obra. */
+/** Il ritorno all'archivio, in cima a tutto e prima dell'opera. */
 export default function BackToArchive() {
   return (
     <Link

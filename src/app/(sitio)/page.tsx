@@ -12,9 +12,9 @@ export default async function Home() {
   return (
     <>
       {/*
-        La obra arranca en el primer viewport: sin titular de bienvenida y sin
-        antesala. El h1 existe para la estructura del documento y para los
-        lectores de pantalla, que sí necesitan saber dónde caen.
+        L'opera comincia nel primo viewport: senza titolo di benvenuto e senza
+        anticamera. L'h1 esiste per la struttura del documento e per i lettori
+        di schermo, che invece hanno bisogno di sapere dove atterrano.
       */}
       <h1 className="sr-only">
         {`Opere — ${site.author}, ${site.role.toLowerCase()}. ${works.length} ${

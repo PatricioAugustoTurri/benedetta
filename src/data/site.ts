@@ -1,53 +1,55 @@
 /**
- * Configuración del sitio.
- * Editá este archivo para cambiar nombre, textos y redes en todo el sitio.
+ * Configurazione del sito.
+ * Modifica questo file per cambiare nome, testi e social in tutto il sito.
  */
 export const site = {
   name: "Illustrando",
   author: "Benedetta",
   role: "Illustratrice",
-  // Se usa en el <title> y en las tarjetas al compartir el link.
+  // Si usa nel <title> e nelle anteprime quando si condivide il link.
   tagline: "Illustrazione editoriale, per l'infanzia e botanica",
   description:
-    "Portfolio de ilustración de Benedetta. Trabajo editorial, libro infantil y series botánicas en acuarela y lápiz.",
-  // PLACEHOLDER: no hay dominio comprado todavía. Cambiar antes de publicar:
-  // se usa para el SEO y para las tarjetas al compartir el link.
+    "Portfolio di illustrazione di Benedetta. Lavoro editoriale, libro illustrato per l'infanzia e serie botaniche ad acquerello e matita.",
+  // PLACEHOLDER: non c'è ancora un dominio acquistato. Cambiare prima di
+  // pubblicare: si usa per la SEO e per le anteprime quando si condivide il link.
   url: "https://illustrando.it",
   email: "bzibetti98@gmail.com",
   location: "Foligno, Italia",
   /**
-   * La línea de oficio del pie. Es la posición de PRODUCT.md dicha en una
-   * frase —analógico como origen, digital como entrega— y es lo único que el
-   * pie afirma sobre el trabajo. No promete servicios ni nombra clientes:
-   * eso vive en Studio y hoy es texto de relleno.
+   * La riga di mestiere del footer. È la posizione di PRODUCT.md detta in una
+   * frase —l'analogico come origine, il digitale come consegna— ed è l'unica
+   * cosa che il footer afferma sul lavoro. Non promette servizi né nomina
+   * clienti: quello vive in Studio e oggi è testo segnaposto.
    */
   craft: "Acquerello, gouache e matita su carta. Il digitale solo quando il lavoro lo chiede.",
   /*
-    PENDIENTE LEGAL — no inventar. Si ella factura como autónoma en Italia, la
-    partita IVA y el titular del sitio van en el pie por obligación. No los
-    tenemos. Cuando lleguen, entran en la línea de cierre del Footer, al lado
-    del copyright; el renglón ya está armado para recibir un dato más.
+    IN SOSPESO, PARTE LEGALE — non inventare. Se lei fattura come lavoratrice
+    autonoma in Italia, la partita IVA e il titolare del sito vanno nel footer
+    per obbligo di legge. Non li abbiamo. Quando arriveranno, entrano nella
+    riga di chiusura del Footer, accanto al copyright; la riga è già pronta per
+    ricevere un dato in più.
   */
-  // Sólo las redes con URL real. Behance existe pero todavía no tenemos el
-  // link al perfil, y publicarlo apuntando a la home de behance.net manda al
-  // visitante a ningún lado: vuelve a la lista cuando esté la URL.
+  // Solo i social con un URL reale. Behance esiste ma non abbiamo ancora il
+  // link al profilo, e pubblicarlo puntando alla home di behance.net porta il
+  // visitatore da nessuna parte: torna in lista quando ci sarà l'URL.
   socials: [
     { label: "Instagram", href: "https://www.instagram.com/illustrando.adocchichiusi/" },
   ],
 } as const;
 
 /**
- * Navegación principal. "Works" apunta a la raíz porque la portada es el
- * archivo de obra, no una antesala del archivo.
+ * Navigazione principale. "Works" punta alla radice perché la home è
+ * l'archivio dell'opera, non l'anticamera dell'archivio.
  *
- * **Los rótulos están en inglés a pedido del cliente**, y eso contradice a
- * PRODUCT.md, que fija el italiano como principio de producto y dice que
- * Work y About eran interinos. La contradicción queda escrita acá en vez de
- * resolverse sola: si algún día se vuelve al italiano, son Opera y Studio, y
- * "Contatti" —hoy el único rótulo italiano que quedó— es la punta del hilo.
+ * **Le etichette sono in inglese su richiesta della cliente**, e questo
+ * contraddice PRODUCT.md, che fissa l'italiano come principio di prodotto e
+ * dice che Work e About erano provvisori. La contraddizione resta scritta qui
+ * invece di risolversi da sola: se un giorno si torna all'italiano, sono Opere
+ * e Studio, e "Contatti" —oggi l'unica etichetta italiana rimasta— è il capo
+ * del filo.
  *
- * Las rutas NO cambian: siguen siendo `/studio` y `/contatti`. Un rótulo se
- * reescribe gratis; una URL que ya se compartió, no.
+ * I percorsi NON cambiano: restano `/studio` e `/contatti`. Un'etichetta si
+ * riscrive gratis; un URL già condiviso, no.
  */
 export const nav = [
   { label: "Works", href: "/" },
@@ -56,9 +58,9 @@ export const nav = [
 ] as const;
 
 /**
- * Footer: por ahora repite el menú principal. Sigue existiendo separado
- * porque el pie llegó a listar rutas que no estaban arriba, y puede volver
- * a pasar el día que entre una sección más.
+ * Footer: per ora ripete il menu principale. Continua a esistere separato
+ * perché il footer è arrivato a elencare percorsi che non erano in alto, e può
+ * succedere di nuovo il giorno in cui entra un'altra sezione.
  */
 export const footerNav = [
   { label: "Works", href: "/" },

@@ -2,13 +2,13 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 /**
- * El sitio público: todo lo que ve un visitante.
+ * Il sito pubblico: tutto quello che vede un visitatore.
  *
- * Existe separado del layout raíz desde que entró `/admin`. El admin vive en
- * el mismo árbol y no quiere ni la cabecera ni el pie —un menú a Works,
- * About me y Contatti arriba de una pantalla de carga es ruido, y el pie con
- * el alta al correo, directamente otra conversación—. El grupo entre
- * paréntesis no toca ninguna URL: `(sitio)/page.tsx` sigue siendo `/`.
+ * Esiste separato dal layout radice da quando è entrato `/admin`. L'admin vive
+ * nello stesso albero e non vuole né header né footer —un menu con Works,
+ * About me e Contatti sopra una schermata di caricamento è rumore, e il footer
+ * con l'iscrizione alla newsletter è proprio un'altra conversazione—. Il
+ * gruppo fra parentesi non tocca nessun URL: `(sitio)/page.tsx` resta `/`.
  */
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -17,26 +17,27 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         href="#contenido"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
       >
-        Saltar al contenido
+        Vai al contenuto
       </a>
       <Header />
       {/*
-        El sitio no se corre de costado. Nada acá se lee a lo ancho, así que
-        un desborde horizontal nunca es contenido: es el sobrante de algo que
-        se movió —una pieza entrando desde su columna, un filete de más— y
-        deja la página arrastrable un par de centímetros. En el escritorio
-        casi no se nota; en el teléfono se siente como un sitio flojo.
+        Il sito non si sposta di lato. Qui niente si legge in orizzontale,
+        quindi uno sbordo orizzontale non è mai contenuto: è l'avanzo di
+        qualcosa che si è mosso —un pezzo che entra dalla sua colonna, un
+        filetto di troppo— e lascia la pagina trascinabile di un paio di
+        centimetri. Su desktop quasi non si nota; sul telefono si sente come
+        un sito mal fatto.
 
-        Va acá y no en `html` ni en `body`: el overflow de esos dos se
-        propaga al viewport, y ahí `clip` se ignora. Medido, no supuesto.
-        `main` es un elemento común, así que corta de verdad, y cubre todo
-        lo que dibuja una página sin tocar la cabecera ni las capas fijas,
-        que son hermanas suyas.
+        Va qui e non su `html` né su `body`: l'overflow di quei due si propaga
+        al viewport, e lì `clip` viene ignorato. Misurato, non supposto.
+        `main` è un elemento comune, quindi taglia davvero, e copre tutto
+        quello che disegna una pagina senza toccare l'header né i livelli
+        fissi, che sono suoi fratelli.
 
-        `clip` y no `hidden`: `hidden` haría de esto un contenedor de scroll
-        —adiós `position: sticky` de lo que viva adentro— y `clip` corta sin
-        crearlo. El par vertical queda en `visible` y la página sigue
-        bajando normalmente.
+        `clip` e non `hidden`: `hidden` farebbe di questo un contenitore di
+        scroll —addio `position: sticky` a quello che ci vive dentro— mentre
+        `clip` taglia senza crearlo. La coppia verticale resta su `visible` e
+        la pagina continua a scorrere normalmente.
       */}
       <main id="contenido" className="flex-1 overflow-x-clip">
         {children}

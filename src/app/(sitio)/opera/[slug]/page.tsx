@@ -11,12 +11,12 @@ import WorkTitle from "../components/WorkTitle";
 type Params = { params: Promise<{ slug: string }> };
 
 /**
- * Las páginas de obra se generan en el build, una por fila de la tabla.
+ * Le pagine d'opera si generano in fase di build, una per riga della tabella.
  *
- * Una obra cargada después del build no queda afuera: Next la resuelve en la
- * primera visita, porque `dynamicParams` viene en true. Y el admin llama a
- * `revalidatePath` en cada guardado, así que una corrección se ve enseguida
- * sin volver a construir el sitio.
+ * Un'opera caricata dopo la build non resta fuori: Next la risolve alla prima
+ * visita, perché `dynamicParams` è true. E l'admin chiama `revalidatePath` a
+ * ogni salvataggio, così una correzione si vede subito senza ricostruire il
+ * sito.
  */
 export async function generateStaticParams() {
   const slugs = await listSlugs();
@@ -59,10 +59,10 @@ export default async function OperaPage({ params }: Params) {
   return (
     <article className="shell pt-8 pb-12 md:pt-12">
       {/*
-        El orden de la página, que es una decisión y no el orden en que se
-        fueron escribiendo los componentes: vuelta al archivo, nombre, obra,
-        texto, y las vecinas. Se sabe qué se está por mirar antes de mirarlo, y
-        lo que se lee después es contexto de algo ya visto.
+        L'ordine della pagina, che è una decisione e non l'ordine in cui sono
+        stati scritti i componenti: ritorno all'archivio, nome, opera, testo e
+        le vicine. Si sa cosa si sta per guardare prima di guardarlo, e quello
+        che si legge dopo è contesto di qualcosa che si è già visto.
       */}
       <BackToArchive />
       <WorkTitle work={work} />
