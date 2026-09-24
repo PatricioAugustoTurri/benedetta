@@ -459,3 +459,301 @@ code {
     pointer-events: none;
   }
 }
+
+/* ---------------------------------------------------------------
+   L'apertura della home — la muove <Apertura/>.
+
+   Un gesto solo: l'opera si posa, resta, e si alza come un telo
+   sopra l'archivio. Il bordo che sale porta il filetto terracotta,
+   lo stesso che apre ogni sezione: l'apertura finisce disegnando la
+   prima riga del sistema, non un effetto a parte.
+
+   Niente sfocatura, per la stessa ragione per cui è stata tolta
+   dall'entrata della griglia: un'illustrazione sfocata per mezzo
+   secondo sembra fatta male. Si assesta per scala, da 1.08 a 1.
+
+   Il telo si ritaglia con `clip-path`, che taglia anche il clic: la
+   parte di pagina già scoperta si può toccare mentre il resto sale.
+   --------------------------------------------------------------- */
+.apertura {
+  --apertura-sipario: 850ms;
+  --apertura-curva: cubic-bezier(0.76, 0, 0.24, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.apertura__telo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: auto;
+  clip-path: inset(0 0 0 0);
+  /*
+    Rete di sicurezza: se lo script non arriva mai a far partire la scena,
+    il telo si toglie da solo. Appena cambia fase questa animazione viene
+    sostituita e non conta più.
+  */
+  animation: apertura-riserva 500ms ease 6s forwards;
+}
+
+.apertura__opera {
+  position: absolute;
+  inset: 0;
+}
+
+.apertura__immagine {
+  object-fit: cover;
+  /* Il quadrato tagliato in orizzontale tiene la stella e il viso. */
+  object-position: 50% 30%;
+  opacity: 0;
+  scale: 1.08;
+}
+
+/*
+  In verticale il quadrato si taglia sui lati, e al centro la stella resta
+  fuori: la mano che la tiene è metà del disegno. Spostato a sinistra, entrano
+  tutte e due, stella e viso.
+*/
+@media (max-aspect-ratio: 1/1) {
+  .apertura__immagine {
+    object-position: 30% 30%;
+  }
+}
+
+.apertura__filo {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.apertura__filo::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: var(--color-accent);
+}
+
+/* In scena: compare in meno di un secondo, si assesta in due e mezzo. */
+.apertura[data-fase="scena"] .apertura__telo {
+  animation: none;
+}
+
+.apertura:is([data-fase="scena"], [data-fase="uscita"]) .apertura__immagine {
+  animation:
+    apertura-luce 850ms var(--ease-out-soft) forwards,
+    apertura-posa 2400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/*
+  In uscita: il telo sale, l'opera dentro sale più piano —così sembra
+  un foglio con uno spessore, non un rettangolo che scorre— e il filetto
+  corre sul bordo con la stessa curva e la stessa durata, quindi non se ne
+  stacca mai.
+*/
+.apertura[data-fase="uscita"] .apertura__telo {
+  animation: apertura-sipario var(--apertura-sipario) var(--apertura-curva) forwards;
+}
+
+.apertura[data-fase="uscita"] .apertura__opera {
+  animation: apertura-deriva var(--apertura-sipario) var(--apertura-curva) forwards;
+}
+
+.apertura[data-fase="uscita"] .apertura__filo {
+  animation: apertura-filo var(--apertura-sipario) var(--apertura-curva) forwards;
+}
+
+@keyframes apertura-luce {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes apertura-posa {
+  to {
+    scale: 1;
+  }
+}
+
+@keyframes apertura-sipario {
+  to {
+    clip-path: inset(0 0 100% 0);
+    visibility: hidden;
+  }
+}
+
+@keyframes apertura-deriva {
+  to {
+    transform: translate3d(0, -14%, 0);
+  }
+}
+
+@keyframes apertura-filo {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -100%, 0);
+  }
+}
+
+@keyframes apertura-riserva {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/*
+  Movimento ridotto: resta l'opera, se ne va il viaggio. Compare, resta, e si
+  dissolve sulla pagina; niente telo, niente scala, niente filetto.
+
+  Sta nel layer base, dopo la regola generale che porta ogni animazione a
+  0.01ms: un `!important` fuori dai layer perderebbe contro quello, e con la
+  stessa importanza e lo stesso layer vince il selettore più specifico.
+*/
+@layer base {
+  @media (prefers-reduced-motion: reduce) {
+    .apertura__immagine {
+      scale: 1;
+    }
+
+    .apertura:is([data-fase="scena"], [data-fase="uscita"]) .apertura__immagine {
+      animation: apertura-luce 450ms ease-out forwards !important;
+    }
+
+    .apertura[data-fase="uscita"] .apertura__telo {
+      animation: apertura-riserva 400ms ease-out forwards !important;
+    }
+
+    .apertura[data-fase="uscita"] .apertura__opera,
+    .apertura[data-fase="uscita"] .apertura__filo {
+      animation: none !important;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------
+   La pagina d'opera — <article> in opera/[slug]/page.tsx.
+
+   Quattro pezzi: nome (col testo), prima tavola, le altre tavole,
+   scheda. Sul telefono in fila, in quell'ordine. Da tablet in su si
+   dividono: a sinistra la colonna di chi legge —nome, testo, scheda,
+   uno sotto l'altro—, a destra la prima tavola, e sotto, a tutta
+   larghezza, le altre a due a due.
+
+   La colonna di testo è 5 su 12 in tablet e 4 su 12 da 1024px: abbastanza
+   per un titolo e una riga di scheda, mai tanto da fare concorrenza
+   all'opera. Lo stacco fra le due è più largo della gutter della griglia
+   perché separa due cose diverse, il testo e l'opera, non due pezzi uguali.
+   --------------------------------------------------------------- */
+.opera {
+  /*
+    Un solo passo fra un'immagine e l'altra, in verticale e in orizzontale:
+    fra la prima tavola e le coppie, fra una coppia e la successiva e dentro
+    ogni coppia. È quello che fa leggere le tavole come una sola griglia.
+  */
+  --opera-passo: 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "nome"
+    "tavola"
+    "resto"
+    "scheda";
+  margin-top: 2rem;
+}
+
+.opera__nome {
+  grid-area: nome;
+}
+.opera__tavola {
+  grid-area: tavola;
+  margin-top: 2rem;
+}
+.opera__resto {
+  grid-area: resto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--opera-passo);
+  margin-top: var(--opera-passo);
+}
+.opera__coppia {
+  display: flex;
+  flex-direction: column;
+  gap: var(--opera-passo);
+}
+.opera__pezzo {
+  display: flex;
+  justify-content: center;
+}
+.opera__scheda {
+  grid-area: scheda;
+  margin-top: 2.5rem;
+}
+
+@media (min-width: 48rem) {
+  .opera {
+    --opera-passo: 2rem;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "nome   tavola"
+      "scheda tavola"
+      "resto  resto";
+    column-gap: 2.5rem;
+    margin-top: 3rem;
+  }
+
+  /*
+    Il titolo parte dalla stessa linea della tavola. Senza correzione la
+    parte alta della riga —l'interlinea e lo spazio sopra le maiuscole—
+    lascia le lettere una decina di pixel più in basso del bordo
+    dell'immagine; `text-box` taglia la riga all'altezza delle maiuscole.
+    Dove non è supportato resta lo scarto di prima, niente di peggio.
+  */
+  .opera__nome h1 {
+    text-box: trim-start cap alphabetic;
+  }
+
+  .opera__tavola {
+    margin-top: 0;
+  }
+
+  /*
+    La scheda chiude sulla stessa linea della tavola: quando la tavola è più
+    alta del testo, scende fino al suo piede, così le due colonne condividono
+    il bordo di sopra e quello di sotto. Quando è il testo il più alto, la
+    scheda gli sta semplicemente sotto, con il suo margine minimo.
+  */
+  .opera__scheda {
+    align-self: end;
+    margin-top: 2.5rem;
+  }
+
+  .opera__coppia {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .opera__pezzo {
+    display: block;
+    flex: var(--r) 1 0%;
+  }
+  .opera__coppia[data-sola] > .opera__pezzo {
+    flex: 0 0 calc(50% - var(--opera-passo) / 2);
+  }
+}
+
+@media (min-width: 64rem) {
+  .opera {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    column-gap: 4rem;
+  }
+}

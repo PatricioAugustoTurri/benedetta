@@ -55,19 +55,3 @@ export const servicios = [
     body: "Tavole ed erbari su commissione, ad acquerello o matita colorata, con opzione di stampa fine art.",
   },
 ];
-
-/**
- * PLACEHOLDER — il rischio più alto della pagina. Nessuno di questi clienti
- * esiste: li ho inventati per la bozza. È il sito di una persona vera che
- * manderà il link a editori veri, quindi questa lista si sostituisce con
- * quella autentica o si cancella del tutto. Non si completa con altri nomi
- * plausibili.
- */
-export const clientes = [
-  "Rivista Campo",
-  "Edizioni Sud",
-  "La Nuvola",
-  "Quaderni dell'Est",
-  "Studio Pampa",
-  "Fondazione Radice",
-];

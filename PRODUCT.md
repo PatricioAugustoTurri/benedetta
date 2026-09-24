@@ -128,7 +128,6 @@ por ella, la lista verdadera de clientes, y el dominio.
 | 12 ilustraciones SVG | `public/ilustraciones/` | Generadas para la maqueta por `scripts/generate-placeholders.mjs`. No son obra de nadie. Ya no las muestra el sitio: quedaron huérfanas al vaciarse la tabla, y se pueden borrar. La carpeta es también donde `/admin` deja lo que ella sube. |
 | Retrato | `public/retrato.svg` | Placeholder. |
 | `https://illustrando.it` | `src/data/site.ts` | Dominio inventado por mí como relleno. No está comprado. |
-| Lista "Trabajé con" (Revista Campo, Ediciones Sur, La Nube, Cuadernos del Este, Estudio Pampa, Fundación Raíz) | `src/app/studio/page.tsx` | Clientes inventados. El riesgo más alto de la lista. |
 | Los tres servicios ("Editorial", "Libro infantil", "Series botánicas") | `src/app/studio/page.tsx` | Descripciones de relleno. |
 | Bio ("Estudié diseño…", "colecciones privadas") | `src/app/studio/page.tsx` | Texto de relleno. |
 | La tabla `works` | base `illustrando` | **Arranca vacía, por pedido del cliente.** Las doce obras de maqueta no se migraron: ella carga las suyas por `/admin`. Mientras esté vacía, la portada dice que el archivo está en preparación. |
@@ -137,7 +136,9 @@ por ella, la lista verdadera de clientes, y el dominio.
 | El feed de Instagram | `src/data/instagram.ts` | Lista escrita a mano que reusa las imágenes de la maqueta. No lee la cuenta real. |
 | Todo el cuerpo de texto | todas las páginas | Español rioplatense, no italiano. |
 
-Resueltos desde el registro anterior, para que nadie los vuelva a buscar: el mail falso
+Resueltos desde el registro anterior, para que nadie los vuelva a buscar: la
+sección «Ho lavorato con» de About me, con seis clientes inventados —se eliminó
+entera por pedido del cliente; si vuelve, vuelve con la lista verdadera—, el mail falso
 `hola@benedetta.com`, la ubicación falsa `Buenos Aires, AR`, el link a la home de Behance,
 y la promesa "respondo en 2 o 3 días hábiles" que nadie había hecho.
 

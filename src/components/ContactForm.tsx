@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
+import { AZIONE } from "@/components/azione";
 import { Copy, Mail } from "@/components/Icon";
 import { site } from "@/data/site";
 
@@ -261,21 +262,16 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
       </div>
 
       {/*
-        L'invio prende in prestito il disegno dell'azione principale del sito
-        —la busta in inchiostro pallido e la parola sottolineata di "Chiedi
-        info"—, perché fa la stessa cosa: aprire una mail. È il primo
-        `<button>` che agisce in tutto il sito e non inventa una forma nuova
-        per farlo.
+        L'invio ha la stessa forma di «Chiedi info»: filetto terracotta,
+        busta, pieno sotto il puntatore. Non è una seconda azione forte ma la
+        fine della stessa —«Chiedi info» porta qui con l'oggetto già scritto,
+        e «Invia» apre la mail—, quindi il visitatore ritrova in fondo al
+        modulo il controllo che ha toccato sull'opera.
       */}
       <div className="mt-10">
-        <button type="submit" className="group flex items-center gap-2 text-base text-ink">
-          <Mail
-            size={20}
-            className="shrink-0 text-ink-faint transition-colors group-hover:text-accent"
-          />
-          <span className="link-underline" data-active="true">
-            Invia
-          </span>
+        <button type="submit" className={AZIONE}>
+          <Mail size={18} className="shrink-0" />
+          Invia
         </button>
         <p className="mt-3 text-xs text-ink-faint">
           Si apre il tuo programma di posta con il messaggio già scritto. Non parte da solo.

@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import { getWork, listSlugs } from "@/lib/works";
 import { site } from "@/data/site";
 import BackToArchive from "../components/BackToArchive";
-import WorkDetails from "../components/WorkDetails";
+import WorkAside from "../components/WorkAside";
 import WorkPager from "../components/WorkPager";
-import WorkPlate from "../components/WorkPlate";
+import WorkPlate, { WorkPlates } from "../components/WorkPlate";
 import WorkTitle from "../components/WorkTitle";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -60,14 +60,23 @@ export default async function OperaPage({ params }: Params) {
     <article className="shell pt-8 pb-12 md:pt-12">
       {/*
         L'ordine della pagina, che è una decisione e non l'ordine in cui sono
-        stati scritti i componenti: ritorno all'archivio, nome, opera, testo e
-        le vicine. Si sa cosa si sta per guardare prima di guardarlo, e quello
-        che si legge dopo è contesto di qualcosa che si è già visto.
+        stati scritti i componenti: ritorno all'archivio, nome e testo, la
+        prima tavola, le altre, la scheda e le vicine. È l'ordine del DOM e
+        quello del telefono, dove tutto sta in fila.
+
+        Da tablet in su lo stesso ordine si dispone in due colonne —la
+        disposizione vive in `.opera`, in globals.css—: a sinistra nome,
+        testo e scheda, a destra la prima tavola, e sotto le altre a due a
+        due. Un solo albero per le due forme, così lettore di schermo e
+        tastiera seguono sempre lo stesso filo.
       */}
       <BackToArchive />
-      <WorkTitle work={work} />
-      <WorkPlate work={work} />
-      <WorkDetails work={work} />
+      <div className="opera">
+        <WorkTitle work={work} />
+        <WorkPlate work={work} />
+        <WorkPlates work={work} />
+        <WorkAside work={work} />
+      </div>
       <WorkPager slug={slug} />
     </article>
   );

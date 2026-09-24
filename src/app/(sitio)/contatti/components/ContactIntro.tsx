@@ -13,14 +13,13 @@ export default function ContactIntro() {
     <>
       <Reveal>
         <h1 className="display-h1 text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance">
-          Scrivimi e costruiamo qualcosa insieme.
+          Contattami!!
         </h1>
       </Reveal>
 
       <Reveal delay={90}>
         <p className="prose-measure mt-8 text-lg leading-relaxed text-ink-soft">
-          Se hai già dei riferimenti o un budget in mente, tanto meglio: così ti rispondo
-          con qualcosa di concreto invece di un lungo scambio di mail.
+          Per collaborazioni o domande scrivimi.
         </p>
       </Reveal>
     </>

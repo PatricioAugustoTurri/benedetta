@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { AZIONE } from "@/components/azione";
 import { Mail } from "@/components/Icon";
 import Reveal from "@/components/Reveal";
 import type { Work } from "@/lib/works";
 
 /**
- * La scheda dell'opera e l'azione primaria di tutto il sito, che qui è
- * l'unica forma chiusa e l'unica cosa arrotondata che il sito si concede.
+ * La scheda dell'opera e l'azione primaria di tutto il sito, che è l'unica
+ * forma chiusa e l'unica cosa arrotondata che il sito si concede —e che
+ * ritorna identica solo in «Invia», l'altro capo dello stesso percorso.
  *
  * La scheda è una lista di definizione aperta e chiusa da filetti, una riga
  * per voce: etichetta in maiuscoletto a sinistra, valore allineato a destra
@@ -26,7 +28,7 @@ export default function WorkAside({ work }: { work: Work }) {
   ];
 
   return (
-    <aside className="md:col-span-4 md:col-start-9">
+    <aside className="opera__scheda">
       <Reveal delay={90}>
         <dl className="border-t border-line">
           {ficha.map((row) => (
@@ -43,7 +45,8 @@ export default function WorkAside({ work }: { work: Work }) {
         {/*
           L'azione primaria di tutto il sito vive qui, sull'opera concreta.
 
-          **È l'unica forma chiusa del sito**, e contraddice di proposito due
+          **È l'unica forma chiusa del sito** —la ripete solo «Invia» nel
+          modulo di Contatti, che è la fine di questo stesso gesto—, e contraddice di proposito due
           regole del sistema: che la terracotta non sia altro che filetti e
           segni, e che niente porti un bordo su tutti e quattro i lati. Si fa
           su richiesta della cliente e per una ragione difendibile: il sito non
@@ -76,7 +79,7 @@ export default function WorkAside({ work }: { work: Work }) {
         */}
         <Link
           href={`/contatti?opera=${work.slug}`}
-          className="mt-8 inline-flex items-center gap-2.5 rounded-md border border-accent px-5 py-2.5 text-sm text-accent transition-colors duration-300 hover:bg-accent hover:text-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-ink"
+          className={`mt-8 ${AZIONE}`}
         >
           {/*
             L'icona prende `currentColor`: viaggia in terracotta con la parola

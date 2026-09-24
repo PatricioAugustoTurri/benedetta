@@ -1,3 +1,4 @@
+import Apertura from "@/components/Apertura";
 import Works from "@/components/Works";
 import { listWorks } from "@/lib/works";
 import { site } from "@/data/site";
@@ -11,6 +12,8 @@ export default async function Home() {
 
   return (
     <>
+      <Apertura />
+
       {/*
         L'opera comincia nel primo viewport: senza titolo di benvenuto e senza
         anticamera. L'h1 esiste per la struttura del documento e per i lettori

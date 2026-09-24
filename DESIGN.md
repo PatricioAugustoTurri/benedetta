@@ -241,7 +241,8 @@ full-colour field on any page is an illustration — with one named exception be
 which spends its colour on an outline and only fills under a pointer.
 
 **The One Loud Thing.** There is exactly one closed shape on the site: the
-`Chiedi info` button on a work page. It is the only thing bordered on four sides,
+`Chiedi info` button on a work page, repeated once, identically, as `Invia` at the
+foot of the contact form. It is the only thing bordered on four sides,
 the only corner radius on any content, and the only place terracotta becomes a
 fill. Everywhere else the Rule-and-Mark Rule holds without exception.
 
@@ -269,8 +270,11 @@ An accent ring three pixels off a terracotta edge reads as a halo of itself rath
 than as a ring.
 
 An exception that can be named in a sentence is still a system; two are a habit.
-This one does not travel: the contact page's action, the footer's address and
-every future call to action stay as they are.
+The contact form's `Invia` is not a second exception but the other end of the same
+one: `Chiedi info` carries the visitor to the form with the subject written, and
+`Invia` opens the email — one action, drawn the same at both ends, from one class
+string in `src/components/azione.ts`. It travels no further: the footer's address
+and every future call to action stay as they are.
 
 **The Two-Rank Rule Rule.** Hierarchy among hairlines is carried by colour, not
 weight: every rule on the site is 1px, the year rule is terracotta, everything else
@@ -741,29 +745,43 @@ the grid's feedback: the plate holds still and the image inside it scales to 1.0
 > left dormant a second time. Git holds both the stylesheet and the component.
 
 ### The Work Page
-The order is a decision and it reads in one line: back to the archive, the name, the
-work, the text, the neighbours. Name before work, because the visitor arrives from a
-grid that shows no words — they tapped an image without knowing what it was called, and
-a title that appears only after a screenful of plates leaves them nowhere. Text after
-work, because it is context for something already seen rather than an introduction to
-something coming.
+The order is a decision and it reads in one line: back to the archive, the name and
+its text, the first plate, the other plates, the spec list, the neighbours. That is the
+DOM order and the phone's order, where everything is one column. Name before work,
+because the visitor arrives from a grid that shows no words — they tapped an image
+without knowing what it was called. The text rides with the name, at the client's
+request: a catalogue standfirst of one to three lines at `{typography.body-lead}` in
+soft ink, capped at 68ch.
 
-The title is the page's `h1` at `{typography.display-lead}`, left-aligned on the
-shell's edge like the back link, the text and the pager beneath it. It is not centred
-on the plate below it: the plate is the one element on the page whose left edge moves,
-since its width follows each work's own proportion, so the shell's edge is the only
-axis a title can hold from one work to the next. It carries more air above than below —
-the space over it presents it, the space under it ties it to the work it names — and a
-30ch cap so a long title that has not been loaded yet cannot one day run a single
-1300px line at 3.25rem.
+**From 768px the same order folds into two columns** (`.opera` in globals.css, one
+grid with named areas, so screen readers and the keyboard follow the same thread as
+the eye). Left, the reading column: title, text, and beneath them the spec list with
+`Chiedi info`. Right, the first plate. Below both, full width, the remaining plates two
+by two. The reading column is 5 of 12 on tablet and 4 of 12 from 1024px — room for a
+title and a spec row, never enough to compete with the work — and the gap between the
+columns (2.5rem, 4rem from 1024px) is wider than a grid gutter because it separates
+two different things, text and work, not two equal pieces.
 
-Beneath the plates, the text sits in seven of twelve columns and the spec list in the
-lateral four from `col-start-9`. **The text column is not drawn when there is no text.**
-A work can be loaded without its description — the archive editor accepts that and
-flags it — and since the title moved out of this block, that case now empties the
-column. The spec list does not move to fill the gap: its place is fixed by
-`col-start-9`, not by whether it has a neighbour, so it is found in the same place on
-every work.
+The two columns share a top and a bottom line. The title is trimmed to its cap height
+(`text-box: trim-start cap alphabetic`) so its letters start on the plate's top edge,
+not ten pixels under it; and the spec list aligns to the end of its row, so when the
+plate is taller than the text, `Chiedi info` closes on the plate's foot. When the text
+is the taller one, the spec list simply follows it at its 2.5rem minimum.
+
+The first plate keeps its 78vh cap and `object-contain`, top-aligned and flush with
+the shell's right edge, so its outer margin never changes whatever the proportion.
+
+**The remaining plates are justified rows**, never a ragged grid. Each row's pieces grow
+in proportion to their own width/height ratio (`--r`, flex-grow over a zero basis), so
+they take one shared height and fill the shell exactly, uncropped. One step —
+`--opera-passo`, 1.5rem on phones and 2rem from 768px — separates every image from
+the next in both directions: first plate to rows, row to row, piece to piece. An odd
+count closes on a row of three, justified the same way, so no piece is ever left alone
+at half width towering over the rows above; the one exception is a single remaining
+image, which takes half a row on the left as if it had a partner.
+
+A work without a description draws no paragraph; nothing else moves. A work with a
+single image draws no lower grid.
 
 ### The Work Pager
 The foot of a work page offers the two neighbours in the archive's own order,
