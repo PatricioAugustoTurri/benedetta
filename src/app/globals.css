@@ -757,3 +757,141 @@ code {
     column-gap: 4rem;
   }
 }
+
+/* ---------------------------------------------------------------
+   Aprire una tavola — <ApriTavola/> e <Visore/>.
+
+   Il segno nell'angolo è un quadrato di carta con la freccia
+   d'inchiostro: sopra un'illustrazione qualsiasi, l'icona da sola
+   si perderebbe nei colori dell'opera. È l'unico riquadro pieno
+   sopra un'immagine, a raggio zero e senza ombra; sotto il
+   puntatore si inverte, inchiostro con la freccia di carta.
+   --------------------------------------------------------------- */
+.tavola-apri__segno {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: rgb(250 247 242 / 0.92);
+  color: var(--color-ink);
+  transition:
+    background-color 300ms var(--ease-out-soft),
+    color 300ms var(--ease-out-soft);
+}
+
+.tavola-apri:hover .tavola-apri__segno,
+.tavola-apri:focus-visible .tavola-apri__segno {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/*
+  Il visore: tutto lo schermo, su carta. Tre fasce —testa, scena, piede—
+  e l'opera intera nella scena, mai tagliata e mai più grande del suo file.
+*/
+.visore {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.visore::backdrop {
+  background: transparent;
+}
+
+.visore[open] {
+  animation: visore-apre 220ms var(--ease-out-soft);
+}
+
+.visore__telaio {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+}
+
+.visore__testa,
+.visore__piede {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 4rem;
+  padding: 0 var(--gutter);
+}
+
+.visore__testa {
+  justify-content: space-between;
+}
+
+.visore__piede {
+  justify-content: center;
+}
+
+.visore__scena {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 0 var(--gutter);
+  touch-action: pan-y;
+  cursor: zoom-out;
+}
+
+.visore__opera {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  background: var(--color-paper-deep);
+  cursor: default;
+  user-select: none;
+  animation: visore-opera 280ms var(--ease-out-soft);
+}
+
+.visore__tasto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition: color 200ms;
+}
+
+.visore__tasto:hover {
+  color: var(--color-ink);
+}
+
+.visore__tasto:disabled {
+  color: var(--color-line);
+  cursor: default;
+}
+
+.visore__tasto:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+@keyframes visore-apre {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes visore-opera {
+  from {
+    opacity: 0;
+    scale: 0.985;
+  }
+}

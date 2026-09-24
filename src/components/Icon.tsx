@@ -183,3 +183,17 @@ export function Move({ className, size = 20 }: Props) {
     </svg>
   );
 }
+
+/**
+ * Ingrandire: due frecce che escono verso gli angoli opposti. Non la lente:
+ * la lente con il più promette uno zoom a passi, qui invece l'opera si apre
+ * a tutto schermo, e gli angoli che si allargano dicono esattamente quello.
+ */
+export function Expand({ className, size = 20 }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M14 4.5h5.5V10M19.5 4.5 13.5 10.5" />
+      <path d="M10 19.5H4.5V14M4.5 19.5l6-6" />
+    </svg>
+  );
+}

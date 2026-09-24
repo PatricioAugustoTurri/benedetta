@@ -783,6 +783,23 @@ image, which takes half a row on the left as if it had a partner.
 A work without a description draws no paragraph; nothing else moves. A work with a
 single image draws no lower grid.
 
+### The Viewer
+Every plate on a work page is a button that opens it full screen. A 2rem paper square
+at 92% sits 0.75rem inside each image's bottom-right corner with the drawn `Expand`
+icon in ink — the only filled tile over an image, zero radius, no shadow, needed
+because a bare icon would drown in the artwork's colours. Under the pointer or focus
+it inverts, ink ground and paper arrow. The icon lives inside the button and is hidden
+from assistive tech: one control and one tab stop per image.
+
+The viewer is a native `<dialog>` opened with `showModal()` and it sits **on paper, not
+black** — the Ground-Is-Constant Rule holds here too. Three bands: the title and a
+close cross on top, the whole image in the middle (`object-contain`, never cropped,
+never upscaled past the stage), and `‹ 2 / 6 ›` at the foot with the counter in the
+label style. Arrow keys and the foot arrows step through the work's images and stop at
+the ends; a horizontal swipe does the same on touch; Esc, the cross, or a tap on the
+paper around the image closes it, and focus returns to the plate that opened it. It
+fades in over 220ms and each image settles from 0.985 as it arrives.
+
 ### The Work Pager
 The foot of a work page offers the two neighbours in the archive's own order,
 one per side, and each of them shows the piece: label, title, and beneath it the

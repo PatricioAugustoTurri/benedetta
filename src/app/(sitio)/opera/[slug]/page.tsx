@@ -7,6 +7,7 @@ import WorkAside from "../components/WorkAside";
 import WorkPager from "../components/WorkPager";
 import WorkPlate, { WorkPlates } from "../components/WorkPlate";
 import WorkTitle from "../components/WorkTitle";
+import Visore from "../components/Visore";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -71,12 +72,14 @@ export default async function OperaPage({ params }: Params) {
         tastiera seguono sempre lo stesso filo.
       */}
       <BackToArchive />
-      <div className="opera">
-        <WorkTitle work={work} />
-        <WorkPlate work={work} />
-        <WorkPlates work={work} />
-        <WorkAside work={work} />
-      </div>
+      <Visore titolo={work.title} immagini={work.image}>
+        <div className="opera">
+          <WorkTitle work={work} />
+          <WorkPlate work={work} />
+          <WorkPlates work={work} />
+          <WorkAside work={work} />
+        </div>
+      </Visore>
       <WorkPager slug={slug} />
     </article>
   );

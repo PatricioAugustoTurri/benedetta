@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import type { Work } from "@/lib/works";
+import { ApriTavola } from "./Visore";
 
 /**
  * Le tavole, in due pezzi: la prima e le altre.
@@ -31,15 +32,17 @@ export default function WorkPlate({ work }: { work: Work }) {
 
   return (
     <div className="opera__tavola flex items-start justify-center md:justify-end">
-      <Image
-        src={img.url}
-        alt={img.alt}
-        width={img.width}
-        height={img.height}
-        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 60vw, 50rem"
-        preload
-        className="max-h-[78vh] w-auto bg-paper-deep object-contain"
-      />
+      <ApriTavola indice={0} alt={img.alt}>
+        <Image
+          src={img.url}
+          alt={img.alt}
+          width={img.width}
+          height={img.height}
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 60vw, 50rem"
+          preload
+          className="block max-h-[78vh] w-auto bg-paper-deep object-contain"
+        />
+      </ApriTavola>
     </div>
   );
 }
@@ -84,15 +87,17 @@ export function WorkPlates({ work }: { work: Work }) {
               className="opera__pezzo"
               style={{ "--r": img.width / img.height } as CSSProperties}
             >
-              <Image
-                src={img.url}
-                alt={img.alt}
-                width={img.width}
-                height={img.height}
-                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 40rem"
-                loading="lazy"
-                className="max-h-[78vh] w-auto bg-paper-deep object-contain md:h-auto md:max-h-none md:w-full"
-              />
+              <ApriTavola indice={work.image.indexOf(img)} alt={img.alt} className="md:w-full">
+                <Image
+                  src={img.url}
+                  alt={img.alt}
+                  width={img.width}
+                  height={img.height}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 40rem"
+                  loading="lazy"
+                  className="block max-h-[78vh] w-auto bg-paper-deep object-contain md:h-auto md:max-h-none md:w-full"
+                />
+              </ApriTavola>
             </div>
           ))}
         </div>
