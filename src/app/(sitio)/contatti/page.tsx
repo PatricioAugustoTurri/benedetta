@@ -9,6 +9,9 @@ import ContactNote from "./components/ContactNote";
 export const metadata: Metadata = {
   title: "Contatti",
   description: "Commissioni, collaborazioni e richieste di stampe.",
+  // Il canonical resta la pagina pulita anche quando arriva `?opera=<slug>`:
+  // quel parametro precompila l'oggetto, non cambia cosa mostra la pagina.
+  alternates: { canonical: "/contatti" },
 };
 
 /**

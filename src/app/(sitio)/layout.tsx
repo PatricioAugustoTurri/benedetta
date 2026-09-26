@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import StructuredData from "@/components/StructuredData";
 
 /**
  * Il sito pubblico: tutto quello che vede un visitatore.
@@ -13,6 +14,7 @@ import Footer from "@/components/Footer";
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <StructuredData />
       <a
         href="#contenido"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"

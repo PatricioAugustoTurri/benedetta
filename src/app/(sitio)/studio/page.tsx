@@ -7,6 +7,7 @@ import StudioServices from "./components/StudioServices";
 export const metadata: Metadata = {
   title: "About me",
   description: "Chi sono e come lavoro.",
+  alternates: { canonical: "/studio" },
 };
 
 export default function StudioPage() {

@@ -36,6 +36,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: work.title,
     description: work.description ?? detalle,
+    alternates: { canonical: `/opera/${slug}` },
     openGraph: {
       title: `${work.title} · ${site.name}`,
       description: work.description ?? detalle,
@@ -60,8 +61,34 @@ export default async function OperaPage({ params }: Params) {
   const work = await getWork(slug);
   if (!work) notFound();
 
+  const portada = work.image[0];
+
+  /*
+    Dati strutturati per questa opera: quello che permette a Google Immagini
+    e alla ricerca normale di sapere che questa non è una pagina qualsiasi ma
+    un'opera —con autrice, tecnica e anno— invece di doverlo indovinare dal
+    testo. `creator` ripete `site.signature` e non un link a `StructuredData`:
+    quel componente descrive lei come persona una volta sola nel layout,
+    questo descrive il pezzo.
+  */
+  const datiOpera = {
+    "@context": "https://schema.org",
+    "@type": "VisualArtwork",
+    name: work.title,
+    description: work.description ?? undefined,
+    image: portada ? immagineFerma(portada) : undefined,
+    dateCreated: String(work.year),
+    artMedium: work.tecnica,
+    creator: { "@type": "Person", name: site.signature },
+    url: `${site.url}/opera/${slug}`,
+  };
+
   return (
     <article className="shell pt-8 pb-12 md:pt-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(datiOpera) }}
+      />
       {/*
         L'ordine della pagina, che è una decisione e non l'ordine in cui sono
         stati scritti i componenti: ritorno all'archivio, nome e testo, la

@@ -1,0 +1,33 @@
+import type { MetadataRoute } from "next";
+import { listSlugs } from "@/lib/works";
+import { site } from "@/data/site";
+
+/**
+ * Sitemap dinamica: `/`, `/studio`, `/contatti` e una riga per ogni opera.
+ *
+ * Le opere si prendono da `listSlugs()`, la stessa funzione che alimenta
+ * `generateStaticParams` in `opera/[slug]`, così la sitemap non si scorda mai
+ * un pezzo pubblicato né ne offre uno cancellato: le due liste vivono della
+ * stessa query.
+ *
+ * `site.url` è l'unico posto da cui dipende il dominio: cambia lì (in
+ * `src/data/site.ts`) quando il dominio finale sostituisce il placeholder, e
+ * questa sitemap segue senza toccarla.
+ */
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const slugs = await listSlugs();
+
+  const pagine: MetadataRoute.Sitemap = [
+    { url: site.url, changeFrequency: "weekly", priority: 1 },
+    { url: `${site.url}/studio`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${site.url}/contatti`, changeFrequency: "monthly", priority: 0.5 },
+  ];
+
+  const opere: MetadataRoute.Sitemap = slugs.map((slug) => ({
+    url: `${site.url}/opera/${slug}`,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+
+  return [...pagine, ...opere];
+}

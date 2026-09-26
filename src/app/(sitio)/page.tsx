@@ -5,6 +5,7 @@ import { site } from "@/data/site";
 
 export const metadata = {
   title: `${site.name} · ${site.role}`,
+  alternates: { canonical: "/" },
 };
 
 export default async function Home() {
