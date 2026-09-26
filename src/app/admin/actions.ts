@@ -455,6 +455,7 @@ export async function reordenarArchivo(
 
   revalidatePath("/");
   revalidatePath("/admin");
+  revalidatePath("/studio");
   /*
     E ogni pagina d'opera, perché la paginazione in fondo —la precedente e la
     successiva— esce dallo stesso ordine della griglia. Senza questo, spostare
@@ -493,6 +494,8 @@ async function quitarImagen(img: WorkImage): Promise<void> {
 function revalidar(slug: string, slugAnterior?: string) {
   revalidatePath("/");
   revalidatePath("/admin");
+  // About linka alcune opere col loro titolo: vedi `servicios` in data/studio.
+  revalidatePath("/studio");
   revalidatePath(`/opera/${slug}`);
   if (slugAnterior && slugAnterior !== slug) revalidatePath(`/opera/${slugAnterior}`);
 }

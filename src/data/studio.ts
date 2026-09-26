@@ -52,21 +52,39 @@ export const bio = [
 export const bioChiusura = "Se hai una storia da raccontare, magari possiamo disegnarla insieme.";
 
 /**
- * Le due cose che dice di fare nella bio: «Realizzo principalmente
- * illustrazioni personalizzate e ritratti». Sono due e non tre perché lei ne
- * nomina due; le tecniche non diventano un servizio, perché nella bio sono
- * sperimentazione e non una promessa di consegna.
+ * Le cose che fa, e le opere che le mostrano.
  *
- * DA CONFERMARE CON LEI: i titoli sono suoi, i due testi sono scritti a
- * partire dalla bio e non aggiungono niente che lei non abbia detto.
+ * Le prime due vengono dalla bio: «Realizzo principalmente illustrazioni
+ * personalizzate e ritratti». La terza viene dall'archivio: due lavori su
+ * commissione —le etichette di vino e il canovaccio per Tessuto Artistico
+ * Umbro— e un progetto personale sul packaging. Le tecniche non diventano un
+ * servizio, perché nella bio sono sperimentazione e non una promessa di
+ * consegna; editoria ed eventi nemmeno, finché nell'archivio sono solo
+ * progetti personali.
+ *
+ * `opere` sono slug di `works`: la pagina li risolve contro la tabella, prende
+ * il titolo da lì e li mette nell'ordine della griglia. Uno slug che non
+ * esiste più —un'opera cancellata o rinominata in /admin— sparisce in
+ * silenzio invece di diventare un link rotto.
+ *
+ * DA CONFERMARE CON LEI: i titoli delle prime due sono suoi, i tre testi sono
+ * scritti a partire dalla bio e dalle schede delle opere e non aggiungono
+ * niente che lei non abbia detto.
  */
 export const servicios = [
   {
     title: "Illustrazioni personalizzate",
     body: "Parto da un ricordo, un luogo o una storia che mi racconti, e lo trasformo in un'immagine.",
+    opere: ["coordinati-per-matrimoni"],
   },
   {
     title: "Ritratti",
     body: "Un volto e la sua storia: ritratti che nascono da quello che mi racconti.",
+    opere: ["ritratti-illustrati"],
+  },
+  {
+    title: "Prodotti e packaging",
+    body: "Etichette, confezioni, tessuti: illustrazioni pensate per vivere fuori dalla carta, nate dal dialogo con chi produce.",
+    opere: ["etichette-vino", "canovaccio-illustrato", "illustrazione-per-prodotti-e-packaging"],
   },
 ];
