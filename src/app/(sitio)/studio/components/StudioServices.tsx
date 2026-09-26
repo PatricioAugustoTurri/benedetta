@@ -2,11 +2,13 @@ import Reveal from "@/components/Reveal";
 import { servicios } from "@/data/studio";
 
 /**
- * Come lavora: i tre tipi di commissione, in una lista di definizione.
+ * Come lavora: i tipi di commissione, in una lista di definizione.
+ *
+ * La griglia resta a tre colonne anche con due voci: ognuna prende un terzo,
+ * come prima, e la terza colonna vuota cade sotto la colonna laterale della
+ * presentazione invece di stirare due testi brevi su metà pagina.
  *
  * Entrano scalati di 90ms l'uno dall'altro, che è il passo del resto del sito.
- *
- * PLACEHOLDER: le tre descrizioni sono segnaposto. Vedi PRODUCT.md.
  */
 export default function StudioServices() {
   return (

@@ -1,67 +1,96 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 import { studioFilm } from "@/data/studio";
 
 type Props = {
-  /** Il riquadro: proporzione, larghezza e altezza massima li mette chi lo usa. */
+  /** Il trattamento —taglio, velo, sfocatura— lo mette chi lo usa. */
   className?: string;
   priority?: boolean;
 };
 
 /**
- * La cornice del video di About.
+ * Il video di About, e nient'altro: il file, il suo fotogramma e quando parte.
+ *
+ * Come si vede lo decide il frontespizio che lo usa come fondo —vedi
+ * `StudioOpening` e `.frontespizio` in globals.css—: qui non c'è cornice,
+ * velo né sfocatura, così il trattamento vive in un posto solo.
  *
  * Due stati e nessuno dei due rotto:
  *
- * - **Senza file** (oggi): disegna il fotogramma di copertina come immagine.
- *   Non un `<video>` vuoto con controlli che non controllano niente, né un
- *   rettangolo nero: finché non c'è un filmato, la cosa onesta è la foto.
- * - **Con file**: `<video>` senza audio, in loop, che parte da solo. Senza
- *   controlli, perché non c'è niente da controllare in un loop muto di pochi
- *   secondi: è un'immagine che si muove, non un pezzo che si guarda.
+ * - **Senza file**: disegna il fotogramma di copertina come immagine. Non un
+ *   `<video>` vuoto né un rettangolo nero: finché non c'è un filmato, la cosa
+ *   onesta è la foto.
+ * - **Con file** (oggi): `<video>` senza audio, in loop, senza controlli.
  *
- * Sotto `prefers-reduced-motion` smette di partire da solo e gli compaiono i
- * controlli. Meno movimento non è vietare il video: è non imporlo. Va in un
- * `ref` e non nello stato perché non ci sia un primo disegno con il video già
- * in corsa da dover poi fermare.
+ * **Parte dallo script, non dall'attributo `autoplay`.** L'attributo sta
+ * nell'HTML del server e il browser lo esegue prima che arrivi qualsiasi
+ * script: chi ha chiesto meno movimento vedeva partire il video e poi
+ * fermarsi. Così invece il primo disegno è sempre il fotogramma fermo, e il
+ * movimento arriva solo se è permesso.
+ *
+ * Sotto `prefers-reduced-motion` non parte e resta sul fotogramma. Niente
+ * controlli: è uno sfondo, e una barra di riproduzione velata e sfocata
+ * sarebbe un controllo che non si legge.
+ *
+ * Si ferma quando esce dallo schermo e riprende quando torna: un loop che
+ * gira sopra la bio mentre si legge consuma batteria per niente.
  */
 export default function StudioFilm({ className = "", priority = false }: Props) {
-  const frame = `block bg-paper-deep object-cover ${className}`;
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    // Se il browser rifiuta la riproduzione automatica —risparmio
+    // energetico— resta il fotogramma, che è quello che si vedrebbe comunque.
+    const avvia = () => void video.play().catch(() => {});
+
+    if (typeof IntersectionObserver === "undefined") {
+      avvia();
+      return;
+    }
+
+    const osservatore = new IntersectionObserver(
+      ([voce]) => (voce.isIntersecting ? avvia() : video.pause()),
+      { threshold: 0.2 },
+    );
+    osservatore.observe(video);
+    return () => osservatore.disconnect();
+  }, []);
 
   if (!studioFilm.src) {
     return (
       <Image
         src={studioFilm.poster}
         alt={studioFilm.alt}
-        width={800}
-        height={1000}
+        fill
         priority={priority}
         sizes="100vw"
-        className={frame}
+        className={className}
       />
     );
   }
 
   return (
     <video
-      ref={(el) => {
-        if (!el) return;
-        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        el.autoplay = false;
-        el.controls = true;
-        el.pause();
-      }}
+      ref={ref}
+      src={studioFilm.src}
       poster={studioFilm.poster}
-      autoPlay
+      width={studioFilm.width}
+      height={studioFilm.height}
       muted
       loop
       playsInline
-      preload="metadata"
+      // Apre la pagina, quindi si scarica subito; un pezzo più in basso
+      // chiederebbe solo i metadati.
+      preload={priority ? "auto" : "metadata"}
       aria-label={studioFilm.alt}
-      className={frame}
-    >
-      <source src={studioFilm.src} />
-    </video>
+      className={className}
+    />
   );
 }

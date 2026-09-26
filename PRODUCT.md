@@ -31,10 +31,11 @@ proyecto, plazo y formato— en lugar de un ida y vuelta largo.
 
 ## Positioning
 
-Ilustración hecha a mano primero: acuarela, gouache y lápiz sobre papel, con paso a
-digital sólo cuando el encargo lo pide. Ese orden —analógico como origen, digital como
-entrega— es la posición, y no es la que declara un ilustrador que trabaja nativamente
-en digital.
+Ilustraciones personalizadas y retratos: recuerdos y relatos de otros convertidos
+en imagen. Trabaja sobre todo en digital y experimenta a mano —acrílico, pastel,
+madera— por gusto, no como formato de entrega. Viene de su propia bio (2026-09-26),
+que reemplazó a la posición anterior —"analógico como origen, digital como
+entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
 
 ## Operating Context
 
@@ -118,18 +119,16 @@ en digital.
 bzibetti98@gmail.com, la cuenta de Instagram, la existencia de una cuenta de Behance,
 y que trabaja desde Foligno, Umbría.
 
-**Va a existir, todavía no está:** las ilustraciones reales, el retrato y la bio escritos
-por ella, la lista verdadera de clientes, y el dominio.
+**Va a existir, todavía no está:** la lista verdadera de clientes y el dominio.
 
 **Placeholder — nada de esto es un hecho y no debe tratarse como tal:**
 
 | Qué | Dónde | Estado |
 | --- | --- | --- |
 | 12 ilustraciones SVG | `public/ilustraciones/` | Generadas para la maqueta por `scripts/generate-placeholders.mjs`. No son obra de nadie. Ya no las muestra el sitio: quedaron huérfanas al vaciarse la tabla, y se pueden borrar. La carpeta es también donde `/admin` deja lo que ella sube. |
-| Retrato | `public/retrato.svg` | Placeholder. |
+| Retrato | `public/retrato.svg` | Placeholder huérfano: About ya abre con su video (`public/instagram/Bebi About.mp4`) y esto no lo usa nadie. Se puede borrar. |
 | `https://illustrando.it` | `src/data/site.ts` | Dominio inventado por mí como relleno. No está comprado. |
-| Los tres servicios ("Editorial", "Libro infantil", "Series botánicas") | `src/app/studio/page.tsx` | Descripciones de relleno. |
-| Bio ("Estudié diseño…", "colecciones privadas") | `src/app/studio/page.tsx` | Texto de relleno. |
+| Textos de los dos servicios ("Illustrazioni personalizzate", "Ritratti") | `src/data/studio.ts` | Los títulos son de su bio; los dos textos los escribí yo a partir de ella. Falta que los confirme. |
 | La tabla `works` | base `illustrando` | **Arranca vacía, por pedido del cliente.** Las doce obras de maqueta no se migraron: ella carga las suyas por `/admin`. Mientras esté vacía, la portada dice que el archivo está en preparación. |
 | Cliente y medidas por obra | — | Ya no existen: la tabla `works` no tiene esas columnas, y la ficha de una obra quedó en dos filas, Anno y Tecnica. Si vuelven a hacer falta, vuelven como columnas y como campos del admin. |
 | Las tres entradas del diario | `src/data/journal.ts` | Inventadas enteras, con fechas incluidas. |

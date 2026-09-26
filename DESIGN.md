@@ -327,9 +327,9 @@ reading as a SaaS template.
 
 The signature is the one handmade thing on a page of neutral type, and it is the
 real article: pencil on paper, grain and broken edges intact. It replaced a
-display face that was imitating exactly this. That is the order the whole brand
-runs on — analogue as the origin, digital as the delivery — and the wordmark is
-now the first place a visitor meets it, before a single illustration has loaded.
+display face that was imitating exactly this. Most of her work is digital; the
+wordmark is the one place the site shows her hand on paper, and the first thing a
+visitor meets, before a single illustration has loaded.
 
 ### Hierarchy
 - **Display Mark** (`{typography.display-mark}`): the year on the archive spine,

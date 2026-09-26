@@ -7,21 +7,21 @@ export const site = {
   author: "Benedetta",
   role: "Illustratrice",
   // Si usa nel <title> e nelle anteprime quando si condivide il link.
-  tagline: "Illustrazione editoriale, per l'infanzia e botanica",
+  tagline: "Illustrazioni personalizzate e ritratti",
   description:
-    "Portfolio di illustrazione di Benedetta. Lavoro editoriale, libro illustrato per l'infanzia e serie botaniche ad acquerello e matita.",
+    "Portfolio di illustrazione di Benedetta: illustrazioni personalizzate e ritratti che trasformano ricordi e racconti in immagini.",
   // PLACEHOLDER: non c'è ancora un dominio acquistato. Cambiare prima di
   // pubblicare: si usa per la SEO e per le anteprime quando si condivide il link.
   url: "https://illustrando.it",
   email: "bzibetti98@gmail.com",
   location: "Foligno, Italia",
   /**
-   * La riga di mestiere del footer. È la posizione di PRODUCT.md detta in una
-   * frase —l'analogico come origine, il digitale come consegna— ed è l'unica
-   * cosa che il footer afferma sul lavoro. Non promette servizi né nomina
-   * clienti: quello vive in Studio e oggi è testo segnaposto.
+   * La riga di mestiere del footer: come lavora, detto con le parole della sua
+   * bio —soprattutto in digitale, con le tecniche a mano come terreno di
+   * prova—. È l'unica cosa che il footer afferma sul lavoro: non promette
+   * servizi né nomina clienti, quello vive in About.
    */
-  craft: "Acquerello, gouache e matita su carta. Il digitale solo quando il lavoro lo chiede.",
+  craft: "Soprattutto in digitale, con acrilici, pastelli, legno e tecniche diverse.",
   /*
     IN SOSPESO, PARTE LEGALE — non inventare. Se lei fattura come lavoratrice
     autonoma in Italia, la partita IVA e il titolare del sito vanno nel footer

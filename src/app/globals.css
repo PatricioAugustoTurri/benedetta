@@ -895,3 +895,114 @@ code {
     scale: 0.985;
   }
 }
+
+/*
+  Il frontespizio di About: il video dello studio come fondo, il saluto sopra.
+
+  Il video è atmosfera, non una tavola: occupa tutta la larghezza e sfuma
+  nella carta in alto e in basso, così non ha bordi da leggere come cornice.
+  Il titolo sta nella fascia bassa, dove la carta è quasi piena —è quella
+  sfumatura a garantirne il contrasto, non un'ombra né un riquadro— e si
+  allinea alla colonna della bio che segue, perché la pagina cominci lì.
+
+  Un solo momento di movimento: lo sviluppo. All'apertura il video affiora
+  dalla carta come una foto nella bacinella —da trasparente e molto sfocato
+  al suo velo—, e il saluto arriva poco dopo. Con meno movimento la regola
+  globale porta tutto allo stato finale senza viaggio.
+*/
+.frontespizio {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: 64svh;
+  min-height: 24rem;
+  overflow: hidden;
+  background: var(--color-paper);
+}
+
+@media (min-width: 48rem) {
+  .frontespizio {
+    height: min(78svh, 52rem);
+    min-height: 30rem;
+  }
+}
+
+.frontespizio__film {
+  --sfoca: 1.5px;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Sul telefono il taglio verticale tiene lei al centro della scena. */
+  object-position: 50% 40%;
+  /* Il 4% in più tiene fuori campo i bordi che la sfocatura sfrangia. */
+  scale: 1.04;
+  opacity: 0.5;
+  filter: blur(var(--sfoca)) saturate(0.8);
+  animation: frontespizio-sviluppo 1800ms var(--ease-out-soft) both;
+}
+
+@media (min-width: 48rem) {
+  .frontespizio__film {
+    --sfoca: 3px;
+  }
+}
+
+/*
+  Il velo di carta: una sfumatura sola, dall'alto e dal basso. In alto è
+  corta —basta a staccare il video dall'header—; in basso sale fino a metà,
+  ed è la fascia su cui si legge il titolo.
+*/
+.frontespizio__velo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, var(--color-paper) 0%, transparent 14%),
+    linear-gradient(
+      to top,
+      var(--color-paper) 0%,
+      color-mix(in oklab, var(--color-paper) 94%, transparent) 24%,
+      color-mix(in oklab, var(--color-paper) 55%, transparent) 46%,
+      transparent 66%
+    );
+}
+
+.frontespizio__testo {
+  position: relative;
+  padding-bottom: 2.5rem;
+  animation: frontespizio-saluto 1100ms var(--ease-out-soft) 450ms both;
+}
+
+@media (min-width: 48rem) {
+  .frontespizio__testo {
+    padding-bottom: 3.5rem;
+  }
+}
+
+@keyframes frontespizio-sviluppo {
+  from {
+    opacity: 0;
+    filter: blur(18px) saturate(0.5);
+  }
+}
+
+@keyframes frontespizio-saluto {
+  from {
+    opacity: 0;
+    translate: 0 0.75rem;
+  }
+}
+
+/*
+  Con meno movimento il frontespizio non si sviluppa: nasce già com'è. Non
+  basta la regola globale, che accorcia la durata ma lascia il ritardo del
+  saluto —e con `both` il titolo resterebbe invisibile per quel tempo—.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .frontespizio__film,
+  .frontespizio__testo {
+    animation: none;
+  }
+}
