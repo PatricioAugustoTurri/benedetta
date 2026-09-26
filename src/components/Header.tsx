@@ -140,15 +140,15 @@ export default function Header() {
             width/height sono quelli del file, perché lo spazio sia riservato
             prima del caricamento e l'header non salti.
           */}
-          <Link href="/" className="block" aria-label={`${site.name} — archivio`}>
+          <Link href="/" className="block" aria-label={`${site.signature} — archivio`}>
             <Image
-              src="/illustrando-wordmark.png"
+              src="/benedetta-zibetti-wordmark.png"
               alt=""
-              width={740}
-              height={147}
+              width={602}
+              height={375}
               priority
-              sizes="(min-width: 768px) 240px, 180px"
-              className="h-auto w-[180px] md:w-[240px]"
+              sizes="(min-width: 768px) 136px, 100px"
+              className="h-auto w-[100px] md:w-[136px]"
             />
           </Link>
 

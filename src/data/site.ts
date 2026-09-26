@@ -5,6 +5,9 @@
 export const site = {
   name: "Illustrando",
   author: "Benedetta",
+  // Il nome come lo dice il logotipo: è anche il nome accessibile dell'immagine,
+  // perché chi usa un comando vocale dice quello che vede scritto.
+  signature: "Benedetta Zibetti",
   role: "Illustratrice",
   // Si usa nel <title> e nelle anteprime quando si condivide il link.
   tagline: "Illustrazioni personalizzate e ritratti",

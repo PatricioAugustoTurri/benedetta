@@ -5,7 +5,9 @@ así el build no sirve un archivo que ninguna página pide.
 
 | Archivo | Qué es | Qué se deriva |
 | --- | --- | --- |
-| `Opera_senza_titolo.jpg` | El lettering de "illustrando" escrito a mano por Benedetta. Escaneado a 300 dpi, 838×217, fondo blanco, sin transparencia. | `public/illustrando-wordmark.png` |
+| `Nome_Sito.jpg` | Su nombre, "Benedetta Zibetti", escrito a mano en dos líneas. 699×454, fondo blanco, sin transparencia. Es el logotipo actual. | `public/benedetta-zibetti-wordmark.png` (602×375) |
+| `Nome_Sito 2.jpg` | Su apellido, "Zibetti", escrito a mano. 699×219, fondo blanco, sin transparencia. Probado y descartado; ya no se muestra. | `public/zibetti-wordmark.png` (474×202) |
+| `Opera_senza_titolo.jpg` | El lettering de "illustrando" escrito a mano por Benedetta. Escaneado a 300 dpi, 838×217, fondo blanco, sin transparencia. Ya no se muestra. | `public/illustrando-wordmark.png` |
 
 ## Cómo se regenera el logotipo
 

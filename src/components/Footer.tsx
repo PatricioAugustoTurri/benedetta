@@ -157,12 +157,12 @@ export default function Footer() {
               lo dica.
             */}
             <Image
-              src="/illustrando-wordmark.png"
-              alt={site.name}
-              width={740}
-              height={147}
-              sizes="150px"
-              className="h-auto w-[150px]"
+              src="/benedetta-zibetti-wordmark.png"
+              alt={site.signature}
+              width={602}
+              height={375}
+              sizes="112px"
+              className="h-auto w-[112px]"
             />
 
             <p className="mt-4 text-sm text-ink-soft">

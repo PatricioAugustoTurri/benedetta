@@ -618,13 +618,14 @@ underneath) lands on *cancel*, never on save.
 - **Header:** transparent, sticky, 4rem tall (5rem at 768px). Nav labels in soft ink
   at `{typography.nav}` with 2.5rem gaps; hover and the active route move them to
   full ink and draw the underline. Past `scrollY > 8` the bar takes paper/85, a blur, and a rule.
-- **Wordmark:** `illustrando-wordmark.png`, Benedetta's lettering, sized by width
-  because the asset is trimmed to the ink — 180px on phones, 240px from 768px, and
-  150px in the footer. It ships with its intrinsic 740×147 on the element so the
-  space is reserved before it loads and the header never jumps, and it is
-  `priority` in the header because it sits in the first viewport. In the header
-  the `<img>` takes `alt=""` and the accessible name comes from the link's
-  `aria-label`; in the footer, where there is no link, the `alt` is "Illustrando".
+- **Wordmark:** `benedetta-zibetti-wordmark.png`, Benedetta's lettering of her own
+  name on two lines, sized by width because the asset is trimmed to the ink —
+  100px on phones, 136px from 768px, and 112px in the footer. It ships with its
+  intrinsic 602×375 on the element so the space is reserved before it loads and
+  the header never jumps, and it is `priority` in the header because it sits in
+  the first viewport. In the header the `<img>` takes `alt=""` and the accessible
+  name comes from the link's `aria-label`; in the footer, where there is no link,
+  the `alt` is "Benedetta Zibetti" (`site.signature`) — the words the image shows.
 - **Mobile:** a two-hairline menu button (the hairlines match the icon stroke
   weight), opening a half-screen paper panel beside the header with routes at
   `{typography.nav-drawer}`, each on its own `{colors.line}` rule, and the address
@@ -646,14 +647,18 @@ underneath) lands on *cancel*, never on save.
   0.875rem with tabular figures. No background, no zebra, no radius.
 
 ### Wordmark asset
-The only raster the design system owns. `public/illustrando-wordmark.png` — 740×147,
-26 KB, ink `{colors.ink}` carried entirely in the alpha channel so the pencil grain
-survives as varying opacity rather than as a colour. Derived from
-`design-source/Opera_senza_titolo.jpg`, a 300 dpi scan on white; the alpha comes
-from inverting luminance with a 244 white point, which clears the JPEG ringing
-around the stroke without flattening the grain. Trimmed to the ink box, with no
-baked margin — the air around the wordmark is CSS. `design-source/README.md` holds
-the full recipe so a new scan can be reprocessed identically.
+The only raster the design system owns. `public/benedetta-zibetti-wordmark.png` —
+602×375, 32 KB, ink `{colors.ink}` carried entirely in the alpha channel so the
+stroke grain survives as varying opacity rather than as a colour. Derived from
+`design-source/Nome_Sito.jpg`, a scan on white; the alpha comes from inverting
+luminance with a 244 white point, which clears the JPEG ringing around the stroke
+without flattening the grain. Trimmed to the ink box, with no baked margin — the
+air around the wordmark is CSS. `design-source/README.md` holds the full recipe so
+a new scan can be reprocessed identically. It replaced the earlier "illustrando"
+lettering (`illustrando-wordmark.png`) and was chosen over a one-line "Zibetti"
+trial (`zibetti-wordmark.png`, from `Nome_Sito 2.jpg`); both are kept in
+`public/` but no longer rendered: the site now signs with her name, while "Illustrando" stays the name in
+`<title>`, the copyright line and the Instagram handle.
 
 Not vectorised, by decision: a trace would produce clean outlines and lose the
 grain, which is the only thing separating this signature from a script font.
