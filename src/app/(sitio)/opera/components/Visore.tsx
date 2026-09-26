@@ -11,6 +11,8 @@ import {
   type ReactNode,
 } from "react";
 import { ArrowLeft, ArrowRight, Close, Expand } from "@/components/Icon";
+import VideoOpera from "@/components/VideoOpera";
+import { esVideo } from "@/lib/video";
 import type { Work } from "@/lib/works";
 
 /**
@@ -87,6 +89,10 @@ export default function Visore({
         className="visore"
         aria-label={`${titolo} — immagini`}
         onKeyDown={(e) => {
+          // Con il fuoco sul video le frecce spostano il punto di
+          // riproduzione: sono sue, e cambiare tavola nello stesso momento
+          // gliele ruberebbe.
+          if (e.target instanceof HTMLVideoElement) return;
           if (e.key === "ArrowLeft") vai(-1);
           if (e.key === "ArrowRight") vai(1);
         }}
@@ -117,7 +123,10 @@ export default function Visore({
                 if (e.target === e.currentTarget) chiudi();
               }}
               onPointerDown={(e) => {
-                tocco.current = e.pointerType === "mouse" ? null : e.clientX;
+                // Sul video il dito può star trascinando la sua barra: quello
+                // non è un gesto per cambiare tavola.
+                const suVideo = e.target instanceof HTMLVideoElement;
+                tocco.current = e.pointerType === "mouse" || suVideo ? null : e.clientX;
               }}
               onPointerUp={(e) => {
                 if (tocco.current === null) return;
@@ -126,16 +135,28 @@ export default function Visore({
                 if (Math.abs(dx) > 48) vai(dx < 0 ? 1 : -1);
               }}
             >
-              <Image
-                key={img.url}
-                src={img.url}
-                alt={img.alt}
-                width={img.width}
-                height={img.height}
-                sizes="100vw"
-                className="visore__opera"
-                draggable={false}
-              />
+              {esVideo(img) ? (
+                <VideoOpera
+                  key={img.url}
+                  src={img.url}
+                  width={img.width}
+                  height={img.height}
+                  alt={img.alt}
+                  controlli
+                  className="visore__opera"
+                />
+              ) : (
+                <Image
+                  key={img.url}
+                  src={img.url}
+                  alt={img.alt}
+                  width={img.width}
+                  height={img.height}
+                  sizes="100vw"
+                  className="visore__opera"
+                  draggable={false}
+                />
+              )}
             </div>
 
             <footer className="visore__piede">

@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { Pencil, Trash } from "@/components/Icon";
 import { borrarObra } from "../actions";
 import PlacaObra from "./PlacaObra";
+import { contarPezzi } from "@/lib/video";
 import type { Work } from "@/lib/works";
 
 /**
@@ -112,11 +113,8 @@ export default function ObraEditable({ obra, manija }: { obra: Work; manija?: Re
       {confirmando && (
         <div className="absolute inset-x-0 bottom-0 border-t border-accent bg-paper p-3">
           <p className="text-xs text-ink">
-            Si cancella «{obra.title}» e{" "}
-            {obra.image.length === 1
-              ? "la sua immagine"
-              : `le sue ${obra.image.length} immagini`}
-            . Non si può disfare.
+            Si cancella «{obra.title}» con {contarPezzi(obra.image)}. Non si può
+            disfare.
           </p>
 
           <div className="mt-2.5 flex items-center gap-4 text-xs">

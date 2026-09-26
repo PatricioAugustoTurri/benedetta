@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Plus, Trash } from "@/components/Icon";
 import { descartarImagen, guardarObra, pedirPermisoDeSubida, type EstadoFormulario } from "../actions";
-import { enMB, MAX_ARCHIVO_MB, MB } from "@/lib/limites";
+import { enMB, MAX_ARCHIVO_MB, MAX_VIDEO_MB, MB } from "@/lib/limites";
+import { fotogramma } from "@/lib/video";
 import type { Work } from "@/lib/works";
 
 /*
@@ -19,15 +20,19 @@ const CONTROL =
   "peer block w-full border-0 border-b border-line bg-transparent py-2.5 text-base text-ink transition-colors placeholder:text-ink-faint focus:border-ink aria-[invalid=true]:border-accent";
 
 /**
- * Un'immagine nel modulo.
+ * Un'immagine —o un video— nel modulo.
  *
  * Le nuove portano uno stato perché salgono su Cloudinary appena si scelgono,
  * non al salvataggio: mentre viaggia una scansione da 8 MB bisogna poter dire
  * a che punto è, e alla fine l'immagine ha già indirizzo e misure proprie.
+ *
+ * `video` è a parte da `tipo` perché `tipo` dice da dove viene il pezzo —già
+ * salvato o appena scelto— e un video può essere l'una o l'altra cosa.
  */
 type Nueva = {
   key: string;
   tipo: "nueva";
+  video: boolean;
   file: File;
   alt: string;
   preview: string;
@@ -49,8 +54,14 @@ type Item =
       width: number;
       height: number;
       publicId?: string;
+      video: boolean;
     }
   | Nueva;
+
+/** Il tetto di peso di un file, secondo che sia video o immagine. */
+function tetto(video: boolean): number {
+  return (video ? MAX_VIDEO_MB : MAX_ARCHIVO_MB) * MB;
+}
 
 /**
  * Manda un file a Cloudinary dal browser, segnalando l'avanzamento.
@@ -67,6 +78,9 @@ type Item =
 function subirACloudinary(
   file: File,
   permiso: { url: string; apiKey: string; timestamp: number; signature: string; folder: string },
+  // Dove va il file lo decide chi chiama: immagini e video hanno ognuno il
+  // proprio indirizzo su Cloudinary, con la stessa firma.
+  destino: string,
   alAvanzar: (porcentaje: number) => void,
 ): Promise<{ url: string; publicId: string; width: number; height: number }> {
   return new Promise((resolver, rechazar) => {
@@ -78,7 +92,7 @@ function subirACloudinary(
     datos.append("folder", permiso.folder);
 
     const peticion = new XMLHttpRequest();
-    peticion.open("POST", permiso.url);
+    peticion.open("POST", destino);
 
     peticion.upload.onprogress = (e) => {
       if (e.lengthComputable) alAvanzar(Math.round((e.loaded / e.total) * 100));
@@ -150,6 +164,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
         width: img.width,
         height: img.height,
         publicId: img.publicId,
+        video: img.tipo === "video",
       })) ?? [],
   );
 
@@ -163,11 +178,11 @@ export default function WorkForm({ obra }: { obra?: Work }) {
     `falladas`: il caricamento è andato male; salvare lascerebbe l'opera senza
     quell'immagine e senza avviso.
     `pesadas`: Cloudinary le rifiuterà comunque, ma dirlo qui risparmia il
-    viaggio e spiega cosa fare.
+    viaggio e spiega cosa fare. Il tetto è diverso per immagini e video.
   */
   const subiendo = items.some((it) => it.tipo === "nueva" && it.estado === "subiendo");
   const falladas = items.filter((it) => it.tipo === "nueva" && it.estado === "error");
-  const pesadas = items.filter((it) => it.tipo === "nueva" && it.file.size > MAX_ARCHIVO_MB * MB);
+  const pesadas = items.filter((it) => it.tipo === "nueva" && it.file.size > tetto(it.video));
   const bloqueado = subiendo || falladas.length > 0 || pesadas.length > 0;
 
   /*
@@ -210,6 +225,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
             width: it.width,
             height: it.height,
             publicId: it.publicId,
+            ...(it.video ? { tipo: "video" } : {}),
           })),
       ),
     [items],
@@ -234,6 +250,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
     const nuevos: Nueva[] = Array.from(lista).map((file, i) => ({
       key: `nueva-${Date.now()}-${i}`,
       tipo: "nueva" as const,
+      video: file.type.startsWith("video/"),
       file,
       alt: "",
       preview: URL.createObjectURL(file),
@@ -259,16 +276,27 @@ export default function WorkForm({ obra }: { obra?: Work }) {
       mentre le altre proseguono.
     */
     for (const it of nuevos) {
-      if (it.file.size > MAX_ARCHIVO_MB * MB) {
+      /*
+        Solo MP4 fra i video. Il selettore di file lo chiede già, ma un file
+        trascinato o scelto con «Tutti i file» passa lo stesso, e un .mov
+        salirebbe su Cloudinary per poi non riprodursi in metà dei browser.
+      */
+      if (it.video && it.file.type !== "video/mp4") {
+        actualizar(it.key, { estado: "error", mensaje: "I video devono essere MP4." });
+        continue;
+      }
+
+      if (it.file.size > tetto(it.video)) {
         actualizar(it.key, {
           estado: "error",
-          mensaje: `Pesa ${enMB(it.file.size)} e il massimo sono ${MAX_ARCHIVO_MB} MB.`,
+          mensaje: `Pesa ${enMB(it.file.size)} e il massimo sono ${it.video ? MAX_VIDEO_MB : MAX_ARCHIVO_MB} MB.`,
         });
         continue;
       }
 
       try {
-        const subida = await subirACloudinary(it.file, respuesta.permiso, (p) =>
+        const destino = it.video ? respuesta.permiso.urlVideo : respuesta.permiso.url;
+        const subida = await subirACloudinary(it.file, respuesta.permiso, destino, (p) =>
           actualizar(it.key, { progreso: p }),
         );
         actualizar(it.key, { estado: "listo", progreso: 100, ...subida });
@@ -294,7 +322,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
           Solo le nuove: un'immagine già salvata può essere ancora nell'opera
           pubblicata, e si cancella solo al salvataggio delle modifiche.
         */
-        if (fuera.publicId) void descartarImagen(fuera.publicId);
+        if (fuera.publicId) void descartarImagen(fuera.publicId, fuera.video ? "video" : "image");
       }
       return previos.filter((it) => it.key !== key);
     });
@@ -336,8 +364,8 @@ export default function WorkForm({ obra }: { obra?: Work }) {
             className="mt-5 border-l border-accent bg-paper-deep/60 py-2 pl-3 text-sm text-accent"
           >
             {pesadas.length > 0
-              ? `${pesadas.length === 1 ? "Un'immagine supera" : `${pesadas.length} immagini superano`} i ${MAX_ARCHIVO_MB} MB. Esportale più piccole e riscegliele.`
-              : `${falladas.length === 1 ? "Un'immagine non è stata caricata" : `${falladas.length} immagini non sono state caricate`}. Toglile e riprova, oppure controlla il dettaglio sotto ognuna.`}
+              ? `${pesadas.length === 1 ? "Un file supera" : `${pesadas.length} file superano`} il peso massimo: ${MAX_ARCHIVO_MB} MB per le immagini, ${MAX_VIDEO_MB} MB per i video. Esportali più leggeri e riscegli.`
+              : `${falladas.length === 1 ? "Un file non è stato caricato" : `${falladas.length} file non sono stati caricati`}. Toglili e riprova, oppure controlla il dettaglio sotto ognuno.`}
           </p>
         )}
 
@@ -456,11 +484,12 @@ export default function WorkForm({ obra }: { obra?: Work }) {
 
         {/* --------------------------------------------------- immagini */}
         <div className="mt-12 border-t border-line pt-8">
-          <h2 className="label text-ink">Immagini</h2>
+          <h2 className="label text-ink">Immagini e video</h2>
           <p className="mt-1.5 max-w-[46ch] text-xs leading-relaxed text-ink-faint">
-            La prima è la copertina: quella che esce nella griglia dell&apos;archivio. Ognuna
-            sale su Cloudinary appena la scegli, e da lì escono larghezza e altezza: non
-            serve inserirle.
+            Il primo pezzo è la copertina: quello che esce nella griglia dell&apos;archivio.
+            Ognuno sale su Cloudinary appena lo scegli, e da lì escono larghezza e altezza:
+            non serve inserirle. I video vanno in MP4, fino a {MAX_VIDEO_MB} MB, e sul sito
+            girano in loop senza audio.
           </p>
 
           <ul className="mt-6 space-y-4">
@@ -477,19 +506,41 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                   ancora da nessuna parte, e mostrarla uguale a una salvata
                   direbbe che il lavoro è finito.
                 */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={it.tipo === "nueva" ? it.preview : it.url}
-                  alt=""
-                  className={`aspect-square w-20 shrink-0 bg-paper-deep object-cover transition-opacity duration-300 ${
-                    it.tipo === "nueva" && it.estado === "subiendo" ? "opacity-40" : "opacity-100"
-                  }`}
-                />
+                {/*
+                  Un video nuovo si mostra con il suo stesso file, fermo sul
+                  primo fotogramma: il browser non ne sa fare una miniatura
+                  come fa con un'immagine. Uno già salvato usa il fotogramma
+                  che genera Cloudinary.
+                */}
+                {it.video && it.tipo === "nueva" ? (
+                  <video
+                    src={it.preview}
+                    muted
+                    playsInline
+                    preload="metadata"
+                    aria-hidden="true"
+                    className={`aspect-square w-20 shrink-0 bg-paper-deep object-cover transition-opacity duration-300 ${
+                      it.estado === "subiendo" ? "opacity-40" : "opacity-100"
+                    }`}
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={
+                      it.tipo === "nueva" ? it.preview : it.video ? fotogramma(it.url) : it.url
+                    }
+                    alt=""
+                    className={`aspect-square w-20 shrink-0 bg-paper-deep object-cover transition-opacity duration-300 ${
+                      it.tipo === "nueva" && it.estado === "subiendo" ? "opacity-40" : "opacity-100"
+                    }`}
+                  />
+                )}
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="label text-ink-faint">
-                      {i === 0 ? "Copertina" : `Immagine ${i + 1}`}
+                      {i === 0 ? "Copertina" : `${it.video ? "Video" : "Immagine"} ${i + 1}`}
+                      {i === 0 && it.video && " · video"}
                     </span>
 
                     <div className="flex items-center gap-1">
@@ -500,7 +551,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                         title="Sposta su"
                         className="flex h-7 w-7 rotate-90 items-center justify-center text-ink-faint transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-30"
                       >
-                        <span className="sr-only">Sposta su questa immagine</span>
+                        <span className="sr-only">Sposta su questo pezzo</span>
                         <ArrowLeft size={15} />
                       </button>
                       <button
@@ -510,7 +561,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                         title="Sposta giù"
                         className="flex h-7 w-7 rotate-90 items-center justify-center text-ink-faint transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-30"
                       >
-                        <span className="sr-only">Sposta giù questa immagine</span>
+                        <span className="sr-only">Sposta giù questo pezzo</span>
                         <ArrowRight size={15} />
                       </button>
                       <button
@@ -519,7 +570,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                         title="Togli"
                         className="flex h-7 w-7 items-center justify-center text-ink-faint transition-colors hover:text-accent"
                       >
-                        <span className="sr-only">Togli questa immagine</span>
+                        <span className="sr-only">Togli questo pezzo</span>
                         <Trash size={15} />
                       </button>
                     </div>
@@ -528,8 +579,8 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                   <input
                     value={it.alt}
                     onChange={(e) => cambiarAlt(it.key, e.target.value)}
-                    placeholder="Descrivi l’immagine"
-                    aria-label={`Testo alternativo dell’immagine ${i + 1}`}
+                    placeholder={it.video ? "Descrivi il video" : "Descrivi l’immagine"}
+                    aria-label={`Testo alternativo ${it.video ? "del video" : "dell’immagine"} ${i + 1}`}
                     className={`${CONTROL} mt-1 py-1.5 text-sm`}
                   />
 
@@ -545,7 +596,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
                         {it.width} × {it.height}
                       </span>
                       <span aria-hidden="true"> · </span>
-                      salvata
+                      {it.video ? "video salvato" : "salvata"}
                     </p>
                   ) : (
                     <div className="mt-1.5">
@@ -598,7 +649,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
           <input
             ref={elegir}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/avif,image/svg+xml"
+            accept="image/jpeg,image/png,image/webp,image/avif,image/svg+xml,video/mp4"
             multiple
             hidden
             onChange={(e) => {
@@ -616,7 +667,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
           >
             <Plus size={18} />
             <span className="label">
-              {items.length === 0 ? "Scegli le immagini" : "Aggiungine un'altra"}
+              {items.length === 0 ? "Scegli immagini o video" : "Aggiungi un altro pezzo"}
             </span>
           </button>
         </div>
@@ -631,7 +682,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
             {enviando
               ? "Salvataggio…"
               : subiendo
-                ? "Caricamento immagini…"
+                ? "Caricamento in corso…"
                 : obra
                   ? "Salva le modifiche"
                   : "Carica l'opera"}
@@ -650,7 +701,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
       <aside className="md:col-span-3 md:col-start-9">
         <h2 className="label">Dove uscirà</h2>
         <ul className="mt-4 space-y-2.5 text-sm text-ink-soft">
-          <li>Nella griglia della home, con la prima immagine in quadrato.</li>
+          <li>Nella griglia della home, con il primo pezzo in verticale 4:5.</li>
           <li>
             Nella sua pagina:{" "}
             <span className="break-all text-xs tracking-[0.01em] text-ink">

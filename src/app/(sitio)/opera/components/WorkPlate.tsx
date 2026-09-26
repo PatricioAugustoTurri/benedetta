@@ -1,5 +1,7 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
+import VideoOpera from "@/components/VideoOpera";
+import { esVideo } from "@/lib/video";
 import type { Work } from "@/lib/works";
 import { ApriTavola } from "./Visore";
 
@@ -33,15 +35,25 @@ export default function WorkPlate({ work }: { work: Work }) {
   return (
     <div className="opera__tavola flex items-start justify-center md:justify-end">
       <ApriTavola indice={0} alt={img.alt}>
-        <Image
-          src={img.url}
-          alt={img.alt}
-          width={img.width}
-          height={img.height}
-          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 60vw, 50rem"
-          preload
-          className="block max-h-[78vh] w-auto bg-paper-deep object-contain"
-        />
+        {esVideo(img) ? (
+          <VideoOpera
+            src={img.url}
+            width={img.width}
+            height={img.height}
+            alt={img.alt}
+            className="block h-auto max-h-[78vh] w-auto max-w-full bg-paper-deep object-contain"
+          />
+        ) : (
+          <Image
+            src={img.url}
+            alt={img.alt}
+            width={img.width}
+            height={img.height}
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 60vw, 50rem"
+            preload
+            className="block max-h-[78vh] w-auto bg-paper-deep object-contain"
+          />
+        )}
       </ApriTavola>
     </div>
   );
@@ -88,15 +100,25 @@ export function WorkPlates({ work }: { work: Work }) {
               style={{ "--r": img.width / img.height } as CSSProperties}
             >
               <ApriTavola indice={work.image.indexOf(img)} alt={img.alt} className="md:w-full">
-                <Image
-                  src={img.url}
-                  alt={img.alt}
-                  width={img.width}
-                  height={img.height}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 40rem"
-                  loading="lazy"
-                  className="block max-h-[78vh] w-auto bg-paper-deep object-contain md:h-auto md:max-h-none md:w-full"
-                />
+                {esVideo(img) ? (
+                  <VideoOpera
+                    src={img.url}
+                    width={img.width}
+                    height={img.height}
+                    alt={img.alt}
+                    className="block h-auto max-h-[78vh] w-auto max-w-full bg-paper-deep object-contain md:max-h-none md:w-full"
+                  />
+                ) : (
+                  <Image
+                    src={img.url}
+                    alt={img.alt}
+                    width={img.width}
+                    height={img.height}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 40rem"
+                    loading="lazy"
+                    className="block max-h-[78vh] w-auto bg-paper-deep object-contain md:h-auto md:max-h-none md:w-full"
+                  />
+                )}
               </ApriTavola>
             </div>
           ))}

@@ -9,8 +9,10 @@ import {
   listarDeCloudinary,
   permisoDeSubida,
   type PermisoDeSubida,
+  type TipoRisorsa,
 } from "@/lib/cloudinary";
 import { esImagenPropia, medidasPlausibles } from "@/lib/imagenes";
+import { esVideo } from "@/lib/video";
 import { borrarImagen } from "@/lib/uploads";
 import {
   createWork,
@@ -99,9 +101,9 @@ export async function pedirPermisoDeSubida(): Promise<
  * Questo la ripulisce sul momento. Non restituisce niente e non fallisce: è
  * pulizia, non un'operazione che la schermata stia aspettando.
  */
-export async function descartarImagen(publicId: string): Promise<void> {
+export async function descartarImagen(publicId: string, tipo: TipoRisorsa = "image"): Promise<void> {
   await requireSession();
-  await borrarDeCloudinary(publicId);
+  await borrarDeCloudinary(publicId, tipo === "video" ? "video" : "image");
 }
 
 /* --------------------------------------------------- immagini sciolte */
@@ -178,7 +180,7 @@ export async function limpiarSueltas(): Promise<Limpieza> {
     sueltas.filter((img) => new Date(img.creada).getTime() >= corte),
   ];
 
-  await Promise.all(maduras.map((img) => borrarDeCloudinary(img.publicId)));
+  await Promise.all(maduras.map((img) => borrarDeCloudinary(img.publicId, img.tipo)));
   revalidatePath("/admin");
 
   return {
@@ -250,12 +252,23 @@ function armarImagenes(formData: FormData): WorkImage[] {
       throw new ErrorDeImagenes(`L’immagine ${n} è arrivata male.`);
     }
 
-    const { url, alt, width, height, publicId } = item as Record<string, unknown>;
+    const { url, alt, width, height, publicId, tipo } = item as Record<string, unknown>;
+    const video = tipo === "video";
 
     if (typeof url !== "string" || !esImagenPropia(url)) {
       throw new ErrorDeImagenes(
         `L’immagine ${n} non viene dal tuo account Cloudinary. Caricala di nuovo.`,
       );
+    }
+
+    /*
+      Il tipo lo dichiara il client, quindi si confronta con l'indirizzo, che
+      Cloudinary scrive con il tipo dentro. Un video dichiarato immagine
+      finirebbe dentro un <img> che non lo mostra; un'immagine dichiarata
+      video, dentro un <video> che resta nero.
+    */
+    if (video !== new URL(url).pathname.includes("/video/upload/")) {
+      throw new ErrorDeImagenes(`Il pezzo ${n} non è quello che dice di essere. Caricalo di nuovo.`);
     }
 
     const imagen: WorkImage = {
@@ -264,6 +277,7 @@ function armarImagenes(formData: FormData): WorkImage[] {
       width: Number(width),
       height: Number(height),
       ...(typeof publicId === "string" && publicId.length > 0 ? { publicId } : {}),
+      ...(video ? { tipo: "video" as const } : {}),
     };
 
     if (!medidasPlausibles(imagen)) {
@@ -308,7 +322,9 @@ export async function guardarObra(
   }
 
   if (imagenes.length === 0) {
-    return { error: "L’opera ha bisogno di almeno un’immagine: è quella che esce nella griglia." };
+    return {
+      error: "L’opera ha bisogno di almeno un’immagine o un video: è quello che esce nella griglia.",
+    };
   }
 
   const entrada = {
@@ -463,7 +479,7 @@ export async function reordenarArchivo(
  * cancella un'opera non deve sapere da dove è uscita ogni foto.
  */
 async function quitarImagen(img: WorkImage): Promise<void> {
-  if (img.publicId) return borrarDeCloudinary(img.publicId);
+  if (img.publicId) return borrarDeCloudinary(img.publicId, esVideo(img) ? "video" : "image");
   if (img.url.startsWith("/")) return borrarImagen(img.url);
 }
 

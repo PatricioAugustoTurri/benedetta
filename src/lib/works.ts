@@ -19,6 +19,9 @@ import { query, transaction } from "@/lib/db";
  * È facoltativo perché le immagini che vivevano in `public/` non ce l'hanno:
  * quelle si cancellano dal disco tramite il loro URL. La colonna accetta
  * entrambe le forme.
+ *
+ * `tipo` c'è solo quando il pezzo è un video MP4: vedi `src/lib/video.ts`.
+ * Assente vuol dire immagine.
  */
 export type WorkImage = {
   url: string;
@@ -26,6 +29,7 @@ export type WorkImage = {
   width: number;
   height: number;
   publicId?: string;
+  tipo?: "video";
 };
 
 export type Work = {

@@ -22,6 +22,13 @@
 export const MAX_ARCHIVO_MB = 10;
 
 /**
+ * Quanto può pesare un video. Stessa origine del numero sopra: è il tetto del
+ * piano gratuito di Cloudinary per i video. Oltre quel peso Cloudinary esige
+ * il caricamento a pezzi, che questo modulo non fa.
+ */
+export const MAX_VIDEO_MB = 100;
+
+/**
  * Quello che il framework accetta nel corpo di una Server Action.
  *
  * Next porta 1 MB. Due bastano e avanzano per il JSON di un'opera con molte

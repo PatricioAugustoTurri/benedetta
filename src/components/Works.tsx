@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/data/site";
+import VideoOpera from "@/components/VideoOpera";
+import { esVideo } from "@/lib/video";
 import type { Work } from "@/lib/works";
 
 /**
@@ -117,16 +119,32 @@ export default function Works({ works }: { works: Work[] }) {
               >
                 {/* Il fuoco si disegna sull'immagine, che è quello che il visitatore guarda. */}
                 <span className="block overflow-hidden bg-paper-deep group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-[3px] group-focus-visible:outline-accent">
-                  <Image
-                    src={portada.url}
-                    alt=""
-                    width={portada.width}
-                    height={portada.height}
-                    sizes="(max-width: 1024px) 50vw, 33vw"
-                    priority={eager}
-                    loading={eager ? undefined : "lazy"}
-                    className="aspect-[4/5] w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
-                  />
+                  {/*
+                    Una copertina video gira nella griglia come le altre
+                    stanno ferme: stesso ritaglio 4:5, stesso zoom al
+                    passaggio. `alt` vuoto per la stessa ragione
+                    dell'immagine: il nome lo dà il link.
+                  */}
+                  {esVideo(portada) ? (
+                    <VideoOpera
+                      src={portada.url}
+                      width={portada.width}
+                      height={portada.height}
+                      alt=""
+                      className="aspect-[4/5] w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                    />
+                  ) : (
+                    <Image
+                      src={portada.url}
+                      alt=""
+                      width={portada.width}
+                      height={portada.height}
+                      sizes="(max-width: 1024px) 50vw, 33vw"
+                      priority={eager}
+                      loading={eager ? undefined : "lazy"}
+                      className="aspect-[4/5] w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                    />
+                  )}
                 </span>
 
               </Link>

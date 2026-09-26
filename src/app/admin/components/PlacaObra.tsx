@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { contarPezzi, immagineFerma } from "@/lib/video";
 import { Work } from "@/lib/works";
 
 /**
@@ -32,7 +33,7 @@ export default function PlacaObra({ obra, enMano = false }: { obra: Work; enMano
       <span className="relative block overflow-hidden bg-paper-deep">
         {portada ? (
           <Image
-            src={portada.url}
+            src={immagineFerma(portada)}
             alt={portada.alt}
             width={portada.width}
             height={portada.height}
@@ -90,8 +91,7 @@ export default function PlacaObra({ obra, enMano = false }: { obra: Work; enMano
       <span className="mt-0.5 block text-xs text-ink-soft">
         {obra.tecnica}
         <span aria-hidden="true"> · </span>
-        <span className="figures">{obra.image.length}</span>
-        {obra.image.length === 1 ? " immagine" : " immagini"}
+        <span className="figures">{contarPezzi(obra.image)}</span>
 
         {/*
           Quello che manca, detto nella griglia. Il testo è l'unico campo che

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getWork, listSlugs } from "@/lib/works";
 import { site } from "@/data/site";
+import { immagineFerma } from "@/lib/video";
 import BackToArchive from "../components/BackToArchive";
 import WorkAside from "../components/WorkAside";
 import WorkPager from "../components/WorkPager";
@@ -41,7 +42,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       images: portada
         ? [
             {
-              url: portada.url,
+              // Un'anteprima condivisa è sempre un'immagine: se la copertina
+              // è un video, esce il suo fotogramma.
+              url: immagineFerma(portada),
               width: portada.width,
               height: portada.height,
               alt: portada.alt,

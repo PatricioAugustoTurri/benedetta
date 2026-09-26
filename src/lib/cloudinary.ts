@@ -70,6 +70,12 @@ function firmar(params: Record<string, string | number>, apiSecret: string): str
 
 export type PermisoDeSubida = {
   url: string;
+  /**
+   * Dove salgono i video. È un indirizzo a parte perché Cloudinary separa
+   * immagini e video per tipo di risorsa, ma la firma è la stessa: il tipo
+   * resta fuori dal calcolo.
+   */
+  urlVideo: string;
   apiKey: string;
   timestamp: number;
   signature: string;
@@ -90,6 +96,7 @@ export function permisoDeSubida(config: ConfigCloudinary): PermisoDeSubida {
 
   return {
     url: `https://api.cloudinary.com/v1_1/${config.cloudName}/image/upload`,
+    urlVideo: `https://api.cloudinary.com/v1_1/${config.cloudName}/video/upload`,
     apiKey: config.apiKey,
     timestamp,
     signature: firmar(params, config.apiSecret),
@@ -97,15 +104,25 @@ export function permisoDeSubida(config: ConfigCloudinary): PermisoDeSubida {
   };
 }
 
+/** Come Cloudinary chiama i due tipi di file che l'opera può avere. */
+export type TipoRisorsa = "image" | "video";
+
 /**
- * Cancella un'immagine dall'account.
+ * Cancella un'immagine —o un video— dall'account.
+ *
+ * Il tipo va detto: Cloudinary cerca il `public_id` solo fra le risorse del
+ * tipo chiesto, e cancellare un video come immagine risponde «not found» e
+ * lo lascia dov'è.
  *
  * Silenziosa di proposito, come la cancellazione su disco che sostituisce: che
  * l'immagine non ci sia più è il risultato cercato, e far fallire la
  * cancellazione di un'opera perché Cloudinary non ha risposto lascerebbe la
  * riga nel database per qualcosa che si può ripulire dopo a mano.
  */
-export async function borrarDeCloudinary(publicId: string): Promise<void> {
+export async function borrarDeCloudinary(
+  publicId: string,
+  tipo: TipoRisorsa = "image",
+): Promise<void> {
   const config = configCloudinary();
   if (!config || !publicId) return;
 
@@ -120,7 +137,7 @@ export async function borrarDeCloudinary(publicId: string): Promise<void> {
   });
 
   try {
-    await fetch(`https://api.cloudinary.com/v1_1/${config.cloudName}/image/destroy`, {
+    await fetch(`https://api.cloudinary.com/v1_1/${config.cloudName}/${tipo}/destroy`, {
       method: "POST",
       body: cuerpo,
     });
@@ -129,7 +146,12 @@ export async function borrarDeCloudinary(publicId: string): Promise<void> {
   }
 }
 
-export type ImagenEnCuenta = { publicId: string; bytes: number; creada: string };
+export type ImagenEnCuenta = {
+  publicId: string;
+  bytes: number;
+  creada: string;
+  tipo: TipoRisorsa;
+};
 
 /**
  * Quello che è conservato nella cartella d'opera dell'account.
@@ -145,31 +167,36 @@ export async function listarDeCloudinary(): Promise<ImagenEnCuenta[]> {
 
   const credenciales = Buffer.from(`${config.apiKey}:${config.apiSecret}`).toString("base64");
   const imagenes: ImagenEnCuenta[] = [];
-  let cursor: string | undefined;
 
-  // L'API pagina a gruppi di 500. Un account da portfolio non ci arriverà
-  // mai, ma un ciclo che guarda solo la prima pagina cancellerebbe di meno e
-  // direbbe di aver finito.
-  do {
-    const url = new URL(`https://api.cloudinary.com/v1_1/${config.cloudName}/resources/image`);
-    url.searchParams.set("type", "upload");
-    url.searchParams.set("prefix", CARPETA);
-    url.searchParams.set("max_results", "500");
-    if (cursor) url.searchParams.set("next_cursor", cursor);
+  // Immagini e video si elencano separati: l'API ne restituisce un tipo alla
+  // volta, e guardare solo le immagini lascerebbe i video sciolti per sempre.
+  for (const tipo of ["image", "video"] as const) {
+    let cursor: string | undefined;
 
-    const respuesta = await fetch(url, { headers: { Authorization: `Basic ${credenciales}` } });
-    if (!respuesta.ok) break;
+    // L'API pagina a gruppi di 500. Un account da portfolio non ci arriverà
+    // mai, ma un ciclo che guarda solo la prima pagina cancellerebbe di meno e
+    // direbbe di aver finito.
+    do {
+      const url = new URL(`https://api.cloudinary.com/v1_1/${config.cloudName}/resources/${tipo}`);
+      url.searchParams.set("type", "upload");
+      url.searchParams.set("prefix", CARPETA);
+      url.searchParams.set("max_results", "500");
+      if (cursor) url.searchParams.set("next_cursor", cursor);
 
-    const cuerpo = (await respuesta.json()) as {
-      resources?: Array<{ public_id: string; bytes: number; created_at: string }>;
-      next_cursor?: string;
-    };
+      const respuesta = await fetch(url, { headers: { Authorization: `Basic ${credenciales}` } });
+      if (!respuesta.ok) break;
 
-    for (const r of cuerpo.resources ?? []) {
-      imagenes.push({ publicId: r.public_id, bytes: r.bytes, creada: r.created_at });
-    }
-    cursor = cuerpo.next_cursor;
-  } while (cursor);
+      const cuerpo = (await respuesta.json()) as {
+        resources?: Array<{ public_id: string; bytes: number; created_at: string }>;
+        next_cursor?: string;
+      };
+
+      for (const r of cuerpo.resources ?? []) {
+        imagenes.push({ publicId: r.public_id, bytes: r.bytes, creada: r.created_at, tipo });
+      }
+      cursor = cuerpo.next_cursor;
+    } while (cursor);
+  }
 
   return imagenes;
 }

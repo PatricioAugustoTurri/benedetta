@@ -49,6 +49,11 @@ CREATE TABLE works (
   --     "alt": "Ramo con foglie sotto un cerchio",
   --     "width": 900,
   --     "height": 1200 }
+  --
+  -- Un elemento può essere un video MP4 invece di un'immagine: porta in più
+  -- "tipo": "video", e l'URL è quello di Cloudinary sotto /video/upload/.
+  -- Senza "tipo" è un'immagine, quindi le righe salvate prima dei video
+  -- restano valide così come sono e non serve nessuna migrazione.
   image       jsonb       NOT NULL DEFAULT '[]'::jsonb
               -- Due regole, ed entrambe riguardano la forma e non il
               -- contenuto: che sia un array, e che nessun elemento arrivi

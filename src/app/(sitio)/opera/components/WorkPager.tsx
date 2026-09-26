@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "@/components/Icon";
+import { immagineFerma } from "@/lib/video";
 import { neighbours, type Work } from "@/lib/works";
 
 /**
@@ -108,7 +109,7 @@ function Vecina({ obra, sentido }: { obra: Work | null; sentido: "anterior" | "s
           <span className="mt-auto block pt-4">
             <span className="block w-28 overflow-hidden bg-paper-deep md:w-36">
               <Image
-                src={portada.url}
+                src={immagineFerma(portada)}
                 alt=""
                 width={portada.width}
                 height={portada.height}
