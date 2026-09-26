@@ -39,7 +39,7 @@ export const studioFilm = {
  * il viaggio, cosa fa e come, com'è—, senza toccare una parola.
  */
 export const bio = [
-  "Sono un'illustratrice e Illustrando è il nome con cui condivido il mio lavoro. Disegno da sempre e, dopo aver studiato Illustrazione e Fumetto al NID di Perugia, ho trasformato questa passione nel mio lavoro.",
+  "Sono un'illustratrice freelance. Disegno da sempre e, dopo aver studiato Illustrazione e Fumetto al NID di Perugia, ho trasformato questa passione nel mio lavoro.",
   "Per tre anni ho viaggiato per il mondo, riempiendo i miei quaderni di luoghi, persone e piccoli momenti. Dal 2024 vivo di nuovo stabilmente in Italia e oggi trovo la mia ispirazione soprattutto nelle cose semplici: la quotidianità, la natura, il cibo, le tradizioni e le storie delle persone.",
   "Realizzo principalmente illustrazioni personalizzate e ritratti, trasformando ricordi e racconti in immagini. Lavoro soprattutto in digitale, ma amo sperimentare con acrilici, pastelli, legno e tecniche diverse. Mi piace sporcarmi le mani, provare cose nuove e, soprattutto, raccontare storie attraverso quello che disegno.",
   "Sono curiosa, spontanea e sempre alla ricerca di nuovi progetti e nuovi modi per usare l'illustrazione.",
