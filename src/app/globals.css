@@ -897,17 +897,19 @@ code {
 }
 
 /*
-  Il frontespizio di About: il video dello studio come fondo, il saluto sopra.
+  Il frontespizio di About: il suo video come fondo, il saluto sopra.
 
-  Il video è atmosfera, non una tavola: occupa tutta la larghezza e sfuma
-  nella carta in alto e in basso, così non ha bordi da leggere come cornice.
+  Il video occupa tutta la larghezza e si vede com'è, pieno e a colori —è
+  lei nei suoi posti, e si deve riconoscere—. In alto comincia con un taglio
+  netto sotto l'header; in basso sfuma nella carta, così passa alla bio
+  senza un bordo.
   Il titolo sta nella fascia bassa, dove la carta è quasi piena —è quella
   sfumatura a garantirne il contrasto, non un'ombra né un riquadro— e si
   allinea alla colonna della bio che segue, perché la pagina cominci lì.
 
   Un solo momento di movimento: lo sviluppo. All'apertura il video affiora
   dalla carta come una foto nella bacinella —da trasparente e molto sfocato
-  al suo velo—, e il saluto arriva poco dopo. Con meno movimento la regola
+  a nitido—, e il saluto arriva poco dopo. Con meno movimento la regola
   globale porta tutto allo stato finale senza viaggio.
 */
 .frontespizio {
@@ -928,7 +930,6 @@ code {
 }
 
 .frontespizio__film {
-  --sfoca: 1.5px;
   position: absolute;
   inset: 0;
   width: 100%;
@@ -936,37 +937,32 @@ code {
   object-fit: cover;
   /* Sul telefono il taglio verticale tiene lei al centro della scena. */
   object-position: 50% 40%;
-  /* Il 4% in più tiene fuori campo i bordi che la sfocatura sfrangia. */
-  scale: 1.04;
-  opacity: 0.5;
-  filter: blur(var(--sfoca)) saturate(0.8);
+  /*
+    Il video com'è. Il filtro neutro resta scritto perché lo sviluppo parta
+    sfocato e arrivi nitido interpolando, invece di scattare alla fine.
+  */
+  filter: blur(0) saturate(1);
   animation: frontespizio-sviluppo 1800ms var(--ease-out-soft) both;
 }
 
-@media (min-width: 48rem) {
-  .frontespizio__film {
-    --sfoca: 3px;
-  }
-}
-
 /*
-  Il velo di carta: una sfumatura sola, dall'alto e dal basso. In alto è
-  corta —basta a staccare il video dall'header—; in basso sale fino a metà,
-  ed è la fascia su cui si legge il titolo.
+  Il velo di carta: una sfumatura sola, dal basso, stretta quanto basta.
+  Copre la fascia del titolo e si ferma lì, così il resto del video resta
+  pulito. In alto non c'è: su un video pieno, la sfumatura dalla carta verso
+  un cielo scuro diventava una fascia grigia e sporca, e un taglio netto si
+  legge meglio.
 */
 .frontespizio__velo {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(to bottom, var(--color-paper) 0%, transparent 14%),
-    linear-gradient(
-      to top,
-      var(--color-paper) 0%,
-      color-mix(in oklab, var(--color-paper) 94%, transparent) 24%,
-      color-mix(in oklab, var(--color-paper) 55%, transparent) 46%,
-      transparent 66%
-    );
+  background: linear-gradient(
+    to top,
+    var(--color-paper) 0%,
+    color-mix(in oklab, var(--color-paper) 92%, transparent) 18%,
+    color-mix(in oklab, var(--color-paper) 62%, transparent) 38%,
+    transparent 58%
+  );
 }
 
 .frontespizio__testo {

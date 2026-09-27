@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { studioFilm } from "@/data/studio";
 
 type Props = {
-  /** Il trattamento —taglio, velo, sfocatura— lo mette chi lo usa. */
+  /** Il trattamento —taglio, velo, filtri— lo mette chi lo usa. */
   className?: string;
   priority?: boolean;
 };
@@ -15,7 +15,7 @@ type Props = {
  *
  * Come si vede lo decide il frontespizio che lo usa come fondo —vedi
  * `StudioOpening` e `.frontespizio` in globals.css—: qui non c'è cornice,
- * velo né sfocatura, così il trattamento vive in un posto solo.
+ * velo né filtri, così il trattamento vive in un posto solo.
  *
  * Due stati e nessuno dei due rotto:
  *
@@ -31,8 +31,8 @@ type Props = {
  * movimento arriva solo se è permesso.
  *
  * Sotto `prefers-reduced-motion` non parte e resta sul fotogramma. Niente
- * controlli: è uno sfondo, e una barra di riproduzione velata e sfocata
- * sarebbe un controllo che non si legge.
+ * controlli: è uno sfondo, e una barra di riproduzione sotto il velo di
+ * carta sarebbe un controllo che non si legge.
  *
  * Si ferma quando esce dallo schermo e riprende quando torna: un loop che
  * gira sopra la bio mentre si legge consuma batteria per niente.

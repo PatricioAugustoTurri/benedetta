@@ -7,28 +7,32 @@
  */
 
 /**
- * Il video che apre la pagina, come tavola sul foglio: stessi margini di
- * un'opera dell'archivio, proporzione 16:9 —quella del file, 1920 × 1080—.
+ * Il video che apre la pagina, come fondo del frontespizio: proporzione
+ * 16:9 —quella del file, 1920 × 1080—.
  *
- * È un montaggio di otto secondi e mezzo del suo lavoro: lei che disegna sul
- * tablet in poltrona, un cielo con un albero, le mani che rifilano una stampa
- * alla taglierina. Si guarda come un'immagine che si muove: senza audio, in
- * loop, e parte da solo. Il file ha una traccia audio, ma la pagina la tiene
- * muta: un video che parte da solo con l'audio è un'imboscata.
+ * È un montaggio di dodici secondi girato all'aperto, in campagna: lei in
+ * piedi sotto un albero in un campo arato, su un ponticello sopra un canale,
+ * con le braccia alzate in mezzo all'erba alta, al volano di una chiusa, e
+ * alla fine i suoi piedi in calzini contro il cielo. Si guarda come
+ * un'immagine che si muove: senza audio, in loop, e parte da solo. Il file ha
+ * una traccia audio, ma la pagina la tiene muta: un video che parte da solo
+ * con l'audio è un'imboscata.
  *
  * Il `poster` è il primo fotogramma del video, estratto a 1600px: quello che
  * si vede mentre il file carica, e quello che resta a chi ha chiesto meno
  * movimento. Essendo il primo, il passaggio al video non salta.
  *
- * Vive in `public/instagram/` perché è lì che l'ha messo lei. Lo spazio nel
- * nome va codificato nell'indirizzo.
+ * Il file è rimontato con l'indice (`moov`) in testa, senza ricodificarlo: così
+ * il browser comincia a riprodurlo mentre scarica, invece di aspettare la
+ * fine dei 14 MB. Vive nella radice di `public/` perché è lì che l'ha messo
+ * lei; gli spazi nel nome vanno codificati nell'indirizzo.
  */
 export const studioFilm = {
-  src: "/instagram/Bebi%20About.mp4" as string | null,
-  poster: "/instagram/Bebi%20About.jpg",
+  src: "/Bebi%20about%202.mp4" as string | null,
+  poster: "/Bebi%20about%202.jpg",
   width: 1920,
   height: 1080,
-  alt: "Benedetta disegna sul tablet in poltrona, un cielo con un albero, poi le sue mani rifilano una stampa alla taglierina.",
+  alt: "Benedetta in campagna: sotto un albero in un campo arato, su un ponticello sopra un canale, con le braccia alzate nell'erba alta, al volano di una chiusa, e i suoi piedi in calzini contro il cielo.",
 };
 
 /**
