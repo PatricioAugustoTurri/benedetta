@@ -60,7 +60,8 @@ export default function Image() {
             color: "#55504a",
           }}
         >
-          {site.signature} · {site.role}
+          {/* Una stringa sola: tre nodi di testo in un <div> senza flex, next/og li rifiuta. */}
+          {`${site.signature} · ${site.role}`}
         </div>
         <div
           style={{
