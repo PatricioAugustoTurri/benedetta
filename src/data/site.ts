@@ -16,9 +16,9 @@ export const site = {
   tagline: "Illustrazioni personalizzate e ritratti",
   description:
     "Benedetta Zibetti, illustratrice a Foligno: illustrazioni personalizzate e ritratti che trasformano ricordi e racconti in immagini.",
-  // PLACEHOLDER: non c'è ancora un dominio acquistato. Cambiare prima di
-  // pubblicare: si usa per la SEO e per le anteprime quando si condivide il link.
-  url: "https://illustrando.it",
+  // Il dominio del sito. Si usa per la SEO, per le anteprime quando si
+  // condivide il link e nel piè di pagina delle mail del modulo di contatto.
+  url: "https://benedettazibetti.com",
   email: "bzibetti98@gmail.com",
   location: "Foligno, Italia",
   /**

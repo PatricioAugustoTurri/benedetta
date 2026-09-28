@@ -92,8 +92,6 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
 
 ### Decisiones abiertas — no inventar
 
-- **Dominio.** Todavía no hay ninguno comprado. `illustrando.it` en `src/data/site.ts`
-  es un placeholder que puse yo, no una reserva: no darlo por hecho en ningún lado.
 - **URL real de Behance.** El link salió del sitio mientras tanto, porque apuntaba a la
   home de behance.net y mandaba al visitante a ningún lado.
 - **Jerarquía entre "Illustrando" y "Benedetta".** En la práctica el sitio ya la resolvió
@@ -127,7 +125,6 @@ y que trabaja desde Foligno, Umbría.
 | --- | --- | --- |
 | 12 ilustraciones SVG | `public/ilustraciones/` | Generadas para la maqueta por `scripts/generate-placeholders.mjs`. No son obra de nadie. Ya no las muestra el sitio: quedaron huérfanas al vaciarse la tabla, y se pueden borrar. La carpeta es también donde `/admin` deja lo que ella sube. |
 | Retrato | `public/retrato.svg` | Placeholder huérfano: About ya abre con su video (`public/Bebi about 2.mp4`) y esto no lo usa nadie. Se puede borrar. |
-| `https://illustrando.it` | `src/data/site.ts` | Dominio inventado por mí como relleno. No está comprado. |
 | Textos de los dos servicios ("Illustrazioni personalizzate", "Ritratti") | `src/data/studio.ts` | Los títulos son de su bio; los dos textos los escribí yo a partir de ella. Falta que los confirme. |
 | La tabla `works` | base `illustrando` | **Arranca vacía, por pedido del cliente.** Las doce obras de maqueta no se migraron: ella carga las suyas por `/admin`. Mientras esté vacía, la portada dice que el archivo está en preparación. |
 | Cliente y medidas por obra | — | Ya no existen: la tabla `works` no tiene esas columnas, y la ficha de una obra quedó en dos filas, Anno y Tecnica. Si vuelven a hacer falta, vuelven como columnas y como campos del admin. |

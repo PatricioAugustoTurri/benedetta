@@ -7,8 +7,10 @@ import { site } from "@/data/site";
  * c'è un servizio di invio attivo —Buttondown, Mailchimp, Resend— né un
  * database dove salvare un indirizzo, e montare un campo che non salva niente
  * sarebbe promettere una lista che non esiste. Perciò, finché `endpoint` è
- * `null`, il modulo fa esattamente quello che fa già il modulo di contatto:
- * prepara una mail e la passa al programma di posta del visitatore.
+ * `null`, il modulo prepara una mail e la passa al programma di posta del
+ * visitatore. (Il modulo di contatto invece invia già da solo, via Resend:
+ * vedi `src/lib/correo.ts`. Una lista di iscritti è un'altra cosa, perché
+ * ha bisogno di un posto dove restare.)
  *
  * La differenza conta: l'indirizzo arriva lo stesso, nella sua casella, e lei
  * lo annota a mano. È una lista di posta gestita a mano, che è una cosa che

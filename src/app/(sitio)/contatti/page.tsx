@@ -49,7 +49,7 @@ export default async function ContattiPage({
         <div className="md:col-span-7">
           <ContactIntro />
           <Reveal delay={170}>
-            <ContactForm asuntoInicial={obra?.title} />
+            <ContactForm asuntoInicial={obra?.title} opera={obra?.slug} />
           </Reveal>
           <ContactNote desdeUnaObra={obra !== null} />
         </div>

@@ -1,27 +1,23 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useRef, useState, useTransition } from "react";
+import { inviaContatto } from "@/app/(sitio)/contatti/actions";
 import { AZIONE } from "@/components/azione";
 import { Copy, Mail } from "@/components/Icon";
 import { site } from "@/data/site";
+import { MAX, validaContatto, type Campo as Field, type ErroriContatto as Errors } from "@/lib/contacto";
 
 /**
  * Il modulo di contatto.
  *
- * **Dove va quello che si scrive.** Non c'è un server, né un dominio, né un
- * servizio di moduli attivo: la richiesta si risolve via mail e fuori dal
- * sito. Quindi questo non "invia" niente — prepara il messaggio e lo passa al
- * programma di posta del visitatore, con oggetto e corpo già scritti. È
- * esattamente quello che fa già il pulsante "Chiedi info" di ogni opera, con
- * la differenza che qui il messaggio arriva pronto invece che vuoto.
+ * **Dove va quello che si scrive.** Il messaggio parte dal server, via Resend
+ * (vedi `src/lib/correo.ts`): a lei arriva una mail con tutti i dettagli, e al
+ * visitatore una conferma che il messaggio è arrivato. Nessun programma di
+ * posta si apre.
  *
- * Questo ha un difetto noto ed è per quello che esiste la schermata di
- * conferma: se il visitatore non ha un programma di posta configurato,
- * `mailto:` non fa niente e non avvisa. Per questo, dopo l'invio, restano in
- * vista l'indirizzo e un pulsante per copiarsi il messaggio intero: qualunque
- * cosa succeda al mailto, c'è una via d'uscita.
- *
- * Il giorno in cui ci sarà un backend, l'unica cosa che cambia è `onSubmit`.
+ * Se l'invio fallisce, il modulo lo dice e non perde niente: i campi restano
+ * scritti, e sotto compaiono l'indirizzo e un pulsante per copiarsi il
+ * messaggio intero. Il modulo non finge mai di aver inviato.
  *
  * **Come si disegna un campo in questo sistema**, che non ne aveva nessuno:
  * un'etichetta in maiuscoletto —che è quello che DESIGN.md riserva al nome di
@@ -39,9 +35,6 @@ import { site } from "@/data/site";
  *   anche lui in terracotta. È colore come segnale di stato, che è l'unica
  *   cosa per cui questo sistema usa la terracotta.
  */
-
-type Field = "nome" | "email" | "oggetto" | "messaggio";
-type Errors = Partial<Record<Field, string>>;
 
 const LABEL = "label block text-ink-faint transition-colors";
 
@@ -65,23 +58,31 @@ const CONTROL =
   errore.
 */
 
-export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string }) {
+export default function ContactForm({
+  asuntoInicial,
+  opera,
+}: {
+  asuntoInicial?: string;
+  /** Lo slug dell'opera da cui arriva il visitatore, se è entrato da «Chiedi info». */
+  opera?: string;
+}) {
   const id = useId();
   const [errors, setErrors] = useState<Errors>({});
+  /** L'indirizzo a cui è partita la conferma, quando il messaggio è arrivato. */
   const [sent, setSent] = useState<string | null>(null);
+  /** Il messaggio intero, pronto da copiare, quando l'invio è fallito. */
+  const [failed, setFailed] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const validate = (data: Record<Field, string>): Errors => {
-    const next: Errors = {};
-    if (!data.nome.trim()) next.nome = "Manca il tuo nome.";
-    // Controllo minimo di proposito: quello vero lo fa la mail arrivando o non
-    // arrivando. Un'espressione severa rifiuta indirizzi validi ma insoliti.
-    if (!data.email.trim()) next.email = "Manca la tua email.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
-      next.email = "Questa email non sembra completa.";
-    if (!data.messaggio.trim()) next.messaggio = "Raccontami qualcosa, anche in breve.";
-    return next;
+  const validate = validaContatto;
+
+  const focusFirst = (form: HTMLFormElement, found: Errors) => {
+    // Il fuoco va al primo campo con un problema: chi non vede la pagina ha
+    // bisogno che l'errore abbia un posto, non solo un testo.
+    const first = Object.keys(found)[0] as Field | undefined;
+    if (first) form.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
   };
 
   const read = (form: HTMLFormElement): Record<Field, string> => {
@@ -94,36 +95,52 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
     };
   };
 
+  /*
+    Si chiama l'azione a mano invece di passarla ad `action={…}` del modulo:
+    con `action`, React svuota i campi quando l'azione finisce, anche quando
+    fallisce, e chi ha appena scritto un messaggio lungo lo perderebbe proprio
+    nel momento in cui deve riprovare.
+  */
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (pending) return;
     const form = e.currentTarget;
     const data = read(form);
     const found = validate(data);
     setErrors(found);
+    setFailed(null);
 
     if (Object.keys(found).length > 0) {
-      // Il fuoco va al primo campo con un problema: chi non vede la pagina ha
-      // bisogno che l'errore abbia un posto, non solo un testo.
-      const first = Object.keys(found)[0] as Field;
-      form.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
+      focusFirst(form, found);
       return;
     }
 
-    const cuerpo = `${data.messaggio.trim()}\n\n—\n${data.nome.trim()}\n${data.email.trim()}`;
-    setSent(cuerpo);
-    setCopied(false);
+    const fd = new FormData(form);
+    startTransition(async () => {
+      let esito: Awaited<ReturnType<typeof inviaContatto>>;
+      try {
+        esito = await inviaContatto(fd);
+      } catch {
+        // Senza rete, o con il server giù, l'azione non risponde nemmeno.
+        esito = { ok: false, error: "invio" };
+      }
 
-    /*
-      L'oggetto lo scrive chi chiede, e quando si arriva da un'opera è già
-      compilato. Se l'ha lasciato vuoto torna quello di prima, con il suo
-      nome: una mail senza oggetto si perde in qualsiasi casella, e lasciarlo
-      in bianco perché il campo è facoltativo sarebbe scaricare su di lei quel
-      costo.
-    */
-    const asunto = data.oggetto.trim() || `Contatto — ${data.nome.trim()}`;
-    window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(
-      asunto,
-    )}&body=${encodeURIComponent(cuerpo)}`;
+      if (esito.ok) {
+        setSent(data.email.trim());
+        return;
+      }
+      if (esito.errori && Object.keys(esito.errori).length > 0) {
+        setErrors(esito.errori);
+        focusFirst(form, esito.errori);
+        return;
+      }
+
+      const asunto = data.oggetto.trim() ? `${data.oggetto.trim()}\n\n` : "";
+      setFailed(
+        `${asunto}${data.messaggio.trim()}\n\n—\n${data.nome.trim()}\n${data.email.trim()}`,
+      );
+      setCopied(false);
+    });
   };
 
   /*
@@ -141,41 +158,14 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
     return (
       <div className="mt-10 border-t border-line pt-8">
         <p role="status" className="text-lg leading-relaxed text-ink">
-          Si è aperto il tuo programma di posta con il messaggio già scritto. Controllalo e
-          invialo.
+          Grazie, il tuo messaggio è arrivato. Ti rispondo appena posso.
         </p>
         <p className="prose-measure mt-4 text-sm text-ink-soft">
-          Non si è aperto niente? Copia il messaggio e mandamelo a{" "}
-          <a
-            href={`mailto:${site.email}`}
-            className="link-underline break-all text-ink"
-          >
-            {site.email}
-          </a>
-          .
+          Ti ho mandato una conferma a <span className="break-all text-ink">{sent}</span>. Se non
+          la vedi, dai un&apos;occhiata anche nella posta indesiderata.
         </p>
 
-        <div className="mt-7 flex flex-wrap items-center gap-x-8 gap-y-3">
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(sent);
-                setCopied(true);
-              } catch {
-                // Senza il permesso per gli appunti non c'è niente da fare da
-                // qui, e il messaggio resta in vista per poterlo selezionare.
-                setCopied(false);
-              }
-            }}
-            className="group flex items-center gap-2 text-sm text-ink"
-          >
-            <Copy className="shrink-0 text-ink-faint transition-colors group-hover:text-accent" />
-            <span className="link-underline" data-active="true">
-              {copied ? "Copiato" : "Copia il messaggio"}
-            </span>
-          </button>
-
+        <div className="mt-7">
           <button
             type="button"
             onClick={() => {
@@ -187,15 +177,6 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
             <span className="link-underline">Scrivine un altro</span>
           </button>
         </div>
-
-        {/*
-          Il messaggio resta in vista, non nascosto dietro il pulsante di
-          copia: se gli appunti non funzionano, si può ancora selezionare con
-          il dito.
-        */}
-        <pre className="mt-8 whitespace-pre-wrap border-t border-line pt-6 font-sans text-sm leading-relaxed text-ink-soft">
-          {sent}
-        </pre>
       </div>
     );
   }
@@ -213,6 +194,20 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
       noValidate
       className="mt-10 border-t border-line pt-8"
     >
+      {opera && <input type="hidden" name="opera" value={opera} />}
+
+      {/*
+        Il vasetto di miele contro i robot: fuori dallo schermo, fuori dal
+        tab e nascosto ai lettori di schermo. Una persona non lo vede né lo
+        compila; un robot che riempie tutti i campi sì, e il server scarta il
+        messaggio in silenzio. `sito` e non `website` perché i gestori di
+        password non lo riconoscano e lo compilino da soli.
+      */}
+      <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+        <label htmlFor={`${id}-sito`}>Non compilare questo campo</label>
+        <input id={`${id}-sito`} name="sito" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
+
       <div className="space-y-8">
         <Campo
           id={`${id}-nome`}
@@ -265,18 +260,60 @@ export default function ContactForm({ asuntoInicial }: { asuntoInicial?: string 
         L'invio ha la stessa forma di «Chiedi info»: filetto terracotta,
         busta, pieno sotto il puntatore. Non è una seconda azione forte ma la
         fine della stessa —«Chiedi info» porta qui con l'oggetto già scritto,
-        e «Invia» apre la mail—, quindi il visitatore ritrova in fondo al
+        e «Invia» manda il messaggio—, quindi il visitatore ritrova in fondo al
         modulo il controllo che ha toccato sull'opera.
       */}
       <div className="mt-10">
-        <button type="submit" className={AZIONE}>
+        <button
+          type="submit"
+          aria-disabled={pending || undefined}
+          className={`${AZIONE} aria-disabled:cursor-wait aria-disabled:opacity-60`}
+        >
           <Mail size={18} className="shrink-0" />
-          Invia
+          {pending ? "Invio in corso…" : "Invia"}
         </button>
         <p className="mt-3 text-xs text-ink-faint">
-          Si apre il tuo programma di posta con il messaggio già scritto. Non parte da solo.
+          Ti arriverà una mail di conferma all&apos;indirizzo che hai scritto.
         </p>
       </div>
+
+      {/*
+        Il fallimento non svuota niente: i campi restano scritti per
+        riprovare, e qui sotto c'è la strada che non dipende dal server.
+      */}
+      {failed && (
+        <div role="alert" className="mt-8 border-t border-line pt-6">
+          <p className="text-sm leading-relaxed text-accent">
+            Non sono riuscita a inviare il messaggio.
+          </p>
+          <p className="prose-measure mt-2 text-sm leading-relaxed text-ink-soft">
+            Riprova tra un momento, oppure copialo e mandamelo a{" "}
+            <a href={`mailto:${site.email}`} className="link-underline break-all text-ink">
+              {site.email}
+            </a>
+            .
+          </p>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(failed);
+                setCopied(true);
+              } catch {
+                // Senza il permesso per gli appunti non c'è niente da fare da
+                // qui, e il messaggio resta scritto nei campi per selezionarlo.
+                setCopied(false);
+              }
+            }}
+            className="group mt-5 flex items-center gap-2 text-sm text-ink"
+          >
+            <Copy className="shrink-0 text-ink-faint transition-colors group-hover:text-accent" />
+            <span className="link-underline" data-active="true">
+              {copied ? "Copiato" : "Copia il messaggio"}
+            </span>
+          </button>
+        </div>
+      )}
     </form>
   );
 }
@@ -319,6 +356,9 @@ function Campo({
     name,
     autoComplete,
     defaultValue,
+    // Lo stesso tetto che controlla il server: così il browser non lascia
+    // scrivere quello che poi verrebbe rifiutato.
+    maxLength: MAX[name],
     onInput,
     "aria-invalid": error ? (true as const) : undefined,
     "aria-describedby": describedBy,
