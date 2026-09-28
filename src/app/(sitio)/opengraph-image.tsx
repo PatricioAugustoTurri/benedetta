@@ -14,7 +14,7 @@ import { site } from "@/data/site";
  * Geist, che `next/og` non legge. Il colore e la gerarchia restano quelli del
  * sito; il carattere no.
  */
-export const alt = `${site.name} · ${site.signature}, ${site.role}`;
+export const alt = `${site.name} · ${site.role}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -60,8 +60,7 @@ export default function Image() {
             color: "#55504a",
           }}
         >
-          {/* Una stringa sola: tre nodi di testo in un <div> senza flex, next/og li rifiuta. */}
-          {`${site.signature} · ${site.role}`}
+          {site.role}
         </div>
         <div
           style={{

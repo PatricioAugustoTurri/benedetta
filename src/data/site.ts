@@ -3,7 +3,10 @@
  * Modifica questo file per cambiare nome, testi e social in tutto il sito.
  */
 export const site = {
-  name: "Illustrando",
+  // Il nome del sito è il suo nome e cognome, non "Illustrando" (che resta il
+  // nome del profilo Instagram): è quello che la gente cerca su Google, e il
+  // titolo della pagina deve dire la stessa cosa perché il sito esca per primo.
+  name: "Benedetta Zibetti",
   author: "Benedetta",
   // Il nome come lo dice il logotipo: è anche il nome accessibile dell'immagine,
   // perché chi usa un comando vocale dice quello che vede scritto.
@@ -12,7 +15,7 @@ export const site = {
   // Si usa nel <title> e nelle anteprime quando si condivide il link.
   tagline: "Illustrazioni personalizzate e ritratti",
   description:
-    "Portfolio di illustrazione di Benedetta: illustrazioni personalizzate e ritratti che trasformano ricordi e racconti in immagini.",
+    "Benedetta Zibetti, illustratrice a Foligno: illustrazioni personalizzate e ritratti che trasformano ricordi e racconti in immagini.",
   // PLACEHOLDER: non c'è ancora un dominio acquistato. Cambiare prima di
   // pubblicare: si usa per la SEO e per le anteprime quando si condivide il link.
   url: "https://illustrando.it",

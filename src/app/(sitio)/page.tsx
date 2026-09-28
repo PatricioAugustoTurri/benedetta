@@ -4,7 +4,9 @@ import { listWorks } from "@/lib/works";
 import { site } from "@/data/site";
 
 export const metadata = {
-  title: `${site.name} · ${site.role}`,
+  // `absolute`: il template del layout aggiungerebbe " · Benedetta Zibetti" in
+  // coda, e la home direbbe il nome due volte.
+  title: { absolute: `${site.name} · ${site.role}` },
   alternates: { canonical: "/" },
 };
 
@@ -21,7 +23,7 @@ export default async function Home() {
         di schermo, che invece hanno bisogno di sapere dove atterrano.
       */}
       <h1 className="sr-only">
-        {`Opere — ${site.author}, ${site.role.toLowerCase()}. ${works.length} ${
+        {`Opere — ${site.signature}, ${site.role.toLowerCase()}. ${works.length} ${
           works.length === 1 ? "lavoro" : "lavori"
         }.`}
       </h1>
