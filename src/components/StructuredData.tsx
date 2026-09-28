@@ -1,4 +1,5 @@
 import { site } from "@/data/site";
+import { servicios, studioFilm } from "@/data/studio";
 
 /**
  * Dati strutturati (schema.org) per Google: raccontano chi è lei —non solo
@@ -35,6 +36,11 @@ export default function StructuredData() {
         jobTitle: site.role,
         description: site.description,
         url: site.url,
+        // Una sua foto, che Google può mettere accanto al nome: è il
+        // fotogramma del video di About, dove c'è lei.
+        image: `${site.url}${studioFilm.poster}`,
+        // I mestieri di About, con i titoli dei suoi servizi.
+        knowsAbout: ["Illustrazione", ...servicios.map((s) => s.title)],
         email: `mailto:${site.email}`,
         address: {
           "@type": "PostalAddress",

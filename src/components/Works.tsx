@@ -134,9 +134,16 @@ export default function Works({ works }: { works: Work[] }) {
                       className="aspect-[4/5] w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
                     />
                   ) : (
+                    /*
+                      Qui invece l'`alt` porta il titolo, anche se il nome
+                      accessibile resta quello del link: con `aria-label` sul
+                      link un lettore di schermo non lo legge due volte, e
+                      Google Immagini, che legge l'`alt` e non l'etichetta del
+                      link, trova l'opera con il suo nome e quello di lei.
+                    */
                     <Image
                       src={portada.url}
-                      alt=""
+                      alt={`${item.title} — illustrazione di ${site.signature}`}
                       width={portada.width}
                       height={portada.height}
                       sizes="(max-width: 1024px) 50vw, 33vw"

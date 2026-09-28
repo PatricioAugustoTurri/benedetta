@@ -6,7 +6,10 @@ import StudioServices from "./components/StudioServices";
 
 export const metadata: Metadata = {
   title: "About me",
-  description: "Chi sono e come lavoro.",
+  // È il testo che Google mostra sotto il titolo: dice chi è e cosa fa con
+  // le parole della sua bio, invece di un «chi sono» che non nomina nessuno.
+  description:
+    "Sono Benedetta Zibetti, illustratrice freelance. Ho studiato Illustrazione e Fumetto al NID di Perugia e realizzo illustrazioni personalizzate, ritratti, prodotti e packaging.",
   alternates: { canonical: "/studio" },
 };
 
