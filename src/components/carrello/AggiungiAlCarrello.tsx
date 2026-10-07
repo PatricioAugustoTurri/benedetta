@@ -5,7 +5,7 @@ import { useId, useState } from "react";
 import { AZIONE } from "@/components/azione";
 import { ArrowRight, Borsa } from "@/components/Icon";
 import { prezzo, type Formato } from "@/data/shop";
-import { aggiungi, type VoceCarrello } from "./store";
+import { aggiungi, MAX_QUANTITA, type VoceCarrello } from "./store";
 
 /**
  * Il formato e l'aggiunta al carrello, sulla scheda di una stampa.
@@ -24,9 +24,10 @@ import { aggiungi, type VoceCarrello } from "./store";
  *
  * Dopo l'aggiunta il pulsante resta lì —si può aggiungerne un'altra, o un
  * altro formato— e sotto compare la conferma con la strada per il carrello.
- * La conferma si annuncia da sola (`role="status"`), perché sul telefono
- * l'icona del carrello è chiusa dentro il pannello e non la vede nessuno
- * cambiare.
+ * La conferma si annuncia da sola (`role="status"`), perché chi usa un
+ * lettore di schermo non vede la borsa cambiare. Se quel formato è già al
+ * tetto di copie, la riga lo dice invece di confermare un'aggiunta che non
+ * c'è stata.
  */
 export default function AggiungiAlCarrello({
   slug,
@@ -41,7 +42,7 @@ export default function AggiungiAlCarrello({
 }) {
   const id = useId();
   const [scelto, setScelto] = useState(formati[0]?.formato ?? "");
-  const [aggiunto, setAggiunto] = useState<string | null>(null);
+  const [aggiunto, setAggiunto] = useState<{ formato: string; pieno: boolean } | null>(null);
   const formato = formati.find((f) => f.formato === scelto);
 
   return (
@@ -94,8 +95,14 @@ export default function AggiungiAlCarrello({
         disabled={!formato}
         onClick={() => {
           if (!formato) return;
-          aggiungi({ slug, title, formato: formato.formato, prezzo: formato.prezzo, immagine });
-          setAggiunto(formato.formato);
+          const entrata = aggiungi({
+            slug,
+            title,
+            formato: formato.formato,
+            prezzo: formato.prezzo,
+            immagine,
+          });
+          setAggiunto({ formato: formato.formato, pieno: !entrata });
         }}
         className={`mt-8 ${AZIONE} disabled:cursor-not-allowed disabled:opacity-50`}
       >
@@ -106,7 +113,9 @@ export default function AggiungiAlCarrello({
       <p role="status" className="mt-3 min-h-[1.25rem] text-xs text-ink-faint">
         {aggiunto ? (
           <>
-            Aggiunta al carrello, formato {aggiunto}.{" "}
+            {aggiunto.pieno
+              ? `Nel carrello ci sono già ${MAX_QUANTITA} copie, formato ${aggiunto.formato}: è il massimo.`
+              : `Aggiunta al carrello, formato ${aggiunto.formato}.`}{" "}
             <Link
               href="/carrello"
               className="group inline-flex items-center gap-1 text-ink-soft transition-colors hover:text-ink"

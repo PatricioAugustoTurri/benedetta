@@ -6,8 +6,7 @@ import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronDown } from "@/components/Icon";
 import ShopMenu from "@/components/ShopMenu";
-import CarrelloIcona, { nomeCarrello } from "@/components/carrello/CarrelloIcona";
-import { contaStampe, useCarrello } from "@/components/carrello/store";
+import CarrelloIcona from "@/components/carrello/CarrelloIcona";
 import { shopCategories, shopHref } from "@/data/shop";
 import { nav, site } from "@/data/site";
 
@@ -47,7 +46,6 @@ export default function Header() {
   // si ripristina ogni volta che il pannello si apre.
   const [shopOpen, setShopOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const stampe = contaStampe(useCarrello());
   const panelRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   // Chiudere con Escape, con la croce o toccando il velo restituisce il fuoco
@@ -55,9 +53,13 @@ export default function Header() {
   // pagina nuova.
   const restoreFocus = useRef(true);
 
+  // Chiudere il pannello chiude anche Shop, qualunque sia la riga scelta: una
+  // categoria, «Tutto lo Shop» o About me (cliente, 2026-10-07). Si piega
+  // mentre il pannello esce, così la volta dopo non lo si ritrova aperto.
   const close = (restore = true) => {
     restoreFocus.current = restore;
     setOpen(false);
+    setShopOpen(false);
   };
 
   // Senza scorrimento non c'è opera che passa sotto, quindi lo sfondo e il
@@ -214,42 +216,38 @@ export default function Header() {
             ref={toggleRef}
             type="button"
             onClick={() => {
-              // Il pannello si apre sempre con Shop chiuso, tranne quando si è
-              // già in /shop: lì le categorie sono il posto in cui ci si trova.
-              setShopOpen(pathname.startsWith("/shop"));
+              // Il pannello si apre sempre con Shop chiuso, anche dentro
+              // /shop: lì il punto terracotta dice già dove si è, e le
+              // categorie si aprono con un tocco.
+              setShopOpen(false);
               setOpen(true);
             }}
             aria-expanded={open}
             aria-controls="menu-cajon"
             className={`absolute ${controlInset} flex h-10 w-10 items-center justify-center md:hidden`}
           >
-            <span className="sr-only">
-              Apri menu{stampe > 0 ? ` — ${nomeCarrello(stampe).toLowerCase()}` : ""}
-            </span>
+            <span className="sr-only">Apri menu</span>
             {/* Due filetti dello stesso spessore del tratto delle icone. */}
             <span aria-hidden="true" className="relative block h-2.5 w-5">
               <span className="absolute left-0 top-0 block h-px w-full bg-ink" />
               <span className="absolute bottom-0 left-0 block h-px w-full bg-ink" />
-              {/*
-                Sul telefono il carrello vive dentro il pannello, quindi da
-                chiuso non si vedrebbe che c'è qualcosa dentro. Il punto lo
-                dice: terracotta come segno, lo stesso del «sei qui» del
-                pannello, appoggiato all'angolo dei filetti.
-              */}
-              {stampe > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 block h-1.5 w-1.5 rounded-full bg-accent" />
-              )}
             </span>
           </button>
 
           {/*
-            Il carrello, sul bordo destro e a metà dell'insegna: è un controllo
-            di tutta la testata, non una voce del menu, quindi non sta in fila
-            con Works e About me. Il margine negativo allinea il disegno —non
-            l'area di tocco da 40px— al margine della pagina, come fa il
-            pulsante del menu sul telefono.
+            Il carrello, sul bordo destro: è un controllo di tutta la testata,
+            non una voce del menu, quindi non sta in fila con Works e About me.
+            Il margine negativo allinea il disegno —non l'area di tocco da
+            40px— al margine della pagina.
+
+            Sul telefono sta nella barra, a sinistra del pulsante del menu e
+            alla sua stessa altezza, e non dentro il pannello: lì era una riga
+            con la parola «Carrello» che la cliente non voleva, e soprattutto
+            da chiuso non si vedeva. Così la borsa con il suo numero si vede
+            sempre, come sul desktop, senza aprire niente. Le due aree di tocco
+            si toccano; fra i disegni restano 17px.
           */}
-          <CarrelloIcona className="absolute right-[calc(var(--gutter)-0.5rem)] top-1/2 hidden -translate-y-1/2 md:flex" />
+          <CarrelloIcona className="absolute right-[calc(var(--gutter)-0.625rem+2.5rem)] top-3 md:right-[calc(var(--gutter)-0.5rem)] md:top-1/2 md:-translate-y-1/2" />
         </div>
       </header>
 
@@ -435,34 +433,6 @@ export default function Header() {
             </Fragment>
           ))}
 
-          {/*
-            Il carrello nel pannello: una riga come le altre, perché sul
-            telefono è qui che lo si cerca. Il numero va a destra in cifre
-            tabulari e inchiostro pallido, dove nelle righe sopra c'è il
-            chevron: un dato della riga, non un'etichetta che compete con la
-            parola.
-          */}
-          <Link
-            href="/carrello"
-            onClick={() => close(false)}
-            data-drawer-item
-            data-active={pathname.startsWith("/carrello")}
-            aria-current={pathname.startsWith("/carrello") ? "page" : undefined}
-            aria-label={nomeCarrello(stampe)}
-            style={{ transitionDelay: stagger(open, nav.length) }}
-            className={`flex items-baseline justify-between gap-2 ${ITEM_DRAWER}`}
-          >
-            {pathname.startsWith("/carrello") && (
-              <span
-                aria-hidden="true"
-                className="absolute -left-3 top-1/2 block h-1 w-1 -translate-y-1/2 rounded-full bg-accent"
-              />
-            )}
-            <span>Carrello</span>
-            {stampe > 0 && (
-              <span className="figures text-[0.9375rem] font-normal text-ink-faint">{stampe}</span>
-            )}
-          </Link>
         </nav>
 
         <div

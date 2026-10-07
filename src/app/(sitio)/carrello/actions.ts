@@ -8,7 +8,8 @@ import { stampePerSlug } from "@/lib/prodotti";
 import { stripe, stripeConfigurato, tariffeSpedizione, type Zona } from "@/lib/stripe";
 import { immagineFerma } from "@/lib/video";
 
-const MAX_QUANTITA = 20;
+// Lo stesso tetto del carrello (store.ts), ripetuto perché quello è un modulo client.
+const MAX_QUANTITA = 10;
 const MAX_RIGHE = 30;
 
 /** Quello che il browser dice di avere nel carrello. Solo questo si legge: il resto si ricalcola. */
@@ -115,11 +116,6 @@ export async function vaiAlPagamento(
   const zona = String(formData.get("zona") ?? "") as Zona;
   const tariffa = tariffeSpedizione().find((t) => t.zona === zona);
   if (!tariffa) return { error: "Scegli dove spedire." };
-  if (tariffa.prezzo === null) {
-    return {
-      error: `Le spese di spedizione per ${tariffa.etichetta} non sono ancora definite. Scrivimi a ${site.email} e la ordiniamo insieme.`,
-    };
-  }
 
   let richiesta: unknown;
   try {

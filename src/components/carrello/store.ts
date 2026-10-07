@@ -22,8 +22,12 @@ export type VoceCarrello = {
   immagine?: { url: string; width: number; height: number; alt: string };
 };
 
-/** Abbastanza per un regalo a tutta la famiglia, non tanto da essere un errore di battitura. */
-export const MAX_QUANTITA = 20;
+/**
+ * Le copie di una stampa in un formato: da 1 a 10 (cliente, 2026-10-07).
+ * Il tetto lo ripete il server in carrello/actions.ts, che non si fida di
+ * quello che arriva dal browser.
+ */
+export const MAX_QUANTITA = 10;
 
 const CHIAVE = "illustrando.carrello";
 const VUOTO: VoceCarrello[] = [];
@@ -46,7 +50,10 @@ function leggi(): VoceCarrello[] {
   try {
     const crudo = window.localStorage.getItem(CHIAVE);
     const lista: unknown = crudo ? JSON.parse(crudo) : [];
-    cache = Array.isArray(lista) ? lista.filter(valida) : VUOTO;
+    // Un carrello salvato quando il tetto era più alto torna dentro il limite.
+    cache = Array.isArray(lista)
+      ? lista.filter(valida).map((v) => ({ ...v, quantita: Math.min(v.quantita, MAX_QUANTITA) }))
+      : VUOTO;
   } catch {
     cache = VUOTO;
   }
@@ -120,10 +127,15 @@ export function totaleCarrello(voci: VoceCarrello[]): number {
 const stessa = (v: VoceCarrello, slug: string, formato: string) =>
   v.slug === slug && v.formato === formato;
 
-/** Aggiunge una copia. Se la stampa in quel formato c'è già, ne aumenta la quantità. */
-export function aggiungi(voce: Omit<VoceCarrello, "quantita">) {
+/**
+ * Aggiunge una copia. Se la stampa in quel formato c'è già, ne aumenta la
+ * quantità. Restituisce false se non è cambiato niente perché quella riga è
+ * già al tetto: allora non si conferma e la borsa non si muove.
+ */
+export function aggiungi(voce: Omit<VoceCarrello, "quantita">): boolean {
   const lista = leggi();
   const presente = lista.find((v) => stessa(v, voce.slug, voce.formato));
+  if (presente && presente.quantita >= MAX_QUANTITA) return false;
   scrivi(
     presente
       ? lista.map((v) =>
@@ -140,18 +152,20 @@ export function aggiungi(voce: Omit<VoceCarrello, "quantita">) {
   window.dispatchEvent(
     new CustomEvent<DettaglioAggiunto>(EVENTO_AGGIUNTO, { detail: { nuova: !presente } }),
   );
+  return true;
 }
 
 export const EVENTO_AGGIUNTO = "carrello:aggiunto";
 export type DettaglioAggiunto = { nuova: boolean };
 
+/**
+ * Cambia le copie di una riga, sempre fra 1 e MAX_QUANTITA. Scendere sotto
+ * 1 non toglie la stampa: per quello c'è «Togli», che è un gesto deciso e non
+ * un clic di troppo sul meno.
+ */
 export function cambiaQuantita(slug: string, formato: string, quantita: number) {
-  if (quantita <= 0) return togli(slug, formato);
-  scrivi(
-    leggi().map((v) =>
-      stessa(v, slug, formato) ? { ...v, quantita: Math.min(quantita, MAX_QUANTITA) } : v,
-    ),
-  );
+  const giusta = Math.min(Math.max(quantita, 1), MAX_QUANTITA);
+  scrivi(leggi().map((v) => (stessa(v, slug, formato) ? { ...v, quantita: giusta } : v)));
 }
 
 export function togli(slug: string, formato: string) {

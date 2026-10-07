@@ -45,8 +45,8 @@ const PAESI_UE = [
 export type TariffaSpedizione = {
   zona: Zona;
   etichetta: string;
-  /** Centesimi. null se la tariffa non è ancora stata decisa. */
-  prezzo: number | null;
+  /** Centesimi. */
+  prezzo: number;
   paesi: readonly string[];
 };
 
@@ -59,30 +59,25 @@ export type TariffaSpedizione = {
  * Scegliendo qui, a Stripe arriva una tariffa sola e solo i paesi di quella
  * zona, quindi l'indirizzo e il prezzo non possono non coincidere.
  *
- * DA DECIDERE CON LEI: quanto costa spedire. Le cifre vivono in
- * `SPEDIZIONE_ITALIA` e `SPEDIZIONE_UE`, in centesimi. Finché mancano, il
- * carrello lo dice e il pagamento non parte: un costo inventato si
- * addebiterebbe davvero.
+ * Quanto costa spedire l'ha deciso la cliente (2026-10-07): 5 € in Italia,
+ * 10 € nel resto dell'Unione Europea, a ordine e non a copia. Vive nel codice
+ * come il listino delle stampe (FORMATI_BASE): prima stava in due variabili
+ * d'ambiente perché la cifra non c'era ancora e il pagamento doveva restare
+ * fermo finché lei non la dava.
  */
 export function tariffeSpedizione(): TariffaSpedizione[] {
   return [
     {
       zona: "italia",
       etichetta: "Italia",
-      prezzo: centesimiDa(process.env.SPEDIZIONE_ITALIA),
+      prezzo: 500,
       paesi: ["IT"],
     },
     {
       zona: "ue",
       etichetta: "Unione Europea",
-      prezzo: centesimiDa(process.env.SPEDIZIONE_UE),
+      prezzo: 1000,
       paesi: PAESI_UE,
     },
   ];
-}
-
-function centesimiDa(valore: string | undefined): number | null {
-  if (!valore) return null;
-  const n = Number(valore);
-  return Number.isInteger(n) && n >= 0 ? n : null;
 }

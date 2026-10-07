@@ -4,12 +4,14 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "@/components/Icon";
 import { getShopCategory, prezzoMinimo, prodottoHref } from "@/data/shop";
 import { site } from "@/data/site";
+import { mockupComeStampa } from "@/lib/mockup";
 import { getPubblicato } from "@/lib/prodotti";
 import { immagineFerma } from "@/lib/video";
 import { getWork } from "@/lib/works";
 import Visore from "../../../opera/components/Visore";
 import WorkPlate, { WorkPlates } from "../../../opera/components/WorkPlate";
 import WorkTitle from "../../../opera/components/WorkTitle";
+import CaroselloStampa from "../../components/CaroselloStampa";
 import ProdottoScheda from "../../components/ProdottoScheda";
 
 type Params = { params: Promise<{ categoria: string; slug: string }> };
@@ -71,6 +73,24 @@ export default async function ProdottoPage({ params }: Params) {
   const minimo = prezzoMinimo(p.formati);
 
   /*
+    Con il mockup le immagini diventano un carosello: prima quelle della
+    stampa, nell'ordine dell'admin, e in fondo il mockup. Il visore riceve la
+    stessa lista, così ingrandendo si arriva anche alla stanza. Il mockup ha
+    le stesse dimensioni della copertina (vedi `mockupComeStampa`), quindi
+    passare dall'una all'altro non cambia misura né qui né nel visore. Senza
+    mockup la pagina resta quella di un'opera: la tavola accanto al nome e le
+    altre sotto.
+  */
+  const mockup =
+    p.mockup && portada
+      ? {
+          ...mockupComeStampa(p.mockup, portada),
+          alt: p.mockup.alt || `${p.title}, la stampa appesa in una stanza`,
+        }
+      : null;
+  const immagini = mockup ? [...p.image, mockup] : p.image;
+
+  /*
     Dati strutturati: un Product con la sua forchetta di prezzo, che è quello
     che permette a Google di mostrare «da 10 €» nei risultati.
   */
@@ -107,11 +127,17 @@ export default async function ProdottoPage({ params }: Params) {
         <span className="link-underline">{c.label}</span>
       </Link>
 
-      <Visore titolo={p.title} immagini={p.image}>
+      <Visore titolo={p.title} immagini={immagini}>
         <div className="opera">
           <WorkTitle work={p} />
-          <WorkPlate work={p} />
-          <WorkPlates work={p} />
+          {mockup ? (
+            <CaroselloStampa titolo={p.title} immagini={immagini} mockup={mockup.url} />
+          ) : (
+            <>
+              <WorkPlate work={p} />
+              <WorkPlates work={p} />
+            </>
+          )}
           <ProdottoScheda prodotto={p} opera={opera ? { slug: opera.slug, title: opera.title } : null} />
         </div>
       </Visore>

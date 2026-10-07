@@ -646,7 +646,9 @@ underneath) lands on *cancel*, never on save.
   routes below down. Categories sit indented one step smaller in faint ink, at
   400 and not in the display role; the last row, "Tutto lo Shop" in soft ink
   with an arrow, is the drawer's only door to `/shop`. Collapsed, the list is
-  `inert`. The drawer always opens with Shop collapsed, except on `/shop`.
+  `inert`. The drawer always opens with Shop collapsed, on `/shop` too, and choosing any row
+  — a category, "Tutto lo Shop", or a route outside the shop — collapses it as the
+  drawer leaves (client, 2026-10-07).
   Categories go to `/shop/<categoria>`. See PRODUCT.md, "Tienda".
 
 - **Cart (the bag):** a paper bag drawn in the icon stroke (1.25), not a supermarket
@@ -654,9 +656,10 @@ underneath) lands on *cancel*, never on save.
   its body in 10px tabular figures, ink, never a red badge — nothing rounded sits on an icon in this system. Empty, the
   bag is empty: no zero. Desktop: absolutely on the header's right edge, vertically
   centred on the wordmark block, outside the nav row because it belongs to the whole
-  masthead. Phone: a drawer row "Carrello" after the routes with the count right in
-  faint tabular figures, plus a 6px accent dot on the closed menu toggle so the cart
-  is visible without opening it. **One authored motion:** only on add (a
+  masthead. Phone: the same bag in the bar, immediately left of the menu toggle at
+  its height (touch areas abutting, 17px between the drawings), so the cart is always
+  visible without opening anything. No drawer row and no word "Carrello" (client,
+  2026-10-07), and no dot on the toggle — the bag carries its own number. **One authored motion:** only on add (a
   `carrello:aggiunto` event, never on load or cross-tab sync) the bag dips 2px and
   returns (520ms) while the new number rises 4px into place — only when a new line
   entered; another copy of a print already inside dips the bag and leaves the number
@@ -676,6 +679,17 @@ underneath) lands on *cancel*, never on save.
   only lingering does. It leaves at once in 450ms. Keyboard focus shows it with the
   same wait; reduced motion keeps only the swap; with no hover pointer the mockup is
   `display: none` and never downloads. Alt is empty: the cover already names the work.
+- **Print page carousel:** a print with a mockup turns its plate into a carousel —
+  the artwork first, the mockup last. Native horizontal scroll with snap (finger and
+  trackpad keep the system's inertia), no arrows; 48px 4:5 thumbnails under the plate,
+  right-aligned from tablet up, the current one full opacity with a 1px ink rule
+  drawn beneath, the rest at 55%. One frame for every slide, sized by the artwork's
+  own ratio under the 78vh cap, so swiping never changes the height. The mockup is
+  served at the print's exact dimensions (Cloudinary `c_fill,ar_W:H,g_auto` — a
+  room, not the work, so it can lose wall), in the carousel and in the viewer alike;
+  the artwork is never cropped. Each
+  slide still opens the viewer, which includes the mockup. Without a mockup the page
+  keeps the work layout.
 - **Services (Illustrazioni Personalizzate, Ritratti Illustrati):** not products. Two
   fixed pages, never a list. On `/shop` they sit first under "Su commissione" as two
   cells of the same 3-column grid (4:5 cover, title, two lines of text, "Scopri come

@@ -66,7 +66,7 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   con Node y una base, no una carpeta de archivos. Ver `db/README.md`.
 - **Tienda.** Volvió el 2026-10-07 y desde ese día vende. Dos cosas distintas:
   - **Stampe** son productos y se agregan seguido (tabla `prodotti`): formatos con
-    precio, carrito, pago con Stripe, envío a Italia y a la UE. Lista base del cliente:
+    precio, carrito, pago con Stripe, envío a Italia (5 €) y a la UE (10 €), por pedido. Lista base del cliente:
     A5 10 €, 20×20 cm 15 €, A4 20 €, A3 30 €, editable por stampa. Sin stock: se imprimen a pedido.
     Los pedidos los escribe el webhook de Stripe en `ordini` y ella los marca como
     enviados en `/admin/ordini`.
@@ -99,13 +99,11 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
 - **Jerarquía entre "Illustrando" y "Benedetta".** En la práctica el sitio ya la resolvió
   —el logotipo dice Illustrando y el nombre propio aparece en el footer y en About— pero
   nadie lo decidió explícitamente.
-- **Para vender de verdad faltan cuatro cosas, y ninguna se inventa:**
+- **Para vender de verdad faltan tres cosas, y ninguna se inventa:**
   1. **Cuenta de Stripe.** Hoy todo corre con claves de prueba (`sk_test_`).
-  2. **Costo de envío** a Italia y a la UE (`SPEDIZIONE_ITALIA`, `SPEDIZIONE_UE`, en
-     centavos). Sin esto el carrito dice «da definire» y el pago no arranca.
-  3. **El número de partita IVA** en el pie: obligatorio si vende. Tiene partita IVA;
+  2. **El número de partita IVA** en el pie: obligatorio si vende. Tiene partita IVA;
      falta el número.
-  4. **Condizioni di vendita, diritto di recesso (14 días, ley UE) y privacy.** Los
+  3. **Condizioni di vendita, diritto di recesso (14 días, ley UE) y privacy.** Los
      textos tienen que venir de ella o de su contador.
 - **Notas por categoría.** Si quiere una línea de material o formato bajo cada
   categoría, entra en `note` en `src/data/shop.ts`. No inventarla.

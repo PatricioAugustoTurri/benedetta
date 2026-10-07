@@ -157,9 +157,7 @@ export default function CarrelloVista({
                     </span>
                     <span className="text-sm">{t.etichetta}</span>
                   </span>
-                  <span className="figures text-sm">
-                    {t.prezzo === null ? "da definire" : prezzo(t.prezzo)}
-                  </span>
+                  <span className="figures text-sm">{prezzo(t.prezzo)}</span>
                 </label>
               ))}
             </div>
@@ -273,9 +271,10 @@ function Riga({ voce: v }: { voce: VoceCarrello }) {
             <button
               type="button"
               onClick={() => cambiaQuantita(v.slug, v.formato, v.quantita - 1)}
-              className="flex h-8 w-8 items-center justify-center border border-line text-ink-soft transition-colors hover:border-ink-faint hover:text-ink"
+              disabled={v.quantita <= 1}
+              className="flex h-8 w-8 items-center justify-center border border-line text-ink-soft transition-colors hover:border-ink-faint hover:text-ink disabled:opacity-40"
             >
-              <span className="sr-only">{v.quantita === 1 ? "Togli" : "Una copia in meno"}</span>
+              <span className="sr-only">Una copia in meno</span>
               <Meno size={14} />
             </button>
             <output
