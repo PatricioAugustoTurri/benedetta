@@ -63,7 +63,9 @@ export default async function OperaPage({ params }: Params) {
   if (!work) notFound();
 
   const portada = work.image[0];
-  const [stampa] = await stampeDellOpera(work.slug);
+  // Sin la tabla `prodotti` (base todavía sin migrar) la obra se ve igual,
+  // sin el aviso de la stampa.
+  const [stampa] = await stampeDellOpera(work.slug).catch(() => []);
 
   /*
     Dati strutturati per questa opera: quello che permette a Google Immagini

@@ -18,7 +18,9 @@ import { site } from "@/data/site";
  * questa sitemap segue senza toccarla.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [slugs, prodotti] = await Promise.all([listSlugs(), listPubblicati()]);
+  // Si las tablas del Shop todavía no existen en esta base —la migración 002
+  // va después del deploy—, el sitemap sale igual, sin las stampe.
+  const [slugs, prodotti] = await Promise.all([listSlugs(), listPubblicati().catch(() => [])]);
 
   const pagine: MetadataRoute.Sitemap = [
     { url: site.url, changeFrequency: "weekly", priority: 1 },
