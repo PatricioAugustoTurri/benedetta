@@ -3,6 +3,12 @@ import type { CSSProperties } from "react";
 import VideoOpera from "@/components/VideoOpera";
 import { esVideo } from "@/lib/video";
 import type { Work } from "@/lib/works";
+
+/**
+ * Quello che serve per disegnare: nome, testo e tavole. Non l'opera intera,
+ * perché le stesse tavole le usa la pagina di un prodotto dello Shop.
+ */
+type Tavole = Pick<Work, "title" | "description" | "image">;
 import { ApriTavola } from "./Visore";
 
 /**
@@ -28,7 +34,7 @@ import { ApriTavola } from "./Visore";
  * il suo margine esterno è sempre lo stesso qualunque sia la proporzione;
  * quello che varia è l'aria verso il testo.
  */
-export default function WorkPlate({ work }: { work: Work }) {
+export default function WorkPlate({ work }: { work: Tavole }) {
   const img = work.image[0];
   if (!img) return null;
 
@@ -76,7 +82,7 @@ export default function WorkPlate({ work }: { work: Work }) {
  * L'unico caso in cui resta solo è quando è l'unico: allora prende mezza
  * riga, allineato a sinistra, come se avesse una compagna.
  */
-export function WorkPlates({ work }: { work: Work }) {
+export function WorkPlates({ work }: { work: Tavole }) {
   const resto = work.image.slice(1);
   if (resto.length === 0) return null;
 

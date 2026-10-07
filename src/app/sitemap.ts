@@ -1,9 +1,12 @@
 import type { MetadataRoute } from "next";
+import { shopCategories, prodottoHref } from "@/data/shop";
+import { listPubblicati } from "@/lib/prodotti";
 import { listSlugs } from "@/lib/works";
 import { site } from "@/data/site";
 
 /**
- * Sitemap dinamica: `/`, `/studio`, `/contatti` e una riga per ogni opera.
+ * Sitemap dinamica: `/`, `/studio`, `/shop`, `/contatti`, una riga per ogni opera
+ * e una per ogni categoria e prodotto pubblicato dello Shop.
  *
  * Le opere si prendono da `listSlugs()`, la stessa funzione che alimenta
  * `generateStaticParams` in `opera/[slug]`, così la sitemap non si scorda mai
@@ -15,11 +18,12 @@ import { site } from "@/data/site";
  * questa sitemap segue senza toccarla.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const slugs = await listSlugs();
+  const [slugs, prodotti] = await Promise.all([listSlugs(), listPubblicati()]);
 
   const pagine: MetadataRoute.Sitemap = [
     { url: site.url, changeFrequency: "weekly", priority: 1 },
     { url: `${site.url}/studio`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${site.url}/shop`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${site.url}/contatti`, changeFrequency: "monthly", priority: 0.5 },
   ];
 
@@ -29,5 +33,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...pagine, ...opere];
+  // Le categorie e i prodotti pubblicati. Le bozze non escono: listPubblicati
+  // non le restituisce.
+  const shop: MetadataRoute.Sitemap = [
+    ...shopCategories.map((c) => ({
+      url: `${site.url}/shop/${c.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    })),
+    ...prodotti.map((p) => ({
+      url: `${site.url}${prodottoHref(p)}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+  ];
+
+  return [...pagine, ...opere, ...shop];
 }

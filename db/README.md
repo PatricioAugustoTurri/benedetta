@@ -60,7 +60,26 @@ existe se actualiza corriendo, una sola vez, lo que falte de `db/migrations/`:
 
 ```bash
 psql -d illustrando -f db/migrations/001-orden-manual.sql
+psql -d illustrando -f db/migrations/002-shop.sql
+psql -d illustrando -f db/migrations/003-servizi.sql
 ```
+
+## La tienda: `prodotti`, `servizi` y `ordini`
+
+`prodotti` son las stampe, y sólo stampe (`categoria = 'stampe'`). `formati`
+(`[{ "formato": "A4", "prezzo": 1500 }]`, precios en centavos enteros) no puede
+quedar vacío. `pubblicato` arranca en falso: una stampa nueva es una bozza.
+`opera_slug` apunta a `works.slug` y sigue a la obra si se renombra.
+
+`servizi` tiene exactamente dos filas, `illustrazioni-personalizzate` y
+`ritratti-illustrati`, que crea la migración 003. Son los dos trabajos por
+encargo: no tienen precio y no se agregan ni se borran; el admin sólo cambia
+su nombre, su texto y sus imágenes.
+
+`ordini` la escribe sólo el webhook de Stripe (`/api/stripe/webhook`), una fila
+por pago, con una copia de lo comprado: si mañana cambia un precio, el pedido
+de ayer sigue diciendo lo que se pagó. `stripe_session_id` es único, así un
+evento repetido no duplica el pedido.
 
 Cada elemento de `image` es `{ "url", "alt", "width", "height" }`. El ancho y
 el alto los lee el servidor del archivo subido, no se escriben a mano: son lo

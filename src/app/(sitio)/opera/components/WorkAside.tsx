@@ -3,6 +3,9 @@ import { AZIONE } from "@/components/azione";
 import { Mail } from "@/components/Icon";
 import Reveal from "@/components/Reveal";
 import type { Work } from "@/lib/works";
+import { ArrowRight } from "@/components/Icon";
+import { prezzo, prezzoMinimo, prodottoHref } from "@/data/shop";
+import type { Prodotto } from "@/lib/prodotti";
 
 /**
  * La scheda dell'opera e l'azione primaria di tutto il sito, che è l'unica
@@ -21,7 +24,7 @@ import type { Work } from "@/lib/works";
  * dell'admin; inventarle qui lascerebbe la scheda a dire cose che nessuno ha
  * caricato.
  */
-export default function WorkAside({ work }: { work: Work }) {
+export default function WorkAside({ work, stampa }: { work: Work; stampa?: Prodotto | null }) {
   const ficha = [
     { label: "Anno", value: String(work.year) },
     { label: "Tecnica", value: work.tecnica },
@@ -94,6 +97,30 @@ export default function WorkAside({ work }: { work: Work }) {
         <p className="mt-3 text-xs text-ink-faint">
           Ti porta al modulo con l&apos;oggetto già compilato.
         </p>
+
+        {/*
+          Se dell'opera esiste una stampa, si dice qui, sotto l'azione e in
+          piccolo: è la strada laterale di chi non vuole commissionare ma
+          portarsi a casa questa immagine. Il prezzo va con il «da» perché il
+          formato si sceglie dall'altra parte.
+        */}
+        {stampa && (
+          <p className="mt-8 border-t border-line pt-4 text-sm text-ink-soft">
+            Disponibile come stampa,{" "}
+            <span className="figures">
+              {stampa.formati.length > 1 ? "da " : ""}
+              {prezzo(prezzoMinimo(stampa.formati) ?? 0)}
+            </span>
+            .{" "}
+            <Link
+              href={prodottoHref(stampa)}
+              className="group inline-flex items-center gap-1 text-ink transition-colors hover:text-accent"
+            >
+              <span className="link-underline">Vai alla stampa</span>
+              <ArrowRight size={14} className="shrink-0" />
+            </Link>
+          </p>
+        )}
       </Reveal>
     </aside>
   );

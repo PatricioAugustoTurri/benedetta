@@ -635,11 +635,62 @@ underneath) lands on *cancel*, never on save.
   a headline, when they were halved to 10px, and now at 14–18px. That is what
   makes the size a free decision for the client rather than an accessibility one.
 
-> **Removed:** the Shop dropdown — a full-width band unrolling from the header
-> edge, with five categories inside — and its mobile accordion. The client is not
-> selling anything for now, so the site only shows Works; every nav item is a
-> route again, and nothing in the header is a `button` except the mobile menu
-> toggle. See PRODUCT.md, "Tienda: fuera de alcance".
+- **Shop dropdown:** the one nav item that is two controls — the word links to
+  `/shop`, a 16px chevron beside it is a `button` that unrolls a 19rem sheet centred
+  under the label, hanging from the header's bottom hairline (side and bottom
+  hairlines, full paper, no shadow). Mouse hover opens after 140ms and closes 220ms
+  after leaving; touch and keyboard use the chevron; Escape returns focus to it. While
+  open the header takes full paper and its hairline even at the top. Items stagger in
+  at 70ms. In the phone drawer Shop is not split: the whole row is one `button`
+  with the same chevron, and it unrolls in place (0fr→1fr, 380ms), pushing the
+  routes below down. Categories sit indented one step smaller in faint ink, at
+  400 and not in the display role; the last row, "Tutto lo Shop" in soft ink
+  with an arrow, is the drawer's only door to `/shop`. Collapsed, the list is
+  `inert`. The drawer always opens with Shop collapsed, except on `/shop`.
+  Categories go to `/shop/<categoria>`. See PRODUCT.md, "Tienda".
+
+- **Cart (the bag):** a paper bag drawn in the icon stroke (1.25), not a supermarket
+  trolley, with the copy count printed *inside* its body in 10px tabular figures,
+  ink, never a red badge — nothing rounded sits on an icon in this system. Empty, the
+  bag is empty: no zero. Desktop: absolutely on the header's right edge, vertically
+  centred on the wordmark block, outside the nav row because it belongs to the whole
+  masthead. Phone: a drawer row "Carrello" after the routes with the count right in
+  faint tabular figures, plus a 6px accent dot on the closed menu toggle so the cart
+  is visible without opening it. **One authored motion:** only on add (a
+  `carrello:aggiunto` event, never on load or cross-tab sync) the bag dips 2px and
+  returns (520ms) while the new number rises 4px into place; reduced motion drops both.
+
+### Shop
+- **Product grid:** the archive cell (4:5 crop, slow 3% zoom) plus words — the title
+  in ink and, for prints, "da 10 €" right-aligned in tabular figures (below the title
+  on phones). Commissions show no line under the name. Gap is wider than the archive
+  (12–24px columns, 36–48px rows) because each cell carries two lines of type.
+  Sections open on a hairline with the name in the section-display role; an empty
+  prints section still renders, saying so, with a link to the contact form.
+- **Services (Illustrazioni Personalizzate, Ritratti Illustrati):** not products. Two
+  fixed pages, never a list. On `/shop` they sit first under "Su commissione" as two
+  cells of the same 3-column grid (4:5 cover, title, two lines of text, "Scopri come
+  funziona"); a service without images shows paper-deep with its name. The service
+  page (`/shop/<servizio>`) is the `.opera` composition with only «Chiedi info» in the
+  aside, which stays right under the text (`.opera--servizio`: top-aligned on desktop,
+  before the plates on phones). Text splits into paragraphs on blank lines.
+- **Print page:** the work page's `.opera` composition (name and text, first plate,
+  pairs, fullscreen viewer) with the aside swapped. Prints: a radio list of formats on
+  hairlines — name left, price right — whose mark is a ring with an accent centre;
+  then the primary action "Aggiungi al carrello" (same shape as «Chiedi info») and a
+  `role="status"` line that confirms and links to the cart. A print made from a work
+  links back to it, and the work page says "Disponibile come stampa".
+- **Cart page:** lines on hairlines (4:5 thumb, title, format · unit price, a 32px
+  −/n/+ stepper, line total, "Togli"); a sticky aside with the shipping zone as the
+  same radio list, then Subtotale/Spedizione/Totale as a Specification List and the
+  full-width primary action. The page renders nothing until mounted, so it never
+  flashes "vuoto" for a cart that lives in localStorage.
+- **Admin Shop:** tabs Opere | Shop | Ordini in the admin bar (count beside each;
+  orders count only those to ship, in accent). Two parts: "Su commissione" — two
+  service rows that only open the edit form (no add, delete or reorder; a missing text
+  or image is flagged in accent) — and "Stampe" — rows with status and price list,
+  ↑/↓ forms instead of drag, and the archive's dashed tile stretched into "Nuova
+  stampa".
 
 ### Specification List
 - **Style:** a definition list opened and closed by `{colors.line}` hairlines, one

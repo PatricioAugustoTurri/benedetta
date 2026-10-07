@@ -2,6 +2,12 @@ import Reveal from "@/components/Reveal";
 import type { Work } from "@/lib/works";
 
 /**
+ * Quello che serve per disegnare: nome, testo e tavole. Non l'opera intera,
+ * perché le stesse tavole le usa la pagina di un prodotto dello Shop.
+ */
+type Tavole = Pick<Work, "title" | "description" | "image">;
+
+/**
  * Il nome dell'opera e il suo testo, in cima a tutto.
  *
  * Stava sotto le tavole, in testa alla descrizione, ed è salito su richiesta
@@ -34,7 +40,7 @@ import type { Work } from "@/lib/works";
  * perché è un'altra cosa —l'opera, non la sua didascalia—. Quell'aria la
  * mette `.opera`, che sa se la tavola sta sotto o accanto.
  */
-export default function WorkTitle({ work }: { work: Work }) {
+export default function WorkTitle({ work }: { work: Tavole }) {
   return (
     <header className="opera__nome">
       <Reveal>

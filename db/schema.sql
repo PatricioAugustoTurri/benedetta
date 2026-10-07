@@ -150,4 +150,194 @@ CREATE TRIGGER works_set_updated_at
   BEFORE UPDATE ON works
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+-- --------------------------------------------------------------------------
+-- prodotti — le stampe dello Shop
+--
+-- Una riga per stampa, e si aggiungono di continuo. Ritratti e illustrazioni
+-- su commissione non stanno qui: sono due servizi fissi, in `servizi`.
+-- --------------------------------------------------------------------------
+CREATE TABLE prodotti (
+  id          integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+  -- Sempre 'stampe'. La colonna resta perché è nell'indirizzo
+  -- (/shop/stampe/<slug>) e nell'ordine; ritratti e illustrazioni non sono
+  -- prodotti ma servizi, e vivono in `servizi` (vedi sotto).
+  categoria   text        NOT NULL DEFAULT 'stampe'
+              CONSTRAINT prodotti_categoria_valida CHECK (categoria = 'stampe'),
+
+  -- /shop/<categoria>/<slug>. Unico in tutto il negozio e non per categoria:
+  -- è anche quello che viaggia in /contatti?prodotto=<slug>, e lì la
+  -- categoria non c'è.
+  slug        text        NOT NULL UNIQUE
+              CONSTRAINT prodotti_slug_formato CHECK (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
+
+  title       text        NOT NULL
+              CONSTRAINT prodotti_title_no_vacio CHECK (length(trim(title)) > 0),
+
+  description text,
+
+  -- La stessa forma di works.image, con le stesse due regole: è un array, e
+  -- nessun elemento senza url. Così l'admin carica le immagini con lo stesso
+  -- codice delle opere.
+  image       jsonb       NOT NULL DEFAULT '[]'::jsonb
+              CONSTRAINT prodotti_image_es_arreglo CHECK (jsonb_typeof(image) = 'array')
+              CONSTRAINT prodotti_image_con_url CHECK (
+                CASE WHEN jsonb_typeof(image) = 'array' THEN
+                  jsonb_array_length(
+                    jsonb_path_query_array(image, '$[*] ? (@.url.type() == "string")')
+                  ) = jsonb_array_length(image)
+                ELSE true END
+              ),
+
+  -- I formati in vendita, in ordine: [{ "formato": "A4", "prezzo": 1500 }].
+  --
+  -- Il prezzo è in centesimi e intero. Mai decimale: 0,1 + 0,2 non fa 0,3 in
+  -- virgola mobile, e un totale di carrello sbagliato di un centesimo è un
+  -- totale sbagliato.
+  --
+  -- jsonb dentro la riga e non una tabella a parte perché un formato non
+  -- esiste da solo: non si cerca, non si ordina, non si collega a niente.
+  -- Viaggia sempre con la sua stampa.
+  formati     jsonb       NOT NULL DEFAULT '[]'::jsonb
+              CONSTRAINT prodotti_formati_es_arreglo CHECK (jsonb_typeof(formati) = 'array')
+              -- Ogni formato ha un nome e un prezzo intero positivo. Si contano
+              -- quelli buoni e si esige che siano tutti, per la stessa ragione
+              -- di works.image: un filtro sui cattivi non vede la chiave che
+              -- manca.
+              CONSTRAINT prodotti_formati_validi CHECK (
+                CASE WHEN jsonb_typeof(formati) = 'array' THEN
+                  jsonb_array_length(
+                    jsonb_path_query_array(
+                      formati,
+                      '$[*] ? (@.formato.type() == "string" && @.prezzo.type() == "number" && @.prezzo > 0 && @.prezzo == @.prezzo.floor())'
+                    )
+                  ) = jsonb_array_length(formati)
+                ELSE true END
+              ),
+
+  -- Da quale opera dell'archivio esce la stampa, se esce da una. La pagina
+  -- dell'opera allora dice «Disponibile come stampa», e la stampa rimanda
+  -- all'originale. ON UPDATE CASCADE perché lei può rinominare l'opera; ON
+  -- DELETE SET NULL perché cancellare un'opera non deve cancellare la stampa.
+  opera_slug  text        REFERENCES works (slug) ON UPDATE CASCADE ON DELETE SET NULL,
+
+  -- Bozza o pubblicato. Parte da bozza: si carica con calma e si mostra
+  -- quando è pronto, invece di caricare di notte per non farsi vedere a metà.
+  pubblicato  boolean     NOT NULL DEFAULT false,
+
+  -- Il posto dentro la sua categoria. Stesso ragionamento di works.position.
+  position    integer     NOT NULL,
+
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+
+  -- Una stampa senza formati non si può comprare.
+  CONSTRAINT prodotti_formati_presenti CHECK (
+    CASE WHEN jsonb_typeof(formati) = 'array' THEN jsonb_array_length(formati) > 0 ELSE true END
+  )
+);
+
+-- Due prodotti della stessa categoria non si contendono lo stesso posto.
+-- Differito, come in works, perché riordinare passa per stati in cui due righe
+-- si calpestano.
+ALTER TABLE prodotti
+  ADD CONSTRAINT prodotti_position_unica UNIQUE (categoria, position) DEFERRABLE INITIALLY DEFERRED;
+
+CREATE TRIGGER prodotti_set_updated_at
+  BEFORE UPDATE ON prodotti
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- --------------------------------------------------------------------------
+-- servizi — i due lavori su commissione
+--
+-- Due righe e mai di più né di meno. La chiave è lo slug, e il CHECK ammette
+-- solo i due: non c'è un INSERT da fare dall'admin, né un DELETE. L'admin le
+-- modifica e basta.
+-- --------------------------------------------------------------------------
+CREATE TABLE servizi (
+  slug        text        PRIMARY KEY
+              CONSTRAINT servizi_slug_valido CHECK (
+                slug IN ('illustrazioni-personalizzate', 'ritratti-illustrati')
+              ),
+
+  title       text        NOT NULL
+              CONSTRAINT servizi_title_no_vacio CHECK (length(trim(title)) > 0),
+
+  -- Di cosa si tratta e come funziona: quello che si legge prima di scriverle.
+  description text,
+
+  -- La stessa forma di works.image e prodotti.image, con le stesse regole.
+  image       jsonb       NOT NULL DEFAULT '[]'::jsonb
+              CONSTRAINT servizi_image_es_arreglo CHECK (jsonb_typeof(image) = 'array')
+              CONSTRAINT servizi_image_con_url CHECK (
+                CASE WHEN jsonb_typeof(image) = 'array' THEN
+                  jsonb_array_length(
+                    jsonb_path_query_array(image, '$[*] ? (@.url.type() == "string")')
+                  ) = jsonb_array_length(image)
+                ELSE true END
+              ),
+
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TRIGGER servizi_set_updated_at
+  BEFORE UPDATE ON servizi
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Le due righe esistono da subito, col solo nome: il testo e le immagini li
+-- mette lei da /admin/shop.
+INSERT INTO servizi (slug, title) VALUES
+  ('illustrazioni-personalizzate', 'Illustrazioni Personalizzate'),
+  ('ritratti-illustrati', 'Ritratti Illustrati');
+
+-- --------------------------------------------------------------------------
+-- ordini — quello che è stato pagato
+--
+-- Una riga per pagamento riuscito, e la scrive solo il webhook di Stripe:
+-- nessuno la crea dal sito. Il carrello non c'è qui: vive nel browser di chi
+-- compra finché non paga.
+-- --------------------------------------------------------------------------
+CREATE TABLE ordini (
+  id                integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+  -- La sessione di Checkout da cui viene. UNIQUE perché Stripe può mandare lo
+  -- stesso evento più di una volta, e un ordine ripetuto si spedirebbe due
+  -- volte.
+  stripe_session_id text        NOT NULL UNIQUE,
+
+  nome              text,
+  email             text        NOT NULL,
+
+  -- L'indirizzo di spedizione così come l'ha scritto chi compra:
+  -- { "line1", "line2", "city", "postal_code", "state", "country" }.
+  indirizzo         jsonb       NOT NULL,
+
+  -- Una fotografia di quello che si è comprato, non un riferimento:
+  -- [{ "slug", "title", "formato", "prezzo", "quantita" }]. Se domani lei
+  -- cambia il prezzo o il titolo di una stampa, l'ordine di ieri deve dire
+  -- ancora quello che è stato pagato.
+  righe             jsonb       NOT NULL
+                    CONSTRAINT ordini_righe_es_arreglo CHECK (jsonb_typeof(righe) = 'array'),
+
+  -- In centesimi, come i prezzi.
+  subtotale         integer     NOT NULL CHECK (subtotale >= 0),
+  spedizione        integer     NOT NULL CHECK (spedizione >= 0),
+  totale            integer     NOT NULL CHECK (totale >= 0),
+
+  -- Pagato quando arriva, spedito quando lei lo segna.
+  stato             text        NOT NULL DEFAULT 'pagato'
+                    CONSTRAINT ordini_stato_valido CHECK (stato IN ('pagato', 'spedito')),
+
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now()
+);
+
+-- L'elenco dell'admin va dal più recente.
+CREATE INDEX ordini_created_at ON ordini (created_at DESC);
+
+CREATE TRIGGER ordini_set_updated_at
+  BEFORE UPDATE ON ordini
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
 COMMIT;

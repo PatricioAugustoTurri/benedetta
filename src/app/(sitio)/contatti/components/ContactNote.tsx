@@ -6,12 +6,13 @@ import Reveal from "@/components/Reveal";
  * inchiostro pallido perché è una nota, non un'alternativa alla pari: il
  * modulo è la strada.
  *
- * Non si disegna quando il visitatore è arrivato proprio da lì. Spiegargli
- * come fare quello che ha appena fatto non è aiuto: è rumore, e per giunta lo
- * fa dubitare di averlo fatto bene.
+ * Non si disegna quando il visitatore è arrivato con l'oggetto già scritto,
+ * da un'opera o da una categoria dello Shop. Spiegargli come fare quello che
+ * ha appena fatto non è aiuto: è rumore, e per giunta lo fa dubitare di
+ * averlo fatto bene.
  */
-export default function ContactNote({ desdeUnaObra = false }: { desdeUnaObra?: boolean }) {
-  if (desdeUnaObra) return null;
+export default function ContactNote({ conOggetto = false }: { conOggetto?: boolean }) {
+  if (conOggetto) return null;
 
   return (
     <Reveal delay={240}>

@@ -276,6 +276,21 @@
   .link-underline[data-active="true"]::after {
     transform: scaleX(1);
   }
+
+  /*
+    Quando la sottolineatura non può stare sull'elemento che riceve il mouse e
+    il fuoco —l'etichetta Shop, che sono due controlli attaccati, il link a
+    /shop e il chevron che apre le categorie— il contenitore passa lo stato
+    alla parola. È lo stesso disegno spostato di un nodo, ed è quello che fa
+    leggere i due come un'etichetta: toccare il chevron sottolinea "Shop".
+
+    `:has(:focus-visible)` e non `:focus-within` perché il fuoco del mouse non
+    deve disegnare niente: la sottolineatura di fuoco è per chi tabula.
+  */
+  .link-underline-host:hover .link-underline::after,
+  .link-underline-host:has(:focus-visible) .link-underline::after {
+    transform: scaleX(1);
+  }
 }
 
 /*
@@ -443,7 +458,8 @@ code {
 @media (prefers-reduced-motion: reduce) {
   [data-drawer],
   [data-drawer-scrim],
-  [data-drawer-item] {
+  [data-drawer-item],
+  [data-shop-item] {
     /*
       Tailwind v4 sposta con la proprietà `translate`, alimentata dalle sue
       variabili. Si neutralizza nella variabile e non nella proprietà perché
@@ -698,6 +714,22 @@ code {
   grid-area: scheda;
   margin-top: 2.5rem;
 }
+/*
+  Un servizio, sul telefono, porta «Chiedi info» subito dopo il testo e
+  prima delle tavole: è l'unica azione della pagina, e non deve stare in
+  fondo a tre illustrazioni a tutta altezza. Da tablet in su torna alla
+  disposizione in due colonne, dove sta già accanto al testo.
+*/
+.opera--servizio {
+  grid-template-areas:
+    "nome"
+    "scheda"
+    "tavola"
+    "resto";
+}
+.opera--servizio .opera__scheda {
+  margin-top: 2rem;
+}
 
 @media (min-width: 48rem) {
   .opera {
@@ -736,6 +768,15 @@ code {
   .opera__scheda {
     align-self: end;
     margin-top: 2.5rem;
+  }
+
+  /*
+    Nella pagina di un servizio la scheda non scende al piede della tavola:
+    lì c'è solo «Chiedi info», che è la ragione della pagina, e deve stare
+    subito sotto il testo, in vista senza scorrere.
+  */
+  .opera--servizio .opera__scheda {
+    align-self: start;
   }
 
   .opera__coppia {
@@ -999,6 +1040,46 @@ code {
 @media (prefers-reduced-motion: reduce) {
   .frontespizio__film,
   .frontespizio__testo {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Il carrello — la borsa dell'header (<CarrelloIcona/>).
+
+   Si muove solo quando qualcuno aggiunge una stampa: la borsa cede di
+   due pixel e torna, come quando ci si lascia cadere dentro qualcosa, e il
+   numero nuovo sale dal fondo. È lo stesso battito morbido del resto del
+   sito, accorciato: è una conferma, non un'entrata.
+   --------------------------------------------------------------- */
+.carrello-borsa[data-colpo="true"] {
+  animation: carrello-posa 520ms var(--ease-out-soft);
+}
+
+.carrello-borsa[data-colpo="true"] .carrello-numero {
+  animation: carrello-numero 420ms var(--ease-out-soft) 80ms both;
+}
+
+@keyframes carrello-posa {
+  35% {
+    translate: 0 2px;
+  }
+}
+
+@keyframes carrello-numero {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+
+/*
+  Con meno movimento la borsa non scende: il numero nuovo compare e basta,
+  che è già la conferma.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .carrello-borsa[data-colpo="true"],
+  .carrello-borsa[data-colpo="true"] .carrello-numero {
     animation: none;
   }
 }

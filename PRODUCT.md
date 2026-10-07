@@ -17,10 +17,9 @@ Tres audiencias confirmadas, todas llegan al mismo sitio:
 3. **Quien compra impresiones** — público que llega por Instagram y quiere una lámina
    o un original.
 
-Hoy las tres terminan en el mismo lugar: un mail. El sitio no vende: el cliente decidió
-que por ahora sólo muestra obra (**Works**), y la tienda queda fuera de alcance. Si algún
-día entra, va a partir esa audiencia en dos: el editor va a seguir escribiendo, el que
-compra una lámina va a querer comprarla ahí mismo.
+Editoriales y estudios terminan en un mensaje. Quien compra impresiones ya puede
+comprarlas en el sitio: las stampe tienen carrito y pago con Stripe. Retratos e
+ilustraciones personalizadas siguen siendo una consulta.
 
 ## Product Purpose
 
@@ -65,13 +64,16 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   directa: `npm run build` ya no termina sin la base levantada, porque la portada y
   las páginas de obra se generan leyendo la tabla. Publicarlo ahora pide un hosting
   con Node y una base, no una carpeta de archivos. Ver `db/README.md`.
-- **Tienda: fuera de alcance por pedido del cliente.** Hubo un menú **Shop** con cinco
-  categorías inventadas que abrían un mail, y una página `/shop` que declaraba que la
-  tienda no existía todavía. Se eliminó entero —menú de barra y de cajón, página,
-  columna del pie y `src/data/shop.ts`—: el cliente por ahora no quiere vender nada,
-  sólo mostrar sus trabajos. Es recuperable del commit `c57ec93`. El día que la tienda
-  vuelva a estar sobre la mesa hay que definir precios, stock, pago, envíos y
-  devoluciones: es otro alcance, no un ajuste.
+- **Tienda.** Volvió el 2026-10-07 y desde ese día vende. Dos cosas distintas:
+  - **Stampe** son productos y se agregan seguido (tabla `prodotti`): formatos con
+    precio, carrito, pago con Stripe, envío a Italia y a la UE. Lista base del cliente:
+    A5 10 €, A4 15 €, A3 30 €, editable por stampa. Sin stock: se imprimen a pedido.
+    Los pedidos los escribe el webhook de Stripe en `ordini` y ella los marca como
+    enviados en `/admin/ordini`.
+  - **Illustrazioni Personalizzate** y **Ritratti Illustrati** no son productos: son
+    dos servicios, uno cada uno y siempre los mismos (tabla `servizi`, dos filas
+    fijas). Una página que se lee —de qué se trata, cómo funciona, ejemplos— y lleva a
+    «Chiedi info». No se agregan ni se borran; ella actualiza el texto y las imágenes.
 - **El orden del archivo lo decide ella.** Qué obra abre el sitio y cuál va al
   lado de cuál se arrastra en `/admin` y vive en la columna `works.position`.
   Antes el orden salía del año y, a igual año, del número de fila: nadie lo
@@ -97,11 +99,16 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
 - **Jerarquía entre "Illustrando" y "Benedetta".** En la práctica el sitio ya la resolvió
   —el logotipo dice Illustrando y el nombre propio aparece en el footer y en About— pero
   nadie lo decidió explícitamente.
-- **Alcance de la tienda.** Cerrada por ahora: el cliente no quiere vender. Si se
-  reabre, lo primero es qué se vende (láminas, originales, ambas), en qué formatos y a
-  qué precios. Las cinco categorías que llegó a haber —Stampe fine art, Originali,
-  Biglietti, Quaderni, Poster— las inventé yo y no las decidió nadie: no darlas por
-  válidas si la sección vuelve.
+- **Para vender de verdad faltan cuatro cosas, y ninguna se inventa:**
+  1. **Cuenta de Stripe.** Hoy todo corre con claves de prueba (`sk_test_`).
+  2. **Costo de envío** a Italia y a la UE (`SPEDIZIONE_ITALIA`, `SPEDIZIONE_UE`, en
+     centavos). Sin esto el carrito dice «da definire» y el pago no arranca.
+  3. **El número de partita IVA** en el pie: obligatorio si vende. Tiene partita IVA;
+     falta el número.
+  4. **Condizioni di vendita, diritto di recesso (14 días, ley UE) y privacy.** Los
+     textos tienen que venir de ella o de su contador.
+- **Notas por categoría.** Si quiere una línea de material o formato bajo cada
+  categoría, entra en `note` en `src/data/shop.ts`. No inventarla.
 
 ## Brand Commitments
 

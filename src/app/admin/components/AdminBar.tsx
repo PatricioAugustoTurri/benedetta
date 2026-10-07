@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { salir } from "../actions";
+import { listOrdini, listProdotti } from "@/lib/prodotti";
 import { listWorks, pingDb } from "@/lib/works";
+import AdminNav from "./AdminNav";
 
 /**
  * La barra dell'admin: cosa c'è caricato, se il database risponde, e l'uscita.
@@ -17,15 +19,25 @@ import { listWorks, pingDb } from "@/lib/works";
  */
 export default async function AdminBar() {
   const viva = await pingDb();
-  const obras = viva ? await listWorks() : [];
+  const [obras, prodotti, ordini] = viva
+    ? await Promise.all([listWorks(), listProdotti(), listOrdini()])
+    : [[], [], []];
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
       <div className="shell flex h-12 items-center justify-between gap-4">
         <div className="flex items-baseline gap-4">
-          <Link href="/admin" className="label text-ink">
-            Archivio
-          </Link>
+          <AdminNav
+            conti={
+              viva
+                ? {
+                    opere: obras.length,
+                    prodotti: prodotti.length,
+                    daSpedire: ordini.filter((o) => o.stato === "pagato").length,
+                  }
+                : null
+            }
+          />
 
           {/*
             Il punto è l'unico colore della barra, e dice lo stato: terracotta
@@ -33,19 +45,14 @@ export default async function AdminBar() {
             a posto. Mai verde: in questo sistema il colore segna quello che
             chiede attenzione, e «funziona» non ne chiede nessuna.
           */}
-          <span className="flex items-center gap-1.5 text-xs text-ink-faint">
+          <span
+            className={`items-center gap-1.5 text-xs text-ink-faint ${viva ? "hidden md:flex" : "flex"}`}
+          >
             <span
               aria-hidden="true"
               className={`block h-1 w-1 rounded-full ${viva ? "bg-ink-faint" : "bg-accent"}`}
             />
-            {viva ? (
-              <>
-                <span className="figures">{obras.length}</span>
-                {obras.length === 1 ? " opera" : " opere"}
-              </>
-            ) : (
-              "il database non risponde"
-            )}
+            {viva ? "database collegato" : "il database non risponde"}
           </span>
         </div>
 

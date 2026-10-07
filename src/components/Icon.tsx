@@ -75,6 +75,35 @@ export function Close({ className, size = 20 }: Props) {
 }
 
 /**
+ * Il carrello, disegnato come una borsa di carta e non come il carrello del
+ * supermercato: in questo sito si porta via un foglio stampato, non si spinge
+ * una spesa. Il corpo è largo e basso apposta, perché dentro ci entri il
+ * numero di copie (lo mette CarrelloIcona sopra il disegno).
+ */
+export function Borsa({ className, size = 24 }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M4.75 8.25h14.5l-.9 11.6a1.25 1.25 0 0 1-1.25 1.15H6.9a1.25 1.25 0 0 1-1.25-1.15z" />
+      <path d="M8.75 8.25V6.75a3.25 3.25 0 0 1 6.5 0v1.5" />
+    </svg>
+  );
+}
+
+/**
+ * Il segno dei menu a tendina: Shop nella barra usa questo e solo questo,
+ * girato di 180° quando è aperto. Va più piccolo del resto (16 come la
+ * freccia diagonale) perché accompagna una parola di 15px, non una riga; il
+ * tratto resta lo stesso del riquadro da 24.
+ */
+export function ChevronDown({ className, size = 16 }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="m7 10 5 5 5-5" />
+    </svg>
+  );
+}
+
+/**
  * Copiare: due fogli sfalsati. Si disegna perché l'azione non è "mandare una
  * mail" e usare la busta per tutte e due le cose farebbe sì che la busta non
  * significhi nessuna delle due.
@@ -117,6 +146,15 @@ export function Plus({ className, size = 20 }: Props) {
   return (
     <svg {...base(size)} className={className}>
       <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+/** Togliere uno: il trattino orizzontale del più, da solo. Lo usa la quantità del carrello. */
+export function Meno({ className, size = 20 }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M5 12h14" />
     </svg>
   );
 }

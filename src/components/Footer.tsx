@@ -4,6 +4,7 @@ import { ArrowUp, ArrowUpRight, Mail } from "@/components/Icon";
 import NewsletterForm from "@/components/NewsletterForm";
 import Reveal from "@/components/Reveal";
 import { footerNav, site } from "@/data/site";
+import { shopCategories, shopHref } from "@/data/shop";
 import { posts } from "@/data/instagram";
 
 /**
@@ -12,7 +13,7 @@ import { posts } from "@/data/instagram";
  * Tre fasce separate da filetti:
  *
  *   1. Il canale       — la striscia di Instagram, per chi ancora non scrive.
- *   2. L'indice        — marchio, indirizzo, percorsi, iscrizione alla newsletter.
+ *   2. L'indice        — marchio, indirizzo, percorsi, negozio, iscrizione alla newsletter.
  *   3. Il testo piccolo — copyright e ritorno in cima.
  *
  * **Il footer non chiude il sito con una richiesta.** C'è stata una fascia di
@@ -143,9 +144,8 @@ export default function Footer() {
       <div className="shell border-t border-line py-12 md:py-16">
         {/*
           La griglia da 12 del sito, che sul telefono si divide in due mezze
-          colonne. Oggi tutti i blocchi prendono lì la larghezza intera —sono
-          una firma, una lista corta e un modulo— e la divisione resta
-          disponibile per quando l'indice tornerà ad avere due liste.
+          colonne: la firma e il modulo prendono la larghezza intera, e le due
+          liste corte —Sito e Shop— vanno affiancate, una per metà.
         */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-12">
           <div className="col-span-2 md:col-span-3">
@@ -200,7 +200,7 @@ export default function Footer() {
             </a>
           </div>
 
-          <nav className="col-span-2 md:col-span-3 md:col-start-5" aria-labelledby="footer-sito">
+          <nav className="md:col-span-2 md:col-start-5" aria-labelledby="footer-sito">
             <h2 id="footer-sito" className="label">
               Sito
             </h2>
@@ -217,6 +217,29 @@ export default function Footer() {
               ))}
             </ul>
           </nav>
+
+          {/*
+            Le categorie del negozio, intere. Nell'header sono un menu a
+            tendina che bisogna provocare; qui restano scritte, che è a cosa
+            serve un footer. Ognuna esce da `shopHref`, la stessa funzione che
+            usano la barra e la pagina: il giorno in cui il negozio esisterà,
+            queste righe cambiano destinazione senza toccare questo file.
+          */}
+          <div className="md:col-span-2 md:col-start-7">
+            <h2 className="label">Shop</h2>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              {shopCategories.map((c) => (
+                <li key={c.slug}>
+                  <Link
+                    href={shopHref(c)}
+                    className="link-underline text-ink-soft transition-colors hover:text-ink"
+                  >
+                    {c.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <div className="col-span-2 md:col-span-3 md:col-start-10">
             <h2 className="label">Newsletter</h2>

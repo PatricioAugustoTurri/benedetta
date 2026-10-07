@@ -1,6 +1,8 @@
 import { Resend } from "resend";
 import { site } from "@/data/site";
 import type { DatiContatto } from "@/lib/contacto";
+import { prezzo } from "@/data/shop";
+import type { Ordine } from "@/lib/prodotti";
 
 /**
  * La posta che parte dal sito, via Resend.
@@ -237,6 +239,107 @@ function htmlConferma(c: Contatto): string {
 ${oggetto ? `<div style="font-family:${FONT};font-size:14px;color:${C.ink};margin-bottom:8px;"><strong style="font-weight:600;">${esc(oggetto)}</strong></div>` : ""}
 <div style="background:${C.paperDeep};padding:16px 18px;">${corpo(c.messaggio)}</div>
 </div>
+</td></tr>`,
+  );
+}
+
+/* --------------------------------------------------------------- ordini */
+
+/**
+ * L'avviso a lei di un ordine pagato. Porta tutto quello che serve per
+ * spedire senza aprire Stripe: cosa, quante copie, a chi e dove.
+ */
+export async function avvisaOrdine(o: Ordine): Promise<void> {
+  const { error } = await cliente().emails.send({
+    from: desde(),
+    to: para(),
+    replyTo: o.nome ? `${unaRiga(o.nome)} <${o.email}>` : o.email,
+    subject: unaRiga(`Nuovo ordine #${o.id} — ${prezzo(o.totale)}${o.nome ? ` — ${o.nome}` : ""}`),
+    html: htmlOrdine(o, "lei"),
+    text: testoOrdine(o, "lei"),
+  });
+  if (error) throw new Error(`Resend (ordine a lei): ${error.message}`);
+}
+
+/** La conferma a chi ha comprato: cosa ha pagato e dove arriverà. */
+export async function confermaOrdine(o: Ordine): Promise<void> {
+  const { error } = await cliente().emails.send({
+    from: desde(),
+    to: o.email,
+    replyTo: para(),
+    subject: `Il tuo ordine #${o.id} — ${site.name}`,
+    html: htmlOrdine(o, "cliente"),
+    text: testoOrdine(o, "cliente"),
+  });
+  if (error) throw new Error(`Resend (conferma ordine): ${error.message}`);
+}
+
+function indirizzoInRighe(o: Ordine): string[] {
+  const a = o.indirizzo;
+  return [
+    o.nome ?? "",
+    a.line1 ?? "",
+    a.line2 ?? "",
+    [a.postal_code, a.city, a.state].filter(Boolean).join(" "),
+    a.country ?? "",
+  ].filter((r) => r.trim().length > 0);
+}
+
+function testoOrdine(o: Ordine, per: "lei" | "cliente"): string {
+  const righe = [
+    per === "lei"
+      ? `Nuovo ordine #${o.id}, pagato il ${fecha(o.creato)}.`
+      : `Ciao${o.nome ? ` ${o.nome}` : ""},\n\ngrazie! Il tuo ordine #${o.id} è arrivato e il pagamento è andato a buon fine.`,
+    "",
+    ...o.righe.map(
+      (r) => `${r.quantita} × ${r.title} — ${r.formato}  ${prezzo(r.prezzo * r.quantita)}`,
+    ),
+    "",
+    `Subtotale:   ${prezzo(o.subtotale)}`,
+    `Spedizione:  ${prezzo(o.spedizione)}`,
+    `Totale:      ${prezzo(o.totale)}`,
+    "",
+    "Spedizione a:",
+    ...indirizzoInRighe(o),
+  ];
+  if (per === "lei") righe.push("", `Email: ${o.email}`, `Stripe: ${o.stripeSessionId}`);
+  else righe.push("", "Per qualsiasi domanda basta rispondere a questa mail.", "", "Benedetta");
+  return righe.join("\n");
+}
+
+function htmlOrdine(o: Ordine, per: "lei" | "cliente"): string {
+  const voci = o.righe
+    .map((r) =>
+      riga(
+        `${r.quantita} ×`,
+        `${esc(r.title)} <span style="color:${C.inkFaint};">— ${esc(r.formato)}</span><span style="float:right;">${esc(prezzo(r.prezzo * r.quantita))}</span>`,
+      ),
+    )
+    .join("");
+  const conti = [
+    riga("Subtotale", `<span style="float:right;">${esc(prezzo(o.subtotale))}</span>`),
+    riga("Spedizione", `<span style="float:right;">${esc(prezzo(o.spedizione))}</span>`),
+    riga("Totale", `<strong style="float:right;font-weight:600;">${esc(prezzo(o.totale))}</strong>`),
+  ].join("");
+
+  const apertura =
+    per === "lei"
+      ? `<div style="font-family:${FONT};font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${C.accent};">Nuovo ordine</div>
+<h1 style="margin:10px 0 0;font-family:${SERIF};font-weight:normal;font-size:24px;line-height:1.3;color:${C.ink};">Ordine #${o.id} · ${esc(prezzo(o.totale))}</h1>
+<p style="margin:10px 0 0;font-family:${FONT};font-size:14px;color:${C.inkSoft};">Pagato il ${esc(fecha(o.creato))} da <a href="mailto:${esc(o.email)}" style="color:${C.accent};">${esc(o.email)}</a>.</p>`
+      : `<h1 style="margin:0;font-family:${SERIF};font-weight:normal;font-size:24px;line-height:1.3;color:${C.ink};">Grazie${o.nome ? `, ${esc(o.nome)}` : ""}!</h1>
+<p style="margin:16px 0 0;font-family:${FONT};font-size:16px;line-height:1.65;color:${C.inkSoft};">Il tuo ordine #${o.id} è arrivato e il pagamento è andato a buon fine.</p>`;
+
+  return cornice(
+    per === "lei" ? `Ordine #${o.id}: ${prezzo(o.totale)}` : `Il tuo ordine #${o.id} è arrivato.`,
+    `<tr><td style="padding:28px 32px 8px;">${apertura}</td></tr>
+<tr><td style="padding:16px 32px 8px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${C.line};">${voci}${conti}</table>
+</td></tr>
+<tr><td style="padding:24px 32px 32px;">
+<div style="font-family:${FONT};font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${C.inkFaint};margin-bottom:10px;">Spedizione a</div>
+<div style="font-family:${FONT};font-size:15px;line-height:1.6;color:${C.ink};">${indirizzoInRighe(o).map(esc).join("<br>")}</div>
+${per === "cliente" ? `<p style="margin:24px 0 0;font-family:${FONT};font-size:14px;line-height:1.6;color:${C.inkSoft};">Per qualsiasi domanda basta rispondere a questa mail.</p><p style="margin:16px 0 0;font-family:${SERIF};font-size:18px;color:${C.ink};">Benedetta</p>` : ""}
 </td></tr>`,
   );
 }

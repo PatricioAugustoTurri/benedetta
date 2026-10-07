@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { stampeDellOpera } from "@/lib/prodotti";
 import { getWork, listSlugs } from "@/lib/works";
 import { site } from "@/data/site";
 import { immagineFerma } from "@/lib/video";
@@ -62,6 +63,7 @@ export default async function OperaPage({ params }: Params) {
   if (!work) notFound();
 
   const portada = work.image[0];
+  const [stampa] = await stampeDellOpera(work.slug);
 
   /*
     Dati strutturati per questa opera: quello che permette a Google Immagini
@@ -107,7 +109,7 @@ export default async function OperaPage({ params }: Params) {
           <WorkTitle work={work} />
           <WorkPlate work={work} />
           <WorkPlates work={work} />
-          <WorkAside work={work} />
+          <WorkAside work={work} stampa={stampa ?? null} />
         </div>
       </Visore>
       <WorkPager slug={slug} />

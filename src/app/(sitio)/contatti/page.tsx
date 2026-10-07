@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import ContactForm from "@/components/ContactForm";
+import { getShopCategory, shopSubject } from "@/data/shop";
+import { getServizio } from "@/lib/servizi";
 import { getWork } from "@/lib/works";
 import Reveal from "@/components/Reveal";
 import ContactAside from "./components/ContactAside";
@@ -9,7 +11,8 @@ import ContactNote from "./components/ContactNote";
 export const metadata: Metadata = {
   title: "Contatti",
   description: "Commissioni, collaborazioni e richieste di stampe.",
-  // Il canonical resta la pagina pulita anche quando arriva `?opera=<slug>`:
+  // Il canonical resta la pagina pulita anche quando arriva `?opera=<slug>`,
+  // `?shop=<slug>` o `?servizio=<slug>`:
   // quel parametro precompila l'oggetto, non cambia cosa mostra la pagina.
   alternates: { canonical: "/contatti" },
 };
@@ -29,6 +32,15 @@ export const metadata: Metadata = {
  * Uno slug che non esiste più non rompe niente: non c'è opera, non c'è
  * oggetto, e il modulo esce vuoto come se si fosse entrati dal menu.
  *
+ * `?servizio=<slug>` è «Chiedi info» su Ritratti Illustrati o Illustrazioni
+ * Personalizzate, e funziona come quello di un'opera: lo slug viaggia, il
+ * nome lo cerca il server.
+ *
+ * `?shop=<slug>` è lo stesso gesto per le categorie del negozio, con la
+ * stessa regola: viaggia lo slug, e l'oggetto lo scrive il server a partire
+ * da `src/data/shop.ts`. Non tocca il database, perché le categorie vivono
+ * nel codice.
+ *
  * Senza il parametro il database non si tocca. La pagina si serve su
  * richiesta perché guarda `searchParams`, ma chi entra dal menu non paga una
  * query.
@@ -36,10 +48,16 @@ export const metadata: Metadata = {
 export default async function ContattiPage({
   searchParams,
 }: {
-  searchParams: Promise<{ opera?: string }>;
+  searchParams: Promise<{ opera?: string; shop?: string; servizio?: string }>;
 }) {
-  const { opera } = await searchParams;
+  const { opera, shop, servizio } = await searchParams;
   const obra = opera ? await getWork(opera) : null;
+  // «Chiedi info» su un servizio: l'oggetto è il nome del servizio, preso
+  // dalla tabella e non dall'indirizzo.
+  const lavoro = !obra && servizio ? await getServizio(servizio) : null;
+  const categoria = !obra && !lavoro && shop ? getShopCategory(shop) : null;
+  const asunto =
+    obra?.title ?? lavoro?.title ?? (categoria ? shopSubject(categoria) : undefined);
 
   return (
     <section className="shell pt-12 pb-8 md:pt-20">
@@ -49,9 +67,9 @@ export default async function ContattiPage({
         <div className="md:col-span-7">
           <ContactIntro />
           <Reveal delay={170}>
-            <ContactForm asuntoInicial={obra?.title} opera={obra?.slug} />
+            <ContactForm asuntoInicial={asunto} opera={obra?.slug} />
           </Reveal>
-          <ContactNote desdeUnaObra={obra !== null} />
+          <ContactNote conOggetto={asunto !== undefined} />
         </div>
 
         <ContactAside />
