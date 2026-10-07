@@ -81,7 +81,9 @@ export type Formato = {
 
 /**
  * Il listino di partenza di ogni stampa, come l'ha dato la cliente
- * (2026-10-07): A5 a 10 €, A4 a 15 €, A3 a 30 €.
+ * (2026-10-07): A5 a 10 €, 20×20 cm a 15 €, A4 a 20 €, A3 a 30 €. In ordine di
+ * prezzo e non di carta: il quadrato sta fra A5 e A4, e chi sceglie legge una
+ * scala che sale.
  *
  * È il punto di partenza e non una regola: una stampa nuova arriva al modulo
  * con questi tre già scritti, e lei può cambiare un prezzo o togliere un
@@ -90,7 +92,8 @@ export type Formato = {
  */
 export const FORMATI_BASE: Formato[] = [
   { formato: "A5", prezzo: 1000 },
-  { formato: "A4", prezzo: 1500 },
+  { formato: "20×20 cm", prezzo: 1500 },
+  { formato: "A4", prezzo: 2000 },
   { formato: "A3", prezzo: 3000 },
 ];
 

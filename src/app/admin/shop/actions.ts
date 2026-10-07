@@ -14,6 +14,7 @@ import {
   updateProdotto,
 } from "@/lib/prodotti";
 import { getServizio, updateServizio } from "@/lib/servizi";
+import { esVideo } from "@/lib/video";
 import type { WorkImage } from "@/lib/works";
 import { getWork } from "@/lib/works";
 import type { EstadoFormulario } from "../actions";
@@ -98,6 +99,16 @@ export async function guardaProdotto(
     return { error: "La stampa ha bisogno di almeno un’immagine: è quella che esce nello Shop." };
   }
 
+  let mockup: WorkImage | null;
+  try {
+    const lista = armarImagenes(formData, "mockup");
+    if (lista.length > 1) return { error: "Il mockup è uno solo. Togli quelli in più." };
+    mockup = lista[0] ?? null;
+  } catch (e) {
+    return { error: e instanceof ErrorDeImagenes ? e.message : "Il mockup non si è capito." };
+  }
+  if (mockup && esVideo(mockup)) return { error: "Il mockup deve essere un’immagine, non un video." };
+
   const entrada = {
     categoria: "stampe" as const,
     slug,
@@ -106,6 +117,7 @@ export async function guardaProdotto(
     image: imagenes,
     formati,
     operaSlug,
+    mockup,
     pubblicato,
   };
 
@@ -116,6 +128,7 @@ export async function guardaProdotto(
     else await createProdotto(entrada);
   } catch (e) {
     const nuevas = imagenes.filter((img) => !anterior?.image.some((v) => v.url === img.url));
+    if (mockup && mockup.url !== anterior?.mockup?.url) nuevas.push(mockup);
     await Promise.all(nuevas.map(quitarImagen));
 
     const mensaje = e instanceof Error ? e.message : "";
@@ -127,6 +140,8 @@ export async function guardaProdotto(
 
   if (anterior) {
     const sobrantes = anterior.image.filter((v) => !imagenes.some((img) => img.url === v.url));
+    // Il mockup sostituito o tolto se ne va anche lui da Cloudinary.
+    if (anterior.mockup && anterior.mockup.url !== mockup?.url) sobrantes.push(anterior.mockup);
     await Promise.all(sobrantes.map(quitarImagen));
   }
 
@@ -189,7 +204,7 @@ export async function cancellaProdotto(formData: FormData): Promise<void> {
 
   const fuori = await deleteProdotto(id);
   if (!fuori) return;
-  await Promise.all(fuori.image.map(quitarImagen));
+  await Promise.all([...fuori.image, ...(fuori.mockup ? [fuori.mockup] : [])].map(quitarImagen));
 
   rivalida();
   redirect("/admin/shop");

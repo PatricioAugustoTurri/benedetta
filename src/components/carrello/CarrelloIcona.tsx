@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Borsa } from "@/components/Icon";
-import { contaCopie, EVENTO_AGGIUNTO, useCarrello } from "./store";
+import { contaStampe, EVENTO_AGGIUNTO, useCarrello, type DettaglioAggiunto } from "./store";
 
 /** Come si dice il carrello a chi non lo vede. */
 export function nomeCarrello(n: number): string {
@@ -28,18 +28,24 @@ export function nomeCarrello(n: number): string {
  * scende di un paio di pixel e torna, come quando ci si lascia cadere dentro
  * qualcosa, e il numero nuovo sale dal fondo. Non si muove quando il carrello
  * si carica, né quando cambia in un'altra scheda: lì non è successo niente
- * davanti a chi guarda.
+ * davanti a chi guarda. Il numero conta le stampe diverse e non le copie,
+ * quindi una copia in più di una stampa già dentro fa scendere la borsa ma
+ * non muove il numero, che è rimasto lo stesso.
  */
 export default function CarrelloIcona({ className = "" }: { className?: string }) {
-  const n = contaCopie(useCarrello());
+  const n = contaStampe(useCarrello());
   const pathname = usePathname();
   const qui = pathname.startsWith("/carrello");
   // Quante volte si è aggiunto da quando la pagina è aperta. Fa da `key`:
   // cambiare chiave rimonta il disegno, e rimontarlo fa ripartire l'animazione.
   const [colpo, setColpo] = useState(0);
+  const [nuova, setNuova] = useState(false);
 
   useEffect(() => {
-    const suAggiunto = () => setColpo((c) => c + 1);
+    const suAggiunto = (e: Event) => {
+      setNuova((e as CustomEvent<DettaglioAggiunto>).detail?.nuova ?? true);
+      setColpo((c) => c + 1);
+    };
     window.addEventListener(EVENTO_AGGIUNTO, suAggiunto);
     return () => window.removeEventListener(EVENTO_AGGIUNTO, suAggiunto);
   }, []);
@@ -52,7 +58,7 @@ export default function CarrelloIcona({ className = "" }: { className?: string }
       data-active={qui}
       className={`flex h-10 w-10 items-center justify-center text-ink-soft transition-colors hover:text-ink data-[active=true]:text-ink ${className}`}
     >
-      <span key={colpo} data-colpo={colpo > 0} className="carrello-borsa relative block">
+      <span key={colpo} data-colpo={colpo > 0} data-nuova={nuova} className="carrello-borsa relative block">
         <Borsa size={26} />
         {n > 0 && (
           <span

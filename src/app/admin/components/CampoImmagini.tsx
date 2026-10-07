@@ -139,16 +139,30 @@ function subirACloudinary(
  *
  * Il modulo che lo contiene riceve lo stato con `onStato` per bloccare il
  * pulsante e mostrare l'avviso in cima, dove si vede.
+ *
+ * Con `singola` tiene un pezzo solo, e solo immagini: è il mockup di una
+ * stampa. Scegliere un altro file sostituisce quello che c'era invece di
+ * metterlo in fila, e le frecce per ordinare spariscono perché non c'è un
+ * ordine. Manda il suo JSON in un campo a parte (`campo`), così nel modulo
+ * convive con la galleria.
  */
 export default function CampoImmagini({
   iniziali = [],
   nota,
   onStato,
+  campo = "imagenes",
+  titolo = "Immagini e video",
+  singola,
 }: {
   iniziali?: WorkImage[];
-  /** La riga sotto «Immagini e video»: cosa vuol dire la prima, dove esce. */
+  /** La riga sotto il titolo: cosa vuol dire la prima, dove esce. */
   nota: ReactNode;
   onStato: (stato: StatoImmagini) => void;
+  /** Il nome del campo nascosto che l'azione legge con `armarImagenes`. */
+  campo?: string;
+  titolo?: string;
+  /** Un pezzo solo: come si chiama nella riga e cosa dice il pulsante finché manca. */
+  singola?: { etichetta: string; scegli: string };
 }) {
   const [items, setItems] = useState<Item[]>(
     () =>
@@ -235,6 +249,10 @@ export default function CampoImmagini({
   async function sumarArchivos(lista: FileList | null) {
     if (!lista || lista.length === 0) return;
 
+    // Un pezzo solo: quello nuovo prende il posto del vecchio, che si toglie
+    // come se lo avesse tolto lei (e se era appena salito, anche da Cloudinary).
+    if (singola) for (const it of items) quitar(it.key);
+
     /*
       La copia si fa qui e non dentro l'updater di stato, e non è cosmetica:
       `lista` è il FileList vivo dell'input, e il gestore svuota quell'input
@@ -242,16 +260,18 @@ export default function CampoImmagini({
       l'updater dopo, quindi se la lettura vivesse là dentro troverebbe la
       lista già vuota e non si caricherebbe nessuna immagine.
     */
-    const nuevos: Nueva[] = Array.from(lista).map((file, i) => ({
-      key: `nueva-${Date.now()}-${i}`,
-      tipo: "nueva" as const,
-      video: file.type.startsWith("video/"),
-      file,
-      alt: "",
-      preview: URL.createObjectURL(file),
-      estado: "subiendo" as const,
-      progreso: 0,
-    }));
+    const nuevos: Nueva[] = Array.from(lista)
+      .slice(0, singola ? 1 : undefined)
+      .map((file, i) => ({
+        key: `nueva-${Date.now()}-${i}`,
+        tipo: "nueva" as const,
+        video: file.type.startsWith("video/"),
+        file,
+        alt: "",
+        preview: URL.createObjectURL(file),
+        estado: "subiendo" as const,
+        progreso: 0,
+      }));
 
     setItems((previos) => [...previos, ...nuevos]);
 
@@ -343,9 +363,9 @@ export default function CampoImmagini({
 
   return (
     <>
-      <input type="hidden" name="imagenes" value={manifiesto} />
+      <input type="hidden" name={campo} value={manifiesto} />
         <div className="mt-12 border-t border-line pt-8">
-          <h2 className="label text-ink">Immagini e video</h2>
+          <h2 className="label text-ink">{titolo}</h2>
           <p className="mt-1.5 max-w-[46ch] text-xs leading-relaxed text-ink-faint">{nota}</p>
 
           <ul className="mt-6 space-y-4">
@@ -395,31 +415,39 @@ export default function CampoImmagini({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="label text-ink-faint">
-                      {i === 0 ? "Copertina" : `${it.video ? "Video" : "Immagine"} ${i + 1}`}
-                      {i === 0 && it.video && " · video"}
+                      {singola
+                        ? singola.etichetta
+                        : i === 0
+                          ? "Copertina"
+                          : `${it.video ? "Video" : "Immagine"} ${i + 1}`}
+                      {!singola && i === 0 && it.video && " · video"}
                     </span>
 
                     <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => mover(i, -1)}
-                        disabled={i === 0}
-                        title="Sposta su"
-                        className="flex h-7 w-7 rotate-90 items-center justify-center text-ink-faint transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-30"
-                      >
-                        <span className="sr-only">Sposta su questo pezzo</span>
-                        <ArrowLeft size={15} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => mover(i, 1)}
-                        disabled={i === items.length - 1}
-                        title="Sposta giù"
-                        className="flex h-7 w-7 rotate-90 items-center justify-center text-ink-faint transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-30"
-                      >
-                        <span className="sr-only">Sposta giù questo pezzo</span>
-                        <ArrowRight size={15} />
-                      </button>
+                      {!singola && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => mover(i, -1)}
+                            disabled={i === 0}
+                            title="Sposta su"
+                            className="flex h-7 w-7 rotate-90 items-center justify-center text-ink-faint transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-30"
+                          >
+                            <span className="sr-only">Sposta su questo pezzo</span>
+                            <ArrowLeft size={15} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => mover(i, 1)}
+                            disabled={i === items.length - 1}
+                            title="Sposta giù"
+                            className="flex h-7 w-7 rotate-90 items-center justify-center text-ink-faint transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-30"
+                          >
+                            <span className="sr-only">Sposta giù questo pezzo</span>
+                            <ArrowRight size={15} />
+                          </button>
+                        </>
+                      )}
                       <button
                         type="button"
                         onClick={() => quitar(it.key)}
@@ -505,8 +533,8 @@ export default function CampoImmagini({
           <input
             ref={elegir}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/avif,image/svg+xml,video/mp4"
-            multiple
+            accept={`image/jpeg,image/png,image/webp,image/avif${singola ? "" : ",image/svg+xml,video/mp4"}`}
+            multiple={!singola}
             hidden
             onChange={(e) => {
               sumarArchivos(e.target.files);
@@ -523,7 +551,13 @@ export default function CampoImmagini({
           >
             <Plus size={18} />
             <span className="label">
-              {items.length === 0 ? "Scegli immagini o video" : "Aggiungi un altro pezzo"}
+              {singola
+                ? items.length === 0
+                  ? singola.scegli
+                  : "Sostituisci"
+                : items.length === 0
+                  ? "Scegli immagini o video"
+                  : "Aggiungi un altro pezzo"}
             </span>
           </button>
         </div>

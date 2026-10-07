@@ -650,23 +650,32 @@ underneath) lands on *cancel*, never on save.
   Categories go to `/shop/<categoria>`. See PRODUCT.md, "Tienda".
 
 - **Cart (the bag):** a paper bag drawn in the icon stroke (1.25), not a supermarket
-  trolley, with the copy count printed *inside* its body in 10px tabular figures,
-  ink, never a red badge — nothing rounded sits on an icon in this system. Empty, the
+  trolley, with the count of distinct prints (cart lines, not copies) printed *inside*
+  its body in 10px tabular figures, ink, never a red badge — nothing rounded sits on an icon in this system. Empty, the
   bag is empty: no zero. Desktop: absolutely on the header's right edge, vertically
   centred on the wordmark block, outside the nav row because it belongs to the whole
   masthead. Phone: a drawer row "Carrello" after the routes with the count right in
   faint tabular figures, plus a 6px accent dot on the closed menu toggle so the cart
   is visible without opening it. **One authored motion:** only on add (a
   `carrello:aggiunto` event, never on load or cross-tab sync) the bag dips 2px and
-  returns (520ms) while the new number rises 4px into place; reduced motion drops both.
+  returns (520ms) while the new number rises 4px into place — only when a new line
+  entered; another copy of a print already inside dips the bag and leaves the number
+  still. Reduced motion drops both.
 
 ### Shop
-- **Product grid:** the archive cell (4:5 crop, slow 3% zoom) plus words — the title
-  in ink and, for prints, "da 10 €" right-aligned in tabular figures (below the title
-  on phones). Commissions show no line under the name. Gap is wider than the archive
-  (12–24px columns, 36–48px rows) because each cell carries two lines of type.
+- **Product grid:** the archive cell exactly — 4:5 crop, slow 3% zoom, the archive's
+  few-pixel gap (4–8px) — and, like the archive, not a single word: no title, no
+  price (client, 2026-10-07; the earlier caption with "da 10 €" is gone). Name and
+  starting price live in the link's accessible name and on the print's own page.
   Sections open on a hairline with the name in the section-display role; an empty
   prints section still renders, saying so, with a link to the contact form.
+- **Print mockup on hover:** a print with a mockup (the sheet hung in a room) keeps it
+  over the cover at zero opacity. When the pointer rests for one second the camera
+  steps back: the mockup settles from 1.08 scale and 6px blur to sharp over 0.9–1.4s on
+  the soft ease. The second is the point — sweeping across the grid changes nothing;
+  only lingering does. It leaves at once in 450ms. Keyboard focus shows it with the
+  same wait; reduced motion keeps only the swap; with no hover pointer the mockup is
+  `display: none` and never downloads. Alt is empty: the cover already names the work.
 - **Services (Illustrazioni Personalizzate, Ritratti Illustrati):** not products. Two
   fixed pages, never a list. On `/shop` they sit first under "Su commissione" as two
   cells of the same 3-column grid (4:5 cover, title, two lines of text, "Scopri come

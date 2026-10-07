@@ -62,6 +62,7 @@ existe se actualiza corriendo, una sola vez, lo que falte de `db/migrations/`:
 psql -d illustrando -f db/migrations/001-orden-manual.sql
 psql -d illustrando -f db/migrations/002-shop.sql
 psql -d illustrando -f db/migrations/003-servizi.sql
+psql -d illustrando -f db/migrations/004-mockup.sql
 ```
 
 ## La tienda: `prodotti`, `servizi` y `ordini`
@@ -70,6 +71,9 @@ psql -d illustrando -f db/migrations/003-servizi.sql
 (`[{ "formato": "A4", "prezzo": 1500 }]`, precios en centavos enteros) no puede
 quedar vacío. `pubblicato` arranca en falso: una stampa nueva es una bozza.
 `opera_slug` apunta a `works.slug` y sigue a la obra si se renombra.
+`mockup` es la stampa colgada en un ambiente, una sola imagen o nada: en la
+grilla de la tienda reemplaza a la portada cuando el mouse se queda un segundo
+encima.
 
 `servizi` tiene exactamente dos filas, `illustrazioni-personalizzate` y
 `ritratti-illustrati`, que crea la migración 003. Son los dos trabajos por

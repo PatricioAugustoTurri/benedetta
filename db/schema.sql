@@ -221,6 +221,15 @@ CREATE TABLE prodotti (
   -- DELETE SET NULL perché cancellare un'opera non deve cancellare la stampa.
   opera_slug  text        REFERENCES works (slug) ON UPDATE CASCADE ON DELETE SET NULL,
 
+  -- La stampa appesa in una stanza: nella griglia dello Shop prende il posto
+  -- della copertina quando il mouse si ferma sopra per un secondo. Uno solo,
+  -- con la forma di un elemento di `image`, o niente. Vedi la migrazione 004.
+  mockup      jsonb
+              CONSTRAINT prodotti_mockup_con_url CHECK (
+                mockup IS NULL
+                OR (jsonb_typeof(mockup) = 'object' AND jsonb_typeof(mockup -> 'url') = 'string')
+              ),
+
   -- Bozza o pubblicato. Parte da bozza: si carica con calma e si mostra
   -- quando è pronto, invece di caricare di notte per non farsi vedere a metà.
   pubblicato  boolean     NOT NULL DEFAULT false,

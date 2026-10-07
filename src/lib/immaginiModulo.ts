@@ -25,10 +25,12 @@ import type { WorkImage } from "@/lib/works";
  * guardarlo.** Una Server Action si può invocare con un POST costruito a mano;
  * se questa funzione si fidasse di quello che riceve, chiunque con una
  * sessione potrebbe infilare nell'archivio l'URL di un'immagine altrui, o di
- * un server che registra chi entra.
+ * un server che registra chi entra. *
+ * `campo` è il nome del campo nascosto: `imagenes` per la galleria, `mockup`
+ * per il mockup di una stampa, che sale con lo stesso componente.
  */
-export function armarImagenes(formData: FormData): WorkImage[] {
-  const crudo = String(formData.get("imagenes") ?? "[]");
+export function armarImagenes(formData: FormData, campo = "imagenes"): WorkImage[] {
+  const crudo = String(formData.get(campo) ?? "[]");
 
   let lista: unknown;
   try {

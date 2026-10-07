@@ -67,7 +67,7 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
 - **Tienda.** Volvió el 2026-10-07 y desde ese día vende. Dos cosas distintas:
   - **Stampe** son productos y se agregan seguido (tabla `prodotti`): formatos con
     precio, carrito, pago con Stripe, envío a Italia y a la UE. Lista base del cliente:
-    A5 10 €, A4 15 €, A3 30 €, editable por stampa. Sin stock: se imprimen a pedido.
+    A5 10 €, 20×20 cm 15 €, A4 20 €, A3 30 €, editable por stampa. Sin stock: se imprimen a pedido.
     Los pedidos los escribe el webhook de Stripe en `ordini` y ella los marca como
     enviados en `/admin/ordini`.
   - **Illustrazioni Personalizzate** y **Ritratti Illustrati** no son productos: son

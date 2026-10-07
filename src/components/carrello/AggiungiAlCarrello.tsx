@@ -17,7 +17,7 @@ import { aggiungi, type VoceCarrello } from "./store";
  * a destra, e ogni riga si sceglie.
  *
  * Sotto c'è un `radio` vero, non un div che fa finta: le frecce lo
- * percorrono, il lettore di schermo dice «A4, 15 €, 2 di 3, selezionato», e
+ * percorrono, il lettore di schermo dice «A4, 20 €, 3 di 4, selezionato», e
  * si manda con il modulo se un giorno servisse. Il segno di scelta è un
  * cerchio a filo con il centro in terracotta: terracotta come segno, mai come
  * campo.

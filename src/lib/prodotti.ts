@@ -19,12 +19,17 @@ export type Prodotto = {
   /** Almeno uno: lo garantisce il database. */
   formati: Formato[];
   operaSlug: string | null;
+  /**
+   * La stampa appesa in una stanza. Nella griglia dello Shop prende il posto
+   * della copertina quando il mouse si ferma sopra; senza, la copertina resta.
+   */
+  mockup: WorkImage | null;
   pubblicato: boolean;
 };
 
 export type ProdottoInput = Omit<Prodotto, "id">;
 
-const COLONNE = `id, categoria, slug, title, description, image, formati, opera_slug, pubblicato`;
+const COLONNE = `id, categoria, slug, title, description, image, formati, opera_slug, mockup, pubblicato`;
 
 function hydrate(row: Record<string, unknown>): Prodotto {
   return {
@@ -36,6 +41,8 @@ function hydrate(row: Record<string, unknown>): Prodotto {
     image: Array.isArray(row.image) ? (row.image as WorkImage[]) : [],
     formati: Array.isArray(row.formati) ? (row.formati as Formato[]) : [],
     operaSlug: row.opera_slug === null ? null : String(row.opera_slug),
+    mockup:
+      row.mockup && typeof row.mockup === "object" ? (row.mockup as WorkImage) : null,
     pubblicato: Boolean(row.pubblicato),
   };
 }
@@ -120,8 +127,8 @@ export async function createProdotto(input: ProdottoInput): Promise<Prodotto> {
   return transaction(async (run) => {
     await run(`LOCK TABLE prodotti IN SHARE ROW EXCLUSIVE MODE`);
     const rows = await run<Record<string, unknown>>(
-      `INSERT INTO prodotti (categoria, slug, title, description, image, formati, opera_slug, pubblicato, position)
-            VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8,
+      `INSERT INTO prodotti (categoria, slug, title, description, image, formati, opera_slug, pubblicato, mockup, position)
+            VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, $9::jsonb,
                     (SELECT COALESCE(MIN(position), 1) - 1 FROM prodotti WHERE categoria = $1))
          RETURNING ${COLONNE}`,
       [
@@ -133,6 +140,7 @@ export async function createProdotto(input: ProdottoInput): Promise<Prodotto> {
         JSON.stringify(input.formati),
         input.operaSlug,
         input.pubblicato,
+        input.mockup ? JSON.stringify(input.mockup) : null,
       ],
     );
     return hydrate(rows[0]);
@@ -149,7 +157,7 @@ export async function updateProdotto(id: number, input: ProdottoInput): Promise<
     const rows = await run<Record<string, unknown>>(
       `UPDATE prodotti
           SET categoria = $2, slug = $3, title = $4, description = $5, image = $6::jsonb,
-              formati = $7::jsonb, opera_slug = $8, pubblicato = $9,
+              formati = $7::jsonb, opera_slug = $8, pubblicato = $9, mockup = $10::jsonb,
               position = CASE WHEN categoria = $2 THEN position
                               ELSE (SELECT COALESCE(MIN(position), 1) - 1 FROM prodotti WHERE categoria = $2)
                          END
@@ -165,6 +173,7 @@ export async function updateProdotto(id: number, input: ProdottoInput): Promise<
         JSON.stringify(input.formati),
         input.operaSlug,
         input.pubblicato,
+        input.mockup ? JSON.stringify(input.mockup) : null,
       ],
     );
     return hydrate(rows[0]);

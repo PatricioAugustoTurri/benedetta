@@ -102,9 +102,15 @@ export function useCarrello(): VoceCarrello[] {
   return useSyncExternalStore(iscrivi, leggi, () => VUOTO);
 }
 
-/** Quante copie in tutto: il numero dell'icona. */
-export function contaCopie(voci: VoceCarrello[]): number {
-  return voci.reduce((n, v) => n + v.quantita, 0);
+/**
+ * Quante stampe diverse: il numero dell'icona. Ogni riga del carrello conta
+ * una, quante che siano le copie (cliente, 2026-10-07): due stampe, una in
+ * due copie e l'altra in cinque, fanno 2 e non 7. La stessa stampa in due
+ * formati sono due righe, e conta due, come le righe che si vedono nel
+ * carrello.
+ */
+export function contaStampe(voci: VoceCarrello[]): number {
+  return voci.length;
 }
 
 export function totaleCarrello(voci: VoceCarrello[]): number {
@@ -129,11 +135,15 @@ export function aggiungi(voce: Omit<VoceCarrello, "quantita">) {
   );
   // L'icona dell'header ascolta questo e non il numero: deve muoversi quando
   // qualcuno aggiunge, non quando il carrello si carica o cambia in un'altra
-  // scheda.
-  window.dispatchEvent(new Event(EVENTO_AGGIUNTO));
+  // scheda. `nuova` dice se è entrata una riga: solo allora il numero cambia,
+  // e solo allora sale.
+  window.dispatchEvent(
+    new CustomEvent<DettaglioAggiunto>(EVENTO_AGGIUNTO, { detail: { nuova: !presente } }),
+  );
 }
 
 export const EVENTO_AGGIUNTO = "carrello:aggiunto";
+export type DettaglioAggiunto = { nuova: boolean };
 
 export function cambiaQuantita(slug: string, formato: string, quantita: number) {
   if (quantita <= 0) return togli(slug, formato);

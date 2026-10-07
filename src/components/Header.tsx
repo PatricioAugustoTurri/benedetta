@@ -7,7 +7,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronDown } from "@/components/Icon";
 import ShopMenu from "@/components/ShopMenu";
 import CarrelloIcona, { nomeCarrello } from "@/components/carrello/CarrelloIcona";
-import { contaCopie, useCarrello } from "@/components/carrello/store";
+import { contaStampe, useCarrello } from "@/components/carrello/store";
 import { shopCategories, shopHref } from "@/data/shop";
 import { nav, site } from "@/data/site";
 
@@ -47,7 +47,7 @@ export default function Header() {
   // si ripristina ogni volta che il pannello si apre.
   const [shopOpen, setShopOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const copie = contaCopie(useCarrello());
+  const stampe = contaStampe(useCarrello());
   const panelRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   // Chiudere con Escape, con la croce o toccando il velo restituisce il fuoco
@@ -224,7 +224,7 @@ export default function Header() {
             className={`absolute ${controlInset} flex h-10 w-10 items-center justify-center md:hidden`}
           >
             <span className="sr-only">
-              Apri menu{copie > 0 ? ` — ${nomeCarrello(copie).toLowerCase()}` : ""}
+              Apri menu{stampe > 0 ? ` — ${nomeCarrello(stampe).toLowerCase()}` : ""}
             </span>
             {/* Due filetti dello stesso spessore del tratto delle icone. */}
             <span aria-hidden="true" className="relative block h-2.5 w-5">
@@ -236,7 +236,7 @@ export default function Header() {
                 dice: terracotta come segno, lo stesso del «sei qui» del
                 pannello, appoggiato all'angolo dei filetti.
               */}
-              {copie > 0 && (
+              {stampe > 0 && (
                 <span className="absolute -right-1.5 -top-1.5 block h-1.5 w-1.5 rounded-full bg-accent" />
               )}
             </span>
@@ -448,7 +448,7 @@ export default function Header() {
             data-drawer-item
             data-active={pathname.startsWith("/carrello")}
             aria-current={pathname.startsWith("/carrello") ? "page" : undefined}
-            aria-label={nomeCarrello(copie)}
+            aria-label={nomeCarrello(stampe)}
             style={{ transitionDelay: stagger(open, nav.length) }}
             className={`flex items-baseline justify-between gap-2 ${ITEM_DRAWER}`}
           >
@@ -459,8 +459,8 @@ export default function Header() {
               />
             )}
             <span>Carrello</span>
-            {copie > 0 && (
-              <span className="figures text-[0.9375rem] font-normal text-ink-faint">{copie}</span>
+            {stampe > 0 && (
+              <span className="figures text-[0.9375rem] font-normal text-ink-faint">{stampe}</span>
             )}
           </Link>
         </nav>

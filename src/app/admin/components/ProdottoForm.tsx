@@ -41,8 +41,8 @@ function aCentesimi(euro: string): number {
  * l'opera da cui esce. Ritratti e illustrazioni non passano di qui: sono due
  * servizi fissi e si modificano con ServizioForm.
  *
- * Il listino parte da quello di base (A5 10 €, A4 15 €, A3 30 €) e si cambia
- * per questa stampa sola.
+ * Il listino parte da quello di base (A5 10 €, 20×20 cm 15 €, A4 20 €,
+ * A3 30 €) e si cambia per questa stampa sola.
  */
 export default function ProdottoForm({
   prodotto,
@@ -69,7 +69,15 @@ export default function ProdottoForm({
     falladas: 0,
     pesadas: 0,
   });
-  const { subiendo, falladas, pesadas } = statoImmagini;
+  // Il mockup sale con lo stesso campo, e blocca il salvataggio alle stesse condizioni.
+  const [statoMockup, setStatoMockup] = useState<StatoImmagini>({
+    subiendo: false,
+    falladas: 0,
+    pesadas: 0,
+  });
+  const subiendo = statoImmagini.subiendo || statoMockup.subiendo;
+  const falladas = statoImmagini.falladas + statoMockup.falladas;
+  const pesadas = statoImmagini.pesadas + statoMockup.pesadas;
   const bloqueado = subiendo || falladas > 0 || pesadas > 0;
 
   const formatiJson = useMemo(
@@ -268,6 +276,21 @@ export default function ProdottoForm({
             <>
               Il primo pezzo è la copertina: quello che esce nella griglia dello Shop, in
               verticale 4:5. Ognuno sale su Cloudinary appena lo scegli.
+            </>
+          }
+        />
+
+        <CampoImmagini
+          campo="mockup"
+          titolo="Mockup"
+          singola={{ etichetta: "Mockup", scegli: "Scegli il mockup" }}
+          iniziali={prodotto?.mockup ? [prodotto.mockup] : []}
+          onStato={setStatoMockup}
+          nota={
+            <>
+              La stampa appesa in una stanza. Nella griglia dello Shop prende il posto della
+              copertina quando il mouse si ferma sulla stampa per un secondo. Verticale 4:5,
+              come la copertina. Può mancare: allora la copertina resta ferma.
             </>
           }
         />
