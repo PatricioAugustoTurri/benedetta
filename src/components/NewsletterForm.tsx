@@ -1,15 +1,16 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, useTransition } from "react";
+import { iscriviti } from "@/app/(sitio)/newsletter/actions";
 import { ArrowRight } from "@/components/Icon";
-import { endpoint, pitch, subscribeHref } from "@/data/newsletter";
+import { pitch } from "@/data/newsletter";
 
 /**
  * L'iscrizione alla newsletter, su una sola riga.
  *
- * Dove va a finire: vedi `src/data/newsletter.ts`. Oggi apre la mail con
- * l'indirizzo già scritto; il giorno in cui ci sarà un servizio, il POST entra
- * in `onSubmit` e nient'altro di questo file cambia.
+ * Dove va a finire: vedi `src/lib/newsletter.ts`. L'indirizzo entra in
+ * attesa e parte una mail con il link per confermare; la risposta qui dice di
+ * andarla a cercare, perché finché non si conferma non arriva niente.
  *
  * **Perché il campo non ha un'etichetta in vista**, che è il contrario di
  * quello che fa il modulo di contatto: là ci sono tre campi e l'etichetta è
@@ -23,9 +24,11 @@ export default function NewsletterForm() {
   const id = useId();
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (pending) return;
     const form = e.currentTarget;
     const email = String(new FormData(form).get("email") ?? "").trim();
 
@@ -43,30 +46,19 @@ export default function NewsletterForm() {
     }
 
     setError(null);
-    setSent(true);
-
-    // `endpoint` è ancora null in tutto il sito, quindi questo ramo è spento.
-    // Resta scritto perché il giorno del servizio non si debba ricostruirlo da
-    // zero: è un POST e una conferma, nient'altro.
-    if (endpoint) {
-      void fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      }).catch(() => {
-        /* L'iscrizione a mano via mail resta la via d'uscita; vedi lo stato qui sotto. */
-      });
-      return;
-    }
-
-    window.location.href = subscribeHref(email);
+    const dati = new FormData(form);
+    startTransition(async () => {
+      const esito = await iscriviti(dati).catch(() => null);
+      if (esito?.ok) setSent(true);
+      else setError(esito?.error ?? "Non riesco a iscriverti in questo momento. Riprova più tardi.");
+    });
   };
 
   if (sent) {
     return (
       <p role="status" className="mt-4 text-sm leading-relaxed text-ink-soft">
-        Si è aperto il tuo programma di posta con il messaggio già scritto.
-        Controllalo e invialo: l&apos;iscrizione la segno a mano.
+        Quasi fatto: ti ho mandato una mail con un link per confermare l&apos;iscrizione. Se non
+        la trovi, guarda anche nella posta indesiderata.
       </p>
     );
   }
@@ -95,6 +87,11 @@ export default function NewsletterForm() {
         data-error={Boolean(error)}
         className="mt-5 flex items-center gap-2 border-b border-line transition-colors has-[input:focus]:border-ink data-[error=true]:border-accent data-[error=true]:has-[input:focus]:border-accent"
       >
+        {/* Il vasetto di miele, uguale a quello del modulo di contatto. */}
+        <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+          <label htmlFor={`${id}-sito`}>Non compilare questo campo</label>
+          <input id={`${id}-sito`} name="sito" type="text" tabIndex={-1} autoComplete="off" />
+        </div>
         <label htmlFor={`${id}-email`} className="sr-only">
           La tua email
         </label>
@@ -117,14 +114,15 @@ export default function NewsletterForm() {
         />
         <button
           type="submit"
+          aria-disabled={pending || undefined}
           /*
             L'area di tocco misura 40px di altezza anche se la freccia ne
             misura 16: la riga è stretta e il bianco non può esserlo. L'anello
             di fuoco è quello del sito, intatto.
           */
-          className="group -mr-1 flex h-10 w-10 shrink-0 items-center justify-center text-ink-faint transition-colors hover:text-accent"
+          className="group -mr-1 flex h-10 w-10 shrink-0 items-center justify-center text-ink-faint transition-colors hover:text-accent aria-disabled:cursor-wait aria-disabled:opacity-50"
         >
-          <span className="sr-only">Iscriviti</span>
+          <span className="sr-only">{pending ? "Iscrizione in corso" : "Iscriviti"}</span>
           <ArrowRight size={16} className="shrink-0" />
         </button>
       </div>

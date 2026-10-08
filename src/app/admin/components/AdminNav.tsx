@@ -8,20 +8,26 @@ import { usePathname } from "next/navigation";
  * va in inchiostro pieno con la sottolineatura fissa, le altre in pallido.
  *
  * Il numero accanto è quanto c'è dentro —opere, prodotti, ordini da
- * spedire— in cifre tabulari, perché si legga senza aprire la pagina. Gli
- * ordini contano solo quelli da spedire: è l'unico numero dell'admin che
- * chiede di fare qualcosa.
+ * spedire, novità da annunciare— in cifre tabulari, perché si legga senza
+ * aprire la pagina. Ordini e newsletter contano solo quello che chiede di fare
+ * qualcosa, e per questo vanno in terracotta.
  */
 export default function AdminNav({
   conti,
 }: {
-  conti: { opere: number; prodotti: number; daSpedire: number } | null;
+  conti: { opere: number; prodotti: number; daSpedire: number; novita: number | null } | null;
 }) {
   const pathname = usePathname();
   const voci = [
-    { href: "/admin", label: "Opere", n: conti?.opere, attiva: !/^\/admin\/(shop|ordini)/.test(pathname) },
+    { href: "/admin", label: "Opere", n: conti?.opere, attiva: !/^\/admin\/(shop|ordini|newsletter)/.test(pathname) },
     { href: "/admin/shop", label: "Shop", n: conti?.prodotti, attiva: pathname.startsWith("/admin/shop") },
     { href: "/admin/ordini", label: "Ordini", n: conti?.daSpedire, attiva: pathname.startsWith("/admin/ordini") },
+    {
+      href: "/admin/newsletter",
+      label: "Newsletter",
+      n: conti?.novita ?? undefined,
+      attiva: pathname.startsWith("/admin/newsletter"),
+    },
   ];
 
   return (
@@ -38,7 +44,7 @@ export default function AdminNav({
           </span>
           {v.n !== undefined && v.n > 0 && (
             <span
-              className={`figures text-xs ${v.label === "Ordini" ? "text-accent" : "text-ink-faint"}`}
+              className={`figures text-xs ${v.label === "Ordini" || v.label === "Newsletter" ? "text-accent" : "text-ink-faint"}`}
             >
               {v.n}
             </span>

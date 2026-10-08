@@ -64,6 +64,7 @@ psql -d illustrando -f db/migrations/002-shop.sql
 psql -d illustrando -f db/migrations/003-servizi.sql
 psql -d illustrando -f db/migrations/004-mockup.sql
 psql -d illustrando -f db/migrations/005-copertine.sql
+psql -d illustrando -f db/migrations/006-newsletter.sql
 ```
 
 ## La tienda: `prodotti`, `servizi`, `copertine` y `ordini`
@@ -113,3 +114,19 @@ esta máquina:
 ```bash
 brew services start postgresql@17
 ```
+
+## La newsletter: `iscritti` e `invii`
+
+Quien se suscribe desde el pie de página queda en `iscritti` sin confirmar y
+recibe una mail con un link; recién al apretar «Conferma» en esa página entra
+en la lista (`confermato_at`). Darse de baja llena `disiscritto_at` y la fila
+se queda, como prueba de que no hay que escribirle más. Las suscripciones sin
+confirmar se borran solas a los 30 días.
+
+`works.annunciato_at` y `prodotti.annunciato_at` en nulo quieren decir «todavía
+no se avisó»: son las novedades que aparecen en `/admin/newsletter`. Al enviar,
+o al sacarlas de la lista sin enviar, se llenan. La migración 006 marca todo lo
+que ya existía como avisado.
+
+`invii` guarda cada envío con una copia de lo que llevaba y a cuántos llegó.
+

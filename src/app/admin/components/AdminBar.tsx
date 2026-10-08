@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { salir } from "../actions";
 import { listOrdini, listProdotti } from "@/lib/prodotti";
+import { listNovita } from "@/lib/newsletter";
 import { listWorks, pingDb } from "@/lib/works";
 import AdminNav from "./AdminNav";
 
@@ -19,9 +20,15 @@ import AdminNav from "./AdminNav";
  */
 export default async function AdminBar() {
   const viva = await pingDb();
-  const [obras, prodotti, ordini] = viva
-    ? await Promise.all([listWorks(), listProdotti(), listOrdini()])
-    : [[], [], []];
+  const [obras, prodotti, ordini, novita] = viva
+    ? await Promise.all([
+        listWorks(),
+        listProdotti(),
+        listOrdini(),
+        // Senza la migrazione 006 la barra resta in piedi, senza il numero.
+        listNovita().catch(() => null),
+      ])
+    : [[], [], [], null];
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
@@ -34,6 +41,7 @@ export default async function AdminBar() {
                     opere: obras.length,
                     prodotti: prodotti.length,
                     daSpedire: ordini.filter((o) => o.stato === "pagato").length,
+                    novita: novita ? novita.opere.length + novita.stampe.length : null,
                   }
                 : null
             }

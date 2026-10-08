@@ -1,6 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
+import { origine } from "@/lib/origine";
 import { redirect } from "next/navigation";
 import type { VoceCarrello } from "@/components/carrello/store";
 import { site } from "@/data/site";
@@ -129,11 +129,7 @@ export async function vaiAlPagamento(
 
   // L'indirizzo a cui Stripe riporta. In produzione è il dominio; in
   // sviluppo, quello da cui si sta navigando.
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  const origine = host
-    ? `${h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https")}://${host}`
-    : site.url;
+  const base = await origine();
 
   let url: string | null;
   try {
@@ -165,8 +161,8 @@ export async function vaiAlPagamento(
         },
       ],
       phone_number_collection: { enabled: true },
-      success_url: `${origine}/carrello/grazie?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origine}/carrello`,
+      success_url: `${base}/carrello/grazie?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${base}/carrello`,
       metadata: { zona: tariffa.zona },
     });
     url = sessione.url;

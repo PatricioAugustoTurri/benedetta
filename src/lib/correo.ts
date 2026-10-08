@@ -26,6 +26,9 @@ import type { Ordine } from "@/lib/prodotti";
  *   quello Resend consegna **solo** all'indirizzo dell'account: la mail a lei
  *   arriva, la conferma al visitatore no.
  * - `CONTACTO_PARA` — dove arrivano i messaggi. Se manca, `site.email`.
+ *
+ * La newsletter usa lo stesso mittente: vedi la sezione in fondo e
+ * `src/lib/newsletter.ts`.
  */
 
 const DESDE_PREDEFINITO = `${site.name} <onboarding@resend.dev>`;
@@ -342,6 +345,161 @@ function htmlOrdine(o: Ordine, per: "lei" | "cliente"): string {
 ${per === "cliente" ? `<p style="margin:24px 0 0;font-family:${FONT};font-size:14px;line-height:1.6;color:${C.inkSoft};">Per qualsiasi domanda basta rispondere a questa mail.</p><p style="margin:16px 0 0;font-family:${SERIF};font-size:18px;color:${C.ink};">Benedetta</p>` : ""}
 </td></tr>`,
   );
+}
+
+/* ----------------------------------------------------------- newsletter */
+
+/**
+ * La mail che chiede di confermare l'iscrizione. Il link porta a una pagina
+ * con un pulsante, e non conferma da solo: molti programmi di posta aprono i
+ * link per controllarli, e un'iscrizione confermata da un antivirus non è un
+ * consenso.
+ */
+export async function inviaConfermaIscrizione(email: string, link: string): Promise<void> {
+  const { error } = await cliente().emails.send({
+    from: desde(),
+    to: email,
+    replyTo: para(),
+    subject: `Conferma l’iscrizione alla newsletter — ${site.name}`,
+    html: cornice(
+      "Un clic per confermare e ricevere le novità.",
+      `<tr><td style="padding:32px 32px 8px;">
+<h1 style="margin:0;font-family:${SERIF};font-weight:normal;font-size:24px;line-height:1.3;color:${C.ink};">Conferma l’iscrizione</h1>
+<p style="margin:16px 0 0;font-family:${FONT};font-size:16px;line-height:1.65;color:${C.inkSoft};">Grazie! Per ricevere la newsletter manca un passo: conferma che questo indirizzo è tuo.</p>
+</td></tr>
+<tr><td style="padding:20px 32px 8px;">${pulsante(link, "Conferma l’iscrizione")}</td></tr>
+<tr><td style="padding:16px 32px 32px;">
+<p style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${C.inkFaint};">Se non sei stata o stato tu, ignora questa mail: senza conferma non riceverai niente e il tuo indirizzo verrà cancellato.</p>
+</td></tr>`,
+    ),
+    text: [
+      "Grazie! Per ricevere la newsletter manca un passo: conferma che questo indirizzo è tuo.",
+      "",
+      link,
+      "",
+      "Se non sei stata o stato tu, ignora questa mail: senza conferma non riceverai niente e il tuo indirizzo verrà cancellato.",
+      "",
+      `${site.name} · ${site.url}`,
+    ].join("\n"),
+  });
+  if (error) throw new Error(`Resend (conferma iscrizione): ${error.message}`);
+}
+
+/** Una novità come entra nella mail: già pronta, con indirizzi assoluti. */
+export type VoceNewsletter = {
+  title: string;
+  /** «Nuova opera · 2026» o «Stampa · da 10 €». */
+  riga: string;
+  url: string;
+  /** L'immagine, già ferma (mai un video). */
+  immagine: string | null;
+};
+
+export type ContenutoNewsletter = { oggetto: string; testo: string | null; voci: VoceNewsletter[] };
+
+/** I due indirizzi di disiscrizione di una persona: la pagina e il clic unico dei programmi di posta. */
+export type DestinatarioNewsletter = { email: string; disiscrivi: string; disiscriviSubito: string };
+
+/**
+ * Manda la newsletter a tutti, a pacchetti di cento (il massimo di Resend per
+ * chiamata). Ognuno riceve la sua copia, con il suo link per disiscriversi e
+ * l'intestazione List-Unsubscribe, che Gmail e gli altri mostrano come
+ * «Annulla iscrizione» accanto al mittente.
+ *
+ * Non si ferma al primo pacchetto fallito: restituisce quante mail sono
+ * partite, e chi chiama decide cosa dire.
+ */
+export async function inviaNewsletter(
+  c: ContenutoNewsletter,
+  destinatari: DestinatarioNewsletter[],
+  chiave: string,
+): Promise<number> {
+  const resend = cliente();
+  let partite = 0;
+
+  for (let i = 0; i < destinatari.length; i += 100) {
+    const pacchetto = destinatari.slice(i, i + 100);
+    const { error } = await resend.batch.send(
+      pacchetto.map((d) => ({
+        from: desde(),
+        to: d.email,
+        replyTo: para(),
+        subject: unaRiga(c.oggetto),
+        html: htmlNewsletter(c, d.disiscrivi),
+        text: testoNewsletter(c, d.disiscrivi),
+        headers: {
+          "List-Unsubscribe": `<${d.disiscriviSubito}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+      })),
+      // Se la stessa chiamata si ripete, Resend non manda due volte.
+      { idempotencyKey: `${chiave}-${i / 100}` },
+    );
+    if (error) console.error(`Newsletter: il pacchetto ${i / 100 + 1} non è partito.`, error.message);
+    else partite += pacchetto.length;
+
+    // Resend accetta poche chiamate al secondo.
+    if (i + 100 < destinatari.length) await new Promise((r) => setTimeout(r, 600));
+  }
+  return partite;
+}
+
+/** Una copia di prova a lei, prima di mandarla a tutti. */
+export async function inviaProvaNewsletter(c: ContenutoNewsletter): Promise<void> {
+  const finto = `${site.url}/newsletter`;
+  const { error } = await cliente().emails.send({
+    from: desde(),
+    to: para(),
+    subject: `[Prova] ${unaRiga(c.oggetto)}`,
+    html: htmlNewsletter(c, finto),
+    text: testoNewsletter(c, finto),
+  });
+  if (error) throw new Error(`Resend (prova newsletter): ${error.message}`);
+}
+
+function testoNewsletter(c: ContenutoNewsletter, disiscrivi: string): string {
+  const testo = c.testo?.trim();
+  return [
+    ...(testo ? [testo, ""] : []),
+    ...c.voci.flatMap((v) => [`${v.title} — ${v.riga}`, v.url, ""]),
+    "Benedetta",
+    "",
+    "—",
+    `Ricevi questa mail perché ti sei iscritta o iscritto alla newsletter su ${site.url.replace(/^https?:\/\//, "")}.`,
+    `Per non riceverla più: ${disiscrivi}`,
+  ].join("\n");
+}
+
+function htmlNewsletter(c: ContenutoNewsletter, disiscrivi: string): string {
+  const voci = c.voci
+    .map(
+      (v) => `<tr><td style="padding:12px 32px 20px;">
+<a href="${esc(v.url)}" style="text-decoration:none;color:${C.ink};">
+${v.immagine ? `<img src="${esc(v.immagine)}" width="536" alt="${esc(v.title)}" style="display:block;width:100%;max-width:536px;height:auto;border:0;background:${C.paperDeep};">` : ""}
+<div style="margin-top:14px;font-family:${SERIF};font-size:20px;line-height:1.3;color:${C.ink};">${esc(v.title)}</div>
+</a>
+<div style="margin-top:4px;font-family:${FONT};font-size:13px;color:${C.inkFaint};">${esc(v.riga)}</div>
+<div style="margin-top:10px;font-family:${FONT};font-size:14px;"><a href="${esc(v.url)}" style="color:${C.accent};text-decoration:underline;">Guarda sul sito</a></div>
+</td></tr>`,
+    )
+    .join("");
+
+  const testo = c.testo?.trim();
+  return cornice(
+    testo ? testo.split("\n")[0] : c.voci.map((v) => v.title).join(" · "),
+    `${testo ? `<tr><td style="padding:32px 32px 12px;">${corpo(testo)}</td></tr>` : `<tr><td style="padding:20px 0 0;"></td></tr>`}
+${voci}
+<tr><td style="padding:8px 32px 28px;">
+<p style="margin:0;font-family:${SERIF};font-size:18px;color:${C.ink};">Benedetta</p>
+<p style="margin:20px 0 0;font-family:${FONT};font-size:12px;line-height:1.6;color:${C.inkFaint};">Ricevi questa mail perché ti sei iscritta o iscritto alla newsletter sul sito. <a href="${esc(disiscrivi)}" style="color:${C.inkFaint};text-decoration:underline;">Non voglio più riceverla</a>.</p>
+</td></tr>`,
+  );
+}
+
+function pulsante(href: string, testo: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border:1px solid ${C.accent};border-radius:6px;">
+<a href="${esc(href)}" style="display:inline-block;padding:11px 22px;font-family:${FONT};font-size:14px;color:${C.accent};text-decoration:none;">${esc(testo)}</a>
+</td></tr></table>`;
 }
 
 /* ------------------------------------------------------------- utilità */
