@@ -33,7 +33,7 @@ export default async function AdminBar() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
       <div className="shell flex h-12 items-center justify-between gap-4">
-        <div className="flex items-baseline gap-4">
+        <div className="flex min-w-0 items-baseline gap-4">
           <AdminNav
             conti={
               viva
@@ -64,13 +64,13 @@ export default async function AdminBar() {
           </span>
         </div>
 
-        <div className="flex items-center gap-5 text-xs">
-          <Link
-            href="/"
-            className="link-underline text-ink-soft transition-colors hover:text-ink"
-          >
-            Vedi il sito
-          </Link>
+        <div className="flex shrink-0 items-center gap-5 text-xs">
+          {/* Sul telefono la barra serve alle quattro voci: il sito si apre dal menu del browser. */}
+          <span className="hidden sm:inline">
+            <Link href="/" className="link-underline text-ink-soft transition-colors hover:text-ink">
+              Vedi il sito
+            </Link>
+          </span>
 
           {/*
             Un modulo e non un link: chiudere la sessione cambia qualcosa sul

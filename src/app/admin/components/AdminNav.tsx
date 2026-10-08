@@ -31,13 +31,13 @@ export default function AdminNav({
   ];
 
   return (
-    <nav aria-label="Admin" className="flex items-baseline gap-5">
+    <nav aria-label="Admin" className="flex min-w-0 items-baseline gap-3.5 overflow-x-auto [scrollbar-width:none] sm:gap-5">
       {voci.map((v) => (
         <Link
           key={v.href}
           href={v.href}
           aria-current={v.attiva ? "page" : undefined}
-          className="group flex items-baseline gap-1.5 text-ink-faint transition-colors hover:text-ink aria-[current=page]:text-ink"
+          className="group flex shrink-0 items-baseline gap-1.5 text-ink-faint transition-colors hover:text-ink aria-[current=page]:text-ink"
         >
           <span className="label link-underline text-inherit" data-active={v.attiva}>
             {v.label}

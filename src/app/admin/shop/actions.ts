@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { esServizio, shopCategories, type Formato } from "@/data/shop";
 import { requireSession } from "@/lib/auth";
-import { listCopertine, setCopertina } from "@/lib/copertine";
+import { listLibreria, setCopertina } from "@/lib/copertine";
 import { armarImagenes, ErrorDeImagenes, quitarImagen } from "@/lib/immaginiModulo";
 import {
   createProdotto,
@@ -202,8 +202,12 @@ export async function guardaServizio(
  * Salva le copertine delle categorie, tutte insieme: si scelgono guardandole
  * una accanto all'altra, come escono nella pagina /shop.
  *
- * Ogni categoria manda il suo campo, `copertina-<slug>`, con zero o una
- * immagine. Prima si controllano tutte; solo se sono tutte buone si scrive.
+ * Ogni categoria manda l'indirizzo dell'immagine scelta (`copertina-<slug>`),
+ * o niente per tornare a quella di riserva. L'immagine la prende il server
+ * dalla biblioteca, non dal modulo: si può scegliere solo quello che è già
+ * caricato nel sito. E non si cancella niente da Cloudinary, perché ogni
+ * immagine appartiene ancora alla stampa, all'opera o al servizio da cui
+ * viene.
  */
 export async function guardaCopertine(
   _previo: EstadoFormulario,
@@ -211,31 +215,35 @@ export async function guardaCopertine(
 ): Promise<EstadoFormulario> {
   await requireSession();
 
+  const libreria = new Map(
+    (await listLibreria()).flatMap((g) =>
+      g.immagini.map((i) => {
+        const img: WorkImage = { url: i.url, alt: i.alt, width: i.width, height: i.height };
+        if (i.publicId) img.publicId = i.publicId;
+        return [i.url, img] as const;
+      }),
+    ),
+  );
+
   const nuove: { categoria: (typeof shopCategories)[number]["slug"]; immagine: WorkImage | null }[] = [];
   for (const c of shopCategories) {
-    let lista: WorkImage[];
-    try {
-      lista = armarImagenes(formData, `copertina-${c.slug}`);
-    } catch (e) {
-      return { error: e instanceof ErrorDeImagenes ? `${c.label}: ${e.message}` : "Le copertine non si sono capite." };
+    const url = String(formData.get(`copertina-${c.slug}`) ?? "").trim();
+    if (!url) {
+      nuove.push({ categoria: c.slug, immagine: null });
+      continue;
     }
-    if (lista.length > 1) return { error: `${c.label} ha una copertina sola. Togli quelle in più.` };
-    if (lista[0] && esVideo(lista[0])) return { error: `La copertina di ${c.label} deve essere un’immagine.` };
-    nuove.push({ categoria: c.slug, immagine: lista[0] ?? null });
+    const immagine = libreria.get(url);
+    if (!immagine) {
+      return { error: `L’immagine scelta per ${c.label} non c’è più nel sito. Scegline un’altra.` };
+    }
+    nuove.push({ categoria: c.slug, immagine });
   }
 
-  const anteriori = await listCopertine();
   try {
     for (const n of nuove) await setCopertina(n.categoria, n.immagine);
   } catch {
     return { error: "Il database ha rifiutato le copertine. Riprova." };
   }
-
-  // Quelle sostituite o tolte se ne vanno anche da Cloudinary.
-  const sobrantes = nuove
-    .map((n) => anteriori[n.categoria])
-    .filter((v): v is WorkImage => Boolean(v) && !nuove.some((n) => n.immagine?.url === v!.url));
-  await Promise.all(sobrantes.map(quitarImagen));
 
   rivalida();
   redirect("/admin/shop");
