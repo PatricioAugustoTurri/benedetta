@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { shopCategories, prodottoHref } from "@/data/shop";
 import { listPubblicati } from "@/lib/prodotti";
 import { listSlugs } from "@/lib/works";
+import { legaliPronte } from "@/data/legale";
 import { site } from "@/data/site";
 
 /**
@@ -27,6 +28,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${site.url}/studio`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${site.url}/shop`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${site.url}/contatti`, changeFrequency: "monthly", priority: 0.5 },
+    // Le pagine legali entrano quando sono complete (vedi `legaliPronte`).
+    ...(legaliPronte()
+      ? ([
+          { url: `${site.url}/spedizioni-e-resi`, changeFrequency: "yearly", priority: 0.3 },
+          { url: `${site.url}/condizioni-di-vendita`, changeFrequency: "yearly", priority: 0.2 },
+          { url: `${site.url}/privacy`, changeFrequency: "yearly", priority: 0.2 },
+        ] satisfies MetadataRoute.Sitemap)
+      : []),
   ];
 
   const opere: MetadataRoute.Sitemap = slugs.map((slug) => ({

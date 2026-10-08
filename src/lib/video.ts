@@ -32,6 +32,21 @@ export function fotogramma(url: string): string {
   return url.replace(/\.[a-z0-9]+$/i, ".jpg");
 }
 
+/**
+ * Il video come si guarda nel sito: compresso da Cloudinary e non più largo
+ * di 1280px. Il file caricato resta intatto nell'account; quello che arriva
+ * al visitatore pesa un decimo (un video da 15 MB scende a meno di 2), che
+ * sul telefono è la differenza fra una pagina che si apre e una che no.
+ *
+ * Resta MP4 (H.264): si vede ovunque, anche dove `f_auto` sceglierebbe un
+ * formato che un Safari vecchio non apre. Un indirizzo che non è di
+ * Cloudinary passa com'è.
+ */
+export function videoLeggero(url: string): string {
+  if (!url.includes("res.cloudinary.com") || !url.includes("/video/upload/")) return url;
+  return url.replace("/video/upload/", "/video/upload/q_auto,vc_auto,w_1280,c_limit/");
+}
+
 /** L'indirizzo da usare dove serve un'immagine ferma, qualunque sia il pezzo. */
 export function immagineFerma(pezzo: Pick<WorkImage, "url" | "tipo">): string {
   return esVideo(pezzo) ? fotogramma(pezzo.url) : pezzo.url;

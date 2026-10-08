@@ -365,6 +365,12 @@ CREATE TABLE ordini (
   stato             text        NOT NULL DEFAULT 'pagato'
                     CONSTRAINT ordini_stato_valido CHECK (stato IN ('pagato', 'spedito')),
 
+  -- La spedizione, che chi ha comprato riceve per mail. Vedi la 008.
+  spedito_at        timestamptz,
+  corriere          text CONSTRAINT ordini_corriere_misura CHECK (corriere IS NULL OR length(corriere) <= 80),
+  tracking          text CONSTRAINT ordini_tracking_misura CHECK (tracking IS NULL OR length(tracking) <= 300),
+  cliente_avvisato_at timestamptz,
+
   created_at        timestamptz NOT NULL DEFAULT now(),
   updated_at        timestamptz NOT NULL DEFAULT now()
 );
@@ -440,6 +446,57 @@ CREATE TABLE invii (
   stato        text        NOT NULL DEFAULT 'in corso'
                CONSTRAINT invii_stato_valido CHECK (stato IN ('in corso', 'inviato', 'errore')),
   created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+
+-- --------------------------------------------------------------------------
+-- testimonianze — le parole di chi ha commissionato un ritratto o
+-- un'illustrazione. Escono nella pagina del servizio. Le scrive lei
+-- dall'admin, copiandole da quello che le hanno scritto: mai inventate.
+-- --------------------------------------------------------------------------
+CREATE TABLE testimonianze (
+  id         integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  servizio   text        NOT NULL REFERENCES servizi (slug) ON DELETE CASCADE,
+  testo      text        NOT NULL CONSTRAINT testimonianze_testo_misura CHECK (length(trim(testo)) BETWEEN 1 AND 800),
+  autore     text        NOT NULL CONSTRAINT testimonianze_autore_misura CHECK (length(trim(autore)) BETWEEN 1 AND 80),
+  -- Una riga di contesto facoltativa: «ritratto di famiglia, 2025».
+  dettaglio  text        CONSTRAINT testimonianze_dettaglio_misura CHECK (dettaglio IS NULL OR length(dettaglio) <= 80),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX testimonianze_servizio ON testimonianze (servizio, created_at DESC);
+
+-- --------------------------------------------------------------------------
+-- sconti — gli sconti di stagione dello Shop. Vedi la migrazione 009.
+-- --------------------------------------------------------------------------
+CREATE TABLE sconti (
+  id         integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  titolo     text        NOT NULL CONSTRAINT sconti_titolo_misura CHECK (length(trim(titolo)) BETWEEN 1 AND 80),
+  -- Due righe facoltative sotto il titolo.
+  testo      text        CONSTRAINT sconti_testo_misura CHECK (testo IS NULL OR length(testo) <= 400),
+  -- La percentuale, intera: 20 vuol dire −20%.
+  percentuale smallint   NOT NULL CONSTRAINT sconti_percentuale_valida CHECK (percentuale BETWEEN 1 AND 90),
+  -- Il primo e l'ultimo giorno, compresi, con l'ora italiana.
+  dal        date        NOT NULL,
+  al         date        NOT NULL,
+  -- Spento a mano: resta salvato ma non vale, anche dentro le sue date.
+  attivo     boolean     NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT sconti_date_in_ordine CHECK (al >= dal)
+);
+
+CREATE TRIGGER sconti_set_updated_at
+  BEFORE UPDATE ON sconti
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Le stampe di uno sconto, nell'ordine in cui escono. Cancellare uno sconto o
+-- una stampa toglie la riga, non il resto.
+CREATE TABLE sconti_stampe (
+  sconto_id   integer NOT NULL REFERENCES sconti (id) ON DELETE CASCADE,
+  prodotto_id integer NOT NULL REFERENCES prodotti (id) ON DELETE CASCADE,
+  posizione   integer NOT NULL DEFAULT 0,
+  PRIMARY KEY (sconto_id, prodotto_id)
 );
 
 

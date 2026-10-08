@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowUp, ArrowUpRight, Mail } from "@/components/Icon";
 import NewsletterForm from "@/components/NewsletterForm";
 import Reveal from "@/components/Reveal";
+import { legale, legaliPronte } from "@/data/legale";
 import { footerNav, site } from "@/data/site";
 import { shopCategories, shopHref } from "@/data/shop";
 import { posts } from "@/data/instagram";
@@ -92,7 +93,7 @@ export default function Footer() {
                         href={s.href}
                         target="_blank"
                         rel="noreferrer noopener"
-                        className="inline-flex items-center gap-1.5 text-ink-soft transition-colors hover:text-ink"
+                        className="area-tocco inline-flex items-center gap-1.5 text-ink-soft transition-colors hover:text-ink"
                       >
                         <span className="link-underline">{s.label}</span>
                         <ArrowUpRight className="shrink-0" />
@@ -189,7 +190,7 @@ export default function Footer() {
               del footer: è un indirizzo disponibile, non la chiusura della
               pagina.
             */}
-            <a href={`mailto:${site.email}`} className="group mt-6 flex items-center gap-2 text-ink">
+            <a href={`mailto:${site.email}`} className="area-tocco group mt-6 flex items-center gap-2 text-ink">
               <Mail
                 size={18}
                 className="shrink-0 text-ink-faint transition-colors group-hover:text-accent"
@@ -209,7 +210,7 @@ export default function Footer() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="link-underline text-ink-soft transition-colors hover:text-ink"
+                    className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink"
                   >
                     {item.label}
                   </Link>
@@ -232,7 +233,7 @@ export default function Footer() {
                 <li key={c.slug}>
                   <Link
                     href={shopHref(c)}
-                    className="link-underline text-ink-soft transition-colors hover:text-ink"
+                    className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink"
                   >
                     {c.label}
                   </Link>
@@ -255,11 +256,39 @@ export default function Footer() {
       */}
       <div className="shell border-t border-line py-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="figures text-xs leading-relaxed text-ink-faint">
-            © {year} {site.name}
-            <span aria-hidden="true"> · </span>
-            Tutte le illustrazioni sono opera dell&apos;autrice.
-          </p>
+          <div className="space-y-1.5">
+            <p className="figures text-xs leading-relaxed text-ink-faint">
+              © {year} {site.name}
+              {/* Obbligatoria per chi vende con partita IVA: entra appena c'è. */}
+              {legale.partitaIva && (
+                <>
+                  <span aria-hidden="true"> · </span>P. IVA {legale.partitaIva}
+                </>
+              )}
+              <span aria-hidden="true"> · </span>
+              Tutte le illustrazioni sono opera dell&apos;autrice.
+            </p>
+            {/*
+              Le tre pagine da leggere prima di comprare. In fila e piccole:
+              sono un riferimento, non una strada che il footer propone.
+              Escono solo quando i dati legali sono completi (`legaliPronte`).
+            */}
+            {legaliPronte() && (
+              <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                {[
+                  { href: "/spedizioni-e-resi", label: "Spedizioni e resi" },
+                  { href: "/condizioni-di-vendita", label: "Condizioni di vendita" },
+                  { href: "/privacy", label: "Privacy e cookie" },
+                ].map((l) => (
+                  <li key={l.href}>
+                    <Link href={l.href} className="area-tocco link-underline text-ink-faint transition-colors hover:text-ink">
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           {/*
             `#top` non ha bisogno di un elemento con quell'id: l'HTML lo

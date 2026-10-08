@@ -37,7 +37,7 @@ export default function AdminNav({
           key={v.href}
           href={v.href}
           aria-current={v.attiva ? "page" : undefined}
-          className="group flex shrink-0 items-baseline gap-1.5 text-ink-faint transition-colors hover:text-ink aria-[current=page]:text-ink"
+          className="group flex shrink-0 items-baseline gap-1.5 py-3 text-ink-faint transition-colors hover:text-ink aria-[current=page]:text-ink"
         >
           <span className="label link-underline text-inherit" data-active={v.attiva}>
             {v.label}

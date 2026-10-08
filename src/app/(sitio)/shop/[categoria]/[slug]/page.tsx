@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "@/components/Icon";
-import { getShopCategory, prezzoMinimo, prodottoHref } from "@/data/shop";
+import { getShopCategory, prezzoScontato, prodottoHref } from "@/data/shop";
+import { scontiInCorso } from "@/lib/sconti";
+import { tariffeSpedizione } from "@/lib/stripe";
 import { site } from "@/data/site";
 import { mockupComeStampa } from "@/lib/mockup";
 import { getPubblicato } from "@/lib/prodotti";
@@ -68,9 +70,12 @@ export default async function ProdottoPage({ params }: Params) {
   if (!trovato) notFound();
   const { c, p } = trovato;
 
-  const opera = p.operaSlug ? await getWork(p.operaSlug) : null;
+  const [opera, sconti] = await Promise.all([
+    p.operaSlug ? getWork(p.operaSlug) : null,
+    scontiInCorso().catch(() => new Map()),
+  ]);
+  const sconto = sconti.get(p.id) ?? null;
   const portada = p.image[0];
-  const minimo = prezzoMinimo(p.formati);
 
   /*
     Con il mockup le immagini diventano un carosello: prima quelle della
@@ -91,25 +96,46 @@ export default async function ProdottoPage({ params }: Params) {
   const immagini = mockup ? [...p.image, mockup] : p.image;
 
   /*
-    Dati strutturati: un Product con la sua forchetta di prezzo, che è quello
-    che permette a Google di mostrare «da 10 €» nei risultati.
+    Dati strutturati: un Product con un'offerta per formato, ognuna con la
+    spedizione per paese e la politica di reso. È quello che Google chiede per
+    mostrare la stampa con il prezzo nei risultati e nella scheda Shopping.
   */
+  const url = `${site.url}${prodottoHref(p)}`;
+  const tariffe = tariffeSpedizione();
   const dati = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: p.title,
-    description: p.description ?? undefined,
+    description: p.description ?? `Stampa di un'illustrazione di ${site.name}.`,
     image: portada ? immagineFerma(portada) : undefined,
     brand: { "@type": "Brand", name: site.name },
-    offers: {
-      "@type": "AggregateOffer",
+    sku: p.slug,
+    offers: p.formati.map((f) => ({
+      "@type": "Offer",
+      name: f.formato,
+      sku: `${p.slug}-${f.formato}`,
+      // Il prezzo che si paga oggi, con lo sconto se c'è, e fino a quando vale.
+      price: (prezzoScontato(f.prezzo, sconto?.percentuale) / 100).toFixed(2),
+      priceValidUntil: sconto?.al,
       priceCurrency: "EUR",
-      lowPrice: ((minimo ?? 0) / 100).toFixed(2),
-      highPrice: (Math.max(0, ...p.formati.map((f) => f.prezzo)) / 100).toFixed(2),
-      offerCount: p.formati.length,
       availability: "https://schema.org/InStock",
-    },
-    url: `${site.url}${prodottoHref(p)}`,
+      itemCondition: "https://schema.org/NewCondition",
+      url,
+      shippingDetails: tariffe.map((t) => ({
+        "@type": "OfferShippingDetails",
+        shippingRate: { "@type": "MonetaryAmount", value: (t.prezzo / 100).toFixed(2), currency: "EUR" },
+        shippingDestination: t.paesi.map((c) => ({ "@type": "DefinedRegion", addressCountry: c })),
+      })),
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: [...new Set(tariffe.flatMap((t) => t.paesi))],
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 14,
+        returnMethod: "https://schema.org/ReturnByMail",
+        returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
+      },
+    })),
+    url,
   };
 
   return (
@@ -118,7 +144,7 @@ export default async function ProdottoPage({ params }: Params) {
 
       <Link
         href={`/shop/${c.slug}`}
-        className="group inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
+        className="area-tocco group inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
       >
         <ArrowLeft
           size={16}
@@ -138,7 +164,11 @@ export default async function ProdottoPage({ params }: Params) {
               <WorkPlates work={p} />
             </>
           )}
-          <ProdottoScheda prodotto={p} opera={opera ? { slug: opera.slug, title: opera.title } : null} />
+          <ProdottoScheda
+            prodotto={p}
+            opera={opera ? { slug: opera.slug, title: opera.title } : null}
+            sconto={sconto}
+          />
         </div>
       </Visore>
     </article>

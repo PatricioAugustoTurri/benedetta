@@ -154,6 +154,13 @@
     text-decoration-thickness: 1px;
   }
 
+  /*
+    Movimento ridotto: si toglie quello che si muove, non quello che cambia.
+    Spostamenti, ingrandimenti e animazioni si fermano; i cambi di colore e
+    di opacità restano, perché sono la risposta al passaggio e al fuoco e non
+    muovono niente sullo schermo. Prima il colpo era a tutte le transizioni,
+    e passando su un link non cambiava più colore in modo leggibile.
+  */
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -162,7 +169,9 @@
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-property: color, background-color, border-color, outline-color, text-decoration-color, opacity,
+        fill, stroke !important;
     }
   }
 }
@@ -250,6 +259,76 @@
   /* Misura di lettura contenuta a 68ch per il corpo di testo lungo. */
   .prose-measure {
     max-width: 68ch;
+  }
+
+  /*
+    L'area di tocco: un link piccolo —due parole da 12-14px nel footer o
+    nella barra dell'admin— resta piccolo a vedersi ma si prende con un dito.
+    Un velo invisibile lo allarga di 6px sopra e sotto e di 4 ai lati, fino
+    ai 24px che chiede WCAG 2.5.8, senza spostare niente del disegno. Usa
+    `::before` perché `::after` è già la sottolineatura di `link-underline`.
+  */
+  .area-tocco {
+    position: relative;
+  }
+  .area-tocco::before {
+    content: "";
+    position: absolute;
+    inset: -0.375rem -0.25rem;
+  }
+
+  /*
+    La nota di stato: un filetto a sinistra su un velo di carta profonda.
+    Errori, avvisi, bozze. Una classe sola invece della stessa stringa
+    ripetuta in undici moduli, che si erano messi a divergere.
+
+    Il terracotta del testo è quello del sistema scurito di un decimo con
+    l'inchiostro: puro, sul velo di carta profonda, arrivava a 4,3:1, sotto
+    la soglia AA di 4,5. Così sale a 4,9 e all'occhio resta lo stesso colore.
+  */
+  .nota {
+    border-left: 1px solid var(--color-accent);
+    background: color-mix(in srgb, var(--color-paper-deep) 60%, transparent);
+    padding: 0.5rem 0 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--color-accent) 90%, var(--color-ink));
+  }
+  /* La stessa nota quando non segnala un problema: filetto e testo neutri. */
+  .nota--neutra {
+    border-left-color: var(--color-ink-faint);
+    color: var(--color-ink);
+  }
+
+  /*
+    Il testo delle pagine legali e delle spedizioni: liste con il punto,
+    grassetto in inchiostro pieno e link sottolineati su filetto, che si
+    accendono passandoci sopra. È testo da cercare più che da leggere: i
+    punti e i grassetti sono quello su cui l'occhio si ferma.
+  */
+  .testo-legale a {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--color-line);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.3s;
+  }
+  .testo-legale a:hover {
+    text-decoration-color: currentColor;
+  }
+  .testo-legale ul {
+    list-style: disc;
+    padding-left: 1.15rem;
+  }
+  .testo-legale li + li {
+    margin-top: 0.4rem;
+  }
+  .testo-legale li::marker {
+    color: var(--color-ink-faint);
+  }
+  .testo-legale strong {
+    color: var(--color-ink);
+    font-weight: 500;
   }
 
   /* Sottolineatura che cresce al passaggio, senza spostare il testo. */
@@ -1151,3 +1230,37 @@ code {
     animation: none;
   }
 }
+
+/*
+  La cinta degli sconti (CintaSconti). La traccia porta il contenuto due
+  volte e scorre di metà della sua larghezza: quando la seconda copia arriva
+  dove partiva la prima, il giro ricomincia senza che si veda il salto.
+
+  Si ferma sotto il puntatore e quando la striscia ha il fuoco, per poterla
+  leggere e cliccare. Con il movimento ridotto non scorre: resta ferma
+  sull'inizio, che è già una frase intera.
+*/
+@keyframes cinta-scorre {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.cinta__traccia {
+  animation: cinta-scorre 40s linear infinite;
+}
+
+.cinta:hover .cinta__traccia,
+.cinta:focus-visible .cinta__traccia {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinta__traccia {
+    animation: none;
+  }
+}
+

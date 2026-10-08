@@ -1,5 +1,7 @@
+import CintaSconti from "@/components/CintaSconti";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Statistiche from "@/components/Statistiche";
 import StructuredData from "@/components/StructuredData";
 
 /**
@@ -11,16 +13,28 @@ import StructuredData from "@/components/StructuredData";
  * con l'iscrizione alla newsletter è proprio un'altra conversazione—. Il
  * gruppo fra parentesi non tocca nessun URL: `(sitio)/page.tsx` resta `/`.
  */
+/*
+  Le pagine statiche del sito —l'archivio, About, le opere— si rifanno ogni
+  cinque minuti: così la cinta degli sconti compare il primo giorno e se ne
+  va dopo l'ultimo senza bisogno di ripubblicare. Salvare uno sconto
+  dall'admin le rifà subito.
+*/
+export const revalidate = 300;
+
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <StructuredData />
+      <Statistiche />
       <a
         href="#contenido"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
       >
         Vai al contenuto
       </a>
+      {/* Sopra il menu, e non dentro: quando si scende la cinta se ne va e il
+          menu resta attaccato in cima come sempre. */}
+      <CintaSconti />
       <Header />
       {/*
         Il sito non si sposta di lato. Qui niente si legge in orizzontale,

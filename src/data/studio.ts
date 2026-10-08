@@ -28,8 +28,16 @@
  * lei; gli spazi nel nome vanno codificati nell'indirizzo.
  */
 export const studioFilm = {
-  src: "/Bebi%20about%202.mp4" as string | null,
-  poster: "/Bebi%20about%202.jpg",
+  /*
+    Il filmato e il suo fotogramma stanno su Cloudinary e non in /public:
+    da lì arrivano compressi (il video da 15 MB scende a meno di 3, vedi
+    `videoLeggero`). Gli originali restano interi nell'account.
+  */
+  src: "https://res.cloudinary.com/dvmsjdcqi/video/upload/v1791461913/illustrando/studio/bebi-about.mp4" as
+    | string
+    | null,
+  poster:
+    "https://res.cloudinary.com/dvmsjdcqi/image/upload/q_auto,c_limit,w_1600/v1791461916/illustrando/studio/bebi-about-poster.jpg",
   width: 1920,
   height: 1080,
   alt: "Benedetta in campagna: sotto un albero in un campo arato, su un ponticello sopra un canale, con le braccia alzate nell'erba alta, al volano di una chiusa, e i suoi piedi in calzini contro il cielo.",

@@ -66,6 +66,8 @@ psql -d illustrando -f db/migrations/004-mockup.sql
 psql -d illustrando -f db/migrations/005-copertine.sql
 psql -d illustrando -f db/migrations/006-newsletter.sql
 psql -d illustrando -f db/migrations/007-nome-iscritti.sql
+psql -d illustrando -f db/migrations/008-spedizioni-testimonianze.sql
+psql -d illustrando -f db/migrations/009-sconti.sql
 ```
 
 ## La tienda: `prodotti`, `servizi`, `copertine` y `ordini`
@@ -131,4 +133,22 @@ o al sacarlas de la lista sin enviar, se llenan. La migración 006 marca todo lo
 que ya existía como avisado.
 
 `invii` guarda cada envío con una copia de lo que llevaba y a cuántos llegó.
+
+## Envíos
+
+`ordini.spedito_at`, `corriere` y `tracking` se llenan cuando ella marca un
+pedido como enviado en `/admin/ordini`; con eso sale la mail al cliente.
+
+`testimonianze` son las palabras de clientes de Ritratti e Illustrazioni
+Personalizzate; ella las carga desde la página de cada servicio en el admin y
+salen en la página pública del servicio.
+
+## Descuentos de temporada: `sconti` y `sconti_stampe`
+
+Un descuento tiene nombre, porcentaje, fecha de inicio y de fin (incluidas,
+hora de Italia) y las stampe que entran, en orden. Vale sólo si `attivo` y hoy
+está entre `dal` y `al`. Mientras vale, sale como sección debajo de las
+categorías en `/shop`, y el precio rebajado es el que calcula el servidor para
+la ficha, el carrito y Stripe. Si una stampa está en dos descuentos a la vez,
+vale el mayor.
 

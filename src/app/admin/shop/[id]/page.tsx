@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { richiediAccesso } from "@/lib/auth";
 import { getProdottoById } from "@/lib/prodotti";
 import { listWorks } from "@/lib/works";
 import ProdottoForm from "../../components/ProdottoForm";
@@ -13,6 +14,7 @@ export async function generateMetadata({ params }: Params) {
 }
 
 export default async function ModificaProdottoPage({ params }: Params) {
+  await richiediAccesso();
   const { id } = await params;
   const numero = Number(id);
   if (!Number.isInteger(numero)) notFound();

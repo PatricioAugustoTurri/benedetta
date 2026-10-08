@@ -444,7 +444,7 @@ export default function Header() {
           <a
             href={`mailto:${site.email}`}
             onClick={() => close(false)}
-            className="link-underline mt-2 block break-all text-xs text-ink-soft transition-colors hover:text-ink"
+            className="area-tocco link-underline mt-2 block break-all text-xs text-ink-soft transition-colors hover:text-ink"
           >
             {site.email}
           </a>

@@ -358,12 +358,14 @@ ${per === "cliente" ? `<p style="margin:24px 0 0;font-family:${FONT};font-size:1
   sito, arriva dove il programma di posta carica i caratteri (Apple Mail,
   iOS); altrove resta Georgia, che regge lo stesso tono.
 
-  Il logo e la foto si servono sempre dal dominio del sito: una mail si apre
-  giorni dopo, da qualsiasi parte, e deve trovarli.
+  Il logo si serve dal dominio del sito e la foto da Cloudinary, sempre con
+  indirizzi assoluti: una mail si apre giorni dopo, da qualsiasi parte, e
+  deve trovarli.
 */
 const DISPLAY = "'Caprasimo', Georgia, 'Times New Roman', serif";
 const LOGO = `${site.url}/benedetta-zibetti-wordmark.png`;
-const FOTO = `${site.url}/_next/image?url=${encodeURIComponent("/Bebi about 2.jpg")}&w=1200&q=75`;
+const FOTO =
+  "https://res.cloudinary.com/dvmsjdcqi/image/upload/q_auto,f_jpg,c_limit,w_1200/v1791461916/illustrando/studio/bebi-about-poster.jpg";
 const INSTAGRAM = site.socials.find((s) => s.label === "Instagram")?.href;
 
 /** «Ciao Giulia,» o, senza nome, «Ciao,». */
@@ -646,6 +648,79 @@ function pulsante(href: string, testo: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:${C.accent};border-radius:6px;">
 <a href="${esc(href)}" style="display:inline-block;padding:13px 26px;font-family:${FONT};font-size:15px;color:#ffffff;text-decoration:none;">${esc(testo)}</a>
 </td></tr></table>`;
+}
+
+/* ----------------------------------------------------------- spedizione */
+
+/** Il numero di spedizione è un link quando è un indirizzo; altrimenti si copia e si cerca sul sito del corriere. */
+const eLink = (s: string) => /^https?:\/\//i.test(s);
+
+/**
+ * La mail a chi ha comprato quando lei segna l'ordine come spedito: è
+ * partito, cosa c'è dentro, dove arriva e come seguirlo. Ha la forma delle
+ * lettere della newsletter, perché è lei che scrive, non un magazzino.
+ */
+export async function avvisaSpedizione(o: Ordine): Promise<void> {
+  const nome = o.nome?.split(" ")[0] ?? null;
+  const tracciamento = o.tracking
+    ? eLink(o.tracking)
+      ? `<a href="${esc(o.tracking)}" style="color:${C.accent};text-decoration:underline;">Segui il pacco</a>`
+      : `<span style="font-family:${FONT};font-size:15px;color:${C.ink};letter-spacing:.02em;">${esc(o.tracking)}</span>`
+    : null;
+
+  const voci = o.righe
+    .map((r) =>
+      riga(`${r.quantita} ×`, `${esc(r.title)} <span style="color:${C.inkFaint};">— ${esc(r.formato)}</span>`),
+    )
+    .join("");
+
+  const { error } = await cliente().emails.send({
+    from: desde(),
+    to: o.email,
+    replyTo: para(),
+    subject: `La tua stampa è partita — ordine #${o.id}`,
+    html: lettera(
+      `Il tuo ordine #${o.id} è in viaggio.`,
+      `<tr><td class="px" style="padding:36px 40px 8px;">
+<p style="margin:0;font-family:${DISPLAY};font-size:28px;line-height:1.2;color:${C.ink};">${esc(saluto(nome))}</p>
+${paragrafo(`la tua stampa è partita oggi${o.corriere ? ` con ${o.corriere}` : ""}: l’ho stampata e imballata io, e adesso è in viaggio verso di te.`)}
+</td></tr>
+${
+  tracciamento
+    ? `<tr><td class="px" style="padding:20px 40px 4px;"><div style="background:${C.paperDeep};padding:16px 18px;">
+<div style="font-family:${FONT};font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${C.inkFaint};margin-bottom:6px;">Numero di spedizione${o.corriere ? ` · ${esc(o.corriere)}` : ""}</div>${tracciamento}</div></td></tr>`
+    : ""
+}
+<tr><td class="px" style="padding:20px 40px 8px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${C.line};">${voci}</table>
+</td></tr>
+<tr><td class="px" style="padding:18px 40px 8px;">
+<div style="font-family:${FONT};font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${C.inkFaint};margin-bottom:8px;">Arriva a</div>
+<div style="font-family:${FONT};font-size:15px;line-height:1.6;color:${C.ink};">${indirizzoInRighe(o).map(esc).join("<br>")}</div>
+</td></tr>
+<tr><td class="px" style="padding:20px 40px 40px;">
+${paragrafo("Se arriva rovinata o c’è qualcosa che non va, rispondi a questa mail: ci penso io.").replace("margin:18px 0 0", "margin:0")}
+${firma()}
+</td></tr>`,
+      null,
+    ),
+    text: [
+      saluto(nome),
+      "",
+      `la tua stampa è partita oggi${o.corriere ? ` con ${o.corriere}` : ""}: l’ho stampata e imballata io, e adesso è in viaggio verso di te.`,
+      "",
+      ...(o.tracking ? [`Numero di spedizione${o.corriere ? ` (${o.corriere})` : ""}: ${o.tracking}`, ""] : []),
+      ...o.righe.map((r) => `${r.quantita} × ${r.title} — ${r.formato}`),
+      "",
+      "Arriva a:",
+      ...indirizzoInRighe(o),
+      "",
+      "Se arriva rovinata o c’è qualcosa che non va, rispondi a questa mail: ci penso io.",
+      "",
+      "Benedetta",
+    ].join("\n"),
+  });
+  if (error) throw new Error(`Resend (spedizione): ${error.message}`);
 }
 
 /* ------------------------------------------------------------- utilità */

@@ -57,7 +57,7 @@ export default function CopertineForm({ porte, libreria }: { porte: Porta[]; lib
           </p>
 
           {estado.error && (
-            <p role="alert" className="mt-5 border-l border-accent bg-paper-deep/60 py-2 pl-3 text-sm text-accent">
+            <p role="alert" className="mt-5 nota">
               {estado.error}
             </p>
           )}
@@ -119,14 +119,14 @@ export default function CopertineForm({ porte, libreria }: { porte: Porta[]; lib
           </ul>
         </div>
 
-        <aside className="md:col-span-3 md:col-start-10">
+        <div className="md:col-span-3 md:col-start-10">
           <h2 className="label">Come funziona</h2>
           <ul className="mt-4 space-y-2.5 text-sm leading-relaxed text-ink-soft">
             <li>Le immagini vengono dai servizi, dalle stampe (anche i mockup) e dalle opere.</li>
             <li>Senza una scelta, la porta usa la prima immagine del servizio o della prima stampa: è quella in pallido.</li>
             <li>Scegliere una copertina non sposta né cancella l&apos;immagine da dove viene.</li>
           </ul>
-        </aside>
+        </div>
       </div>
 
       {/* La biblioteca. */}

@@ -6,6 +6,7 @@ import { useActionState, useEffect, useId, useRef, useState, useSyncExternalStor
 import { vaiAlPagamento, verificaCarrello, type EsitoPagamento } from "@/app/(sitio)/carrello/actions";
 import { AZIONE } from "@/components/azione";
 import { ArrowRight, Meno, Plus } from "@/components/Icon";
+import { legaliPronte } from "@/data/legale";
 import { prezzo, prodottoHref } from "@/data/shop";
 import type { TariffaSpedizione, Zona } from "@/lib/stripe";
 import {
@@ -121,7 +122,7 @@ export default function CarrelloVista({
         che si guarda per decidere, e il pulsante che li chiude non deve
         richiedere di tornare giù.
       */}
-      <aside className="md:col-span-4 md:col-start-9">
+      <div className="md:col-span-4 md:col-start-9">
         <form action={paga} className="md:sticky md:top-40">
           <input
             type="hidden"
@@ -195,6 +196,19 @@ export default function CarrelloVista({
           <p className="mt-3 text-xs leading-relaxed text-ink-faint">
             Paghi su Stripe, con carta o con i metodi che propone. L&apos;indirizzo di
             spedizione lo scrivi lì.
+            {legaliPronte() && (
+              <>
+                {" "}Procedendo accetti le{" "}
+                <Link href="/condizioni-di-vendita" className="link-underline text-ink-soft transition-colors hover:text-ink">
+                  condizioni di vendita
+                </Link>
+                ; hai 14 giorni per{" "}
+                <Link href="/spedizioni-e-resi#resi" className="link-underline text-ink-soft transition-colors hover:text-ink">
+                  cambiare idea
+                </Link>
+                .
+              </>
+            )}
           </p>
 
           {/*
@@ -209,7 +223,7 @@ export default function CarrelloVista({
             </p>
           )}
         </form>
-      </aside>
+      </div>
     </div>
   );
 }

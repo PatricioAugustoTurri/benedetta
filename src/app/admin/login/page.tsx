@@ -39,7 +39,7 @@ export default async function LoginPage({ searchParams }: Props) {
           pannello che si apre da solo perché mancava una variabile d'ambiente
           è peggio di uno che non si apre e dice perché.
         */
-        <div className="mt-6 border-l border-accent bg-paper-deep/60 py-3 pl-4">
+        <div className="nota nota--neutra mt-6 border-l-accent">
           <p className="text-sm text-ink">Manca la configurazione della password.</p>
           <p className="prose-measure mt-2 text-xs leading-relaxed text-ink-soft">
             Metti una riga{" "}

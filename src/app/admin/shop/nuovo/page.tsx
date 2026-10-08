@@ -1,3 +1,4 @@
+import { richiediAccesso } from "@/lib/auth";
 import { listWorks } from "@/lib/works";
 import IndietroAlloShop from "../../components/IndietroAlloShop";
 import ProdottoForm from "../../components/ProdottoForm";
@@ -5,6 +6,7 @@ import ProdottoForm from "../../components/ProdottoForm";
 export const metadata = { title: "Nuova stampa" };
 
 export default async function NuovoProdottoPage() {
+  await richiediAccesso("/admin/shop/nuovo");
   const opere = await listWorks();
 
   return (

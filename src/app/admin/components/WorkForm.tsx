@@ -60,7 +60,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
         {(falladas > 0 || pesadas > 0) && (
           <p
             role="alert"
-            className="mt-5 border-l border-accent bg-paper-deep/60 py-2 pl-3 text-sm text-accent"
+            className="mt-5 nota"
           >
             {pesadas > 0
               ? `${pesadas === 1 ? "Un file supera" : `${pesadas} file superano`} il peso massimo: ${MAX_ARCHIVO_MB} MB per le immagini, ${MAX_VIDEO_MB} MB per i video. Esportali più leggeri e riscegli.`
@@ -76,7 +76,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
           */
           <p
             role="alert"
-            className="mt-5 border-l border-accent bg-paper-deep/60 py-2 pl-3 text-sm text-accent"
+            className="mt-5 nota"
           >
             {estado.error}
           </p>
@@ -221,7 +221,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
       </div>
 
       {/* ------------------------------------------ la colonna laterale, col 9 */}
-      <aside className="md:col-span-3 md:col-start-9">
+      <div className="md:col-span-3 md:col-start-9">
         <h2 className="label">Dove uscirà</h2>
         <ul className="mt-4 space-y-2.5 text-sm text-ink-soft">
           <li>Nella griglia della home, con il primo pezzo in verticale 4:5.</li>
@@ -239,7 +239,7 @@ export default function WorkForm({ obra }: { obra?: Work }) {
             <span className="figures text-ink-soft">#{obra.id}</span> nell&apos;archivio.
           </p>
         )}
-      </aside>
+      </div>
     </form>
   );
 }

@@ -113,6 +113,21 @@ export function prezzo(centesimi: number): string {
   return centesimi % 100 === 0 ? euroTondo.format(centesimi / 100) : euro.format(centesimi / 100);
 }
 
+/**
+ * Un prezzo con lo sconto, in centesimi interi: 20 € con il 15% fanno 17 €.
+ * L'arrotondamento è al centesimo, e sempre lo stesso ovunque —scheda,
+ * carrello, Stripe— perché è questa funzione sola a farlo.
+ */
+export function prezzoScontato(centesimi: number, percentuale: number | null | undefined): number {
+  if (!percentuale) return centesimi;
+  return Math.round((centesimi * (100 - percentuale)) / 100);
+}
+
+/** I formati di una stampa con lo sconto applicato; senza sconto, gli stessi. */
+export function formatiScontati(formati: Formato[], percentuale: number | null | undefined): Formato[] {
+  return percentuale ? formati.map((f) => ({ ...f, prezzo: prezzoScontato(f.prezzo, percentuale) })) : formati;
+}
+
 /** Il prezzo più basso di una stampa, per «da 10 €» nelle griglie. */
 export function prezzoMinimo(formati: Formato[]): number | null {
   return formati.length === 0 ? null : Math.min(...formati.map((f) => f.prezzo));

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { ArrowLeft } from "@/components/Icon";
+import { richiediAccesso } from "@/lib/auth";
 import WorkForm from "../components/WorkForm";
 
 export const metadata = { title: "Nuova opera" };
 
-export default function NuevaObraPage() {
+export default async function NuevaObraPage() {
+  await richiediAccesso("/admin/nueva");
   return (
     <section className="shell pt-8 pb-16 md:pt-12">
       <Link

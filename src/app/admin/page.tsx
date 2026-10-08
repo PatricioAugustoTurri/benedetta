@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { richiediAccesso } from "@/lib/auth";
 import { cloudinaryConfigurado } from "@/lib/cloudinary";
 import { listWorks, pingDb } from "@/lib/works";
 import ArchivoOrdenable from "./components/ArchivoOrdenable";
@@ -25,6 +26,7 @@ import NuevaObra from "./components/NuevaObra";
  * ascolta niente, e mandarla da qui la lascia dov'era, dal lato server.
  */
 export default async function AdminPage() {
+  await richiediAccesso("/admin");
   const viva = await pingDb();
 
   if (!viva) {
@@ -56,6 +58,9 @@ export default async function AdminPage() {
 
   return (
     <section className="shell pt-8 pb-16 md:pt-12">
+      {/* La griglia e le sezioni parlano da sole; il titolo serve a chi
+          naviga con un lettore di schermo, per sapere in che pagina è. */}
+      <h1 className="sr-only">Opere</h1>
       {/*
         Senza le chiavi di Cloudinary si può entrare, guardare e modificare i
         testi, ma non caricare un'immagine. L'avviso va qui in alto e non
@@ -63,7 +68,7 @@ export default async function AdminPage() {
         dopo aver scelto tre scansioni è scoprirlo tardi.
       */}
       {!conCloudinary && (
-        <p className="mb-8 border-l border-accent bg-paper-deep/60 py-3 pl-4 text-sm text-ink">
+        <p className="mb-8 nota nota--neutra">
           Mancano le chiavi di Cloudinary, quindi non si possono caricare immagini. Completa{" "}
           <code className="bg-paper px-1 py-0.5">CLOUDINARY_CLOUD_NAME</code>,{" "}
           <code className="bg-paper px-1 py-0.5">CLOUDINARY_API_KEY</code> e{" "}

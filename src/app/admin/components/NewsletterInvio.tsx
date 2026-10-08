@@ -55,12 +55,12 @@ export default function NewsletterInvio({
   return (
     <form action={azione}>
       {esito.error && (
-        <p role="alert" className="mt-5 border-l border-accent bg-paper-deep/60 py-2 pl-3 text-sm text-accent">
+        <p role="alert" className="mt-5 nota">
           {esito.error}
         </p>
       )}
       {esito.fatto && (
-        <p role="status" className="mt-5 border-l border-ink-faint bg-paper-deep/60 py-2 pl-3 text-sm text-ink">
+        <p role="status" className="mt-5 nota nota--neutra">
           {esito.fatto}
         </p>
       )}

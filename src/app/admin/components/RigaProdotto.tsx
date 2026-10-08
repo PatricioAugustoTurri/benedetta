@@ -46,7 +46,7 @@ export default function RigaProdotto({
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <Link
               href={`/admin/shop/${p.id}`}
-              className="link-underline text-[0.9375rem] text-ink transition-colors hover:text-accent"
+              className="area-tocco link-underline text-[0.9375rem] text-ink transition-colors hover:text-accent"
             >
               {p.title}
             </Link>
@@ -120,7 +120,7 @@ export default function RigaProdotto({
       {p.pubblicato && !confermando && (
         <Link
           href={prodottoHref(p)}
-          className="ml-[4.5rem] mt-2 inline-block text-xs text-ink-faint transition-colors hover:text-ink"
+          className="area-tocco ml-[4.5rem] mt-2 inline-block text-xs text-ink-faint transition-colors hover:text-ink"
         >
           <span className="link-underline">Vedi nel sito</span>
         </Link>

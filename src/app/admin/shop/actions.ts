@@ -5,12 +5,13 @@ import { redirect } from "next/navigation";
 import { esServizio, shopCategories, type Formato } from "@/data/shop";
 import { requireSession } from "@/lib/auth";
 import { listLibreria, setCopertina } from "@/lib/copertine";
+import { aggiungiTestimonianza, cancellaTestimonianza } from "@/lib/testimonianze";
+import { cancellaSconto, salvaSconto } from "@/lib/sconti";
 import { armarImagenes, ErrorDeImagenes, quitarImagen } from "@/lib/immaginiModulo";
 import {
   createProdotto,
   deleteProdotto,
   getProdottoById,
-  segnaOrdine,
   spostaProdotto,
   updateProdotto,
 } from "@/lib/prodotti";
@@ -249,6 +250,93 @@ export async function guardaCopertine(
   redirect("/admin/shop");
 }
 
+/** Aggiunge una testimonianza a un servizio. */
+export async function aggiungiTestimonianzaAzione(
+  _previo: EstadoFormulario,
+  formData: FormData,
+): Promise<EstadoFormulario> {
+  await requireSession();
+  const servizio = String(formData.get("servizio") ?? "");
+  if (!esServizio(servizio)) return { error: "Questo servizio non esiste." };
+  const testo = String(formData.get("testo") ?? "").trim();
+  const autore = String(formData.get("autore") ?? "").replace(/\s+/g, " ").trim();
+  const dettaglio = String(formData.get("dettaglio") ?? "").replace(/\s+/g, " ").trim();
+  if (!testo) return { error: "Manca il testo." };
+  if (testo.length > 800) return { error: "Il testo è troppo lungo: al massimo 800 caratteri." };
+  if (!autore) return { error: "Manca chi l’ha scritta: anche solo il nome." };
+  if (autore.length > 80 || dettaglio.length > 80) return { error: "Nome o dettaglio troppo lunghi." };
+
+  await aggiungiTestimonianza({ servizio, testo, autore, dettaglio: dettaglio || null });
+  revalidatePath(`/admin/shop/servizi/${servizio}`);
+  revalidatePath(`/shop/${servizio}`);
+  return { ok: true };
+}
+
+export async function cancellaTestimonianzaAzione(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = Number(formData.get("id"));
+  const servizio = String(formData.get("servizio") ?? "");
+  if (!Number.isInteger(id)) return;
+  await cancellaTestimonianza(id);
+  revalidatePath(`/admin/shop/servizi/${servizio}`);
+  revalidatePath(`/shop/${servizio}`);
+}
+
+/**
+ * Salva uno sconto di stagione. Le date sono il primo e l'ultimo giorno,
+ * compresi; le stampe arrivano come lista di id nell'ordine scelto.
+ */
+export async function salvaScontoAzione(
+  _previo: EstadoFormulario,
+  formData: FormData,
+): Promise<EstadoFormulario> {
+  await requireSession();
+  const idCrudo = String(formData.get("id") ?? "");
+  const id = idCrudo ? Number(idCrudo) : undefined;
+  const titolo = String(formData.get("titolo") ?? "").replace(/\s+/g, " ").trim();
+  const testo = String(formData.get("testo") ?? "").trim();
+  const percentuale = Number(formData.get("percentuale"));
+  const dal = String(formData.get("dal") ?? "");
+  const al = String(formData.get("al") ?? "");
+  const attivo = formData.get("attivo") === "on";
+  let stampe: number[] = [];
+  try {
+    const l = JSON.parse(String(formData.get("stampe") ?? "[]"));
+    if (Array.isArray(l)) stampe = [...new Set(l.map(Number).filter((n) => Number.isInteger(n) && n > 0))];
+  } catch {
+    return { error: "Le stampe scelte non si sono capite." };
+  }
+
+  if (!titolo) return { error: "Lo sconto ha bisogno di un nome: «Sconti di Natale»." };
+  if (titolo.length > 80) return { error: "Il nome è troppo lungo: al massimo 80 caratteri." };
+  if (testo.length > 400) return { error: "Il testo è troppo lungo: al massimo 400 caratteri." };
+  if (!Number.isInteger(percentuale) || percentuale < 1 || percentuale > 90) {
+    return { error: "Lo sconto va da 1 a 90 per cento." };
+  }
+  const ok = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d);
+  if (!ok(dal) || !ok(al)) return { error: "Scegli il primo e l’ultimo giorno." };
+  if (al < dal) return { error: "L’ultimo giorno viene prima del primo." };
+  if (stampe.length === 0) return { error: "Scegli almeno una stampa." };
+
+  try {
+    await salvaSconto({ id, titolo, testo: testo || null, percentuale, dal, al, attivo, stampe });
+  } catch (e) {
+    console.error("Sconti: salvataggio fallito.", e);
+    return { error: "Il database ha rifiutato lo sconto. Riprova." };
+  }
+  rivalida();
+  redirect("/admin/shop");
+}
+
+export async function cancellaScontoAzione(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  await cancellaSconto(id);
+  rivalida();
+  redirect("/admin/shop");
+}
+
 export async function cancellaProdotto(formData: FormData): Promise<void> {
   await requireSession();
   const id = Number(formData.get("id"));
@@ -271,21 +359,14 @@ export async function spostaProdottoAzione(formData: FormData): Promise<void> {
   rivalida();
 }
 
-export async function segnaOrdineAzione(formData: FormData): Promise<void> {
-  await requireSession();
-  const id = Number(formData.get("id"));
-  const stato = formData.get("stato") === "spedito" ? "spedito" : "pagato";
-  if (!Number.isInteger(id)) return;
-  await segnaOrdine(id, stato);
-  revalidatePath("/admin/ordini");
-}
-
 /*
   Lo Shop intero e le pagine d'opera: una stampa che esce da un'opera compare
   nella sua pagina come «Disponibile come stampa».
 */
 function rivalida() {
   revalidatePath("/admin/shop");
+  // Tutto il sito: la cinta degli sconti è in ogni pagina.
+  revalidatePath("/", "layout");
   revalidatePath("/shop", "layout");
   revalidatePath("/opera/[slug]", "page");
   revalidatePath("/sitemap.xml");

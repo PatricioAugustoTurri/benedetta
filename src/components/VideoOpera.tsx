@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { fotogramma } from "@/lib/video";
+import { fotogramma, videoLeggero } from "@/lib/video";
 
 /**
  * Un video dell'opera, dove un'immagine avrebbe messo un `<Image>`.
@@ -72,8 +72,9 @@ export default function VideoOpera({
   return (
     <video
       ref={ref}
-      src={src}
-      poster={fotogramma(src)}
+      src={videoLeggero(src)}
+      // Anche il fotogramma esce compresso e alla stessa misura del video.
+      poster={fotogramma(videoLeggero(src))}
       width={width}
       height={height}
       muted

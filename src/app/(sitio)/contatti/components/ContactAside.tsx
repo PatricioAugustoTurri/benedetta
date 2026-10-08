@@ -12,7 +12,7 @@ import { site } from "@/data/site";
  */
 export default function ContactAside() {
   return (
-    <aside className="md:col-span-4 md:col-start-9">
+    <div className="md:col-span-4 md:col-start-9">
       <Reveal delay={120}>
         <div className="border-t border-line pt-5">
           <h2 className="label">Scrivimi</h2>
@@ -49,6 +49,6 @@ export default function ContactAside() {
           <p className="mt-4 text-sm text-ink-soft">{site.location}</p>
         </div>
       </Reveal>
-    </aside>
+    </div>
   );
 }

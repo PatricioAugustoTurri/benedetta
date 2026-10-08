@@ -45,7 +45,7 @@ export default function ServizioForm({ servizio }: { servizio: Servizio }) {
         {(falladas > 0 || pesadas > 0) && (
           <p
             role="alert"
-            className="mt-5 border-l border-accent bg-paper-deep/60 py-2 pl-3 text-sm text-accent"
+            className="mt-5 nota"
           >
             {pesadas > 0
               ? `Un file supera il peso massimo: ${MAX_ARCHIVO_MB} MB per le immagini, ${MAX_VIDEO_MB} MB per i video.`
@@ -56,7 +56,7 @@ export default function ServizioForm({ servizio }: { servizio: Servizio }) {
         {estado.error && (
           <p
             role="alert"
-            className="mt-5 border-l border-accent bg-paper-deep/60 py-2 pl-3 text-sm text-accent"
+            className="mt-5 nota"
           >
             {estado.error}
           </p>
@@ -126,7 +126,7 @@ export default function ServizioForm({ servizio }: { servizio: Servizio }) {
         </div>
       </div>
 
-      <aside className="md:col-span-3 md:col-start-9">
+      <div className="md:col-span-3 md:col-start-9">
         <h2 className="label">Dove uscirà</h2>
         <ul className="mt-4 space-y-2.5 text-sm text-ink-soft">
           <li>Nello Shop, come una delle porte: l’immagine la scegli in «Copertine».</li>
@@ -140,7 +140,7 @@ export default function ServizioForm({ servizio }: { servizio: Servizio }) {
           I servizi sono due e sempre gli stessi: non si aggiungono né si cancellano. Qui si
           cambia solo come si mostrano.
         </p>
-      </aside>
+      </div>
     </form>
   );
 }

@@ -1,8 +1,10 @@
 import { prezzo } from "@/data/shop";
-import { listOrdini, type Ordine } from "@/lib/prodotti";
+import { richiediAccesso } from "@/lib/auth";
+import { listOrdini, ultimoCorriere, type Ordine } from "@/lib/prodotti";
 import { stripeConfigurato, stripeInProva } from "@/lib/stripe";
 import { pingDb } from "@/lib/works";
-import { segnaOrdineAzione } from "../shop/actions";
+import SpedisciOrdine from "../components/SpedisciOrdine";
+import { riavvisaAzione, rimettiDaSpedireAzione } from "./actions";
 
 export const metadata = { title: "Ordini" };
 
@@ -25,6 +27,7 @@ const data = (d: Date) =>
  * quelli che chiedono qualcosa; gli spediti scendono e si spengono.
  */
 export default async function OrdiniPage() {
+  await richiediAccesso("/admin/ordini");
   if (!(await pingDb())) {
     return (
       <section className="shell py-24">
@@ -35,7 +38,7 @@ export default async function OrdiniPage() {
     );
   }
 
-  const ordini = await listOrdini();
+  const [ordini, corriere] = await Promise.all([listOrdini(), ultimoCorriere()]);
   const daSpedire = ordini.filter((o) => o.stato === "pagato");
   const spediti = ordini.filter((o) => o.stato === "spedito");
 
@@ -54,13 +57,18 @@ export default async function OrdiniPage() {
             </p>
           ) : (
             <>
-              <Gruppo titolo="Da spedire" ordini={daSpedire} vuoto="Niente da spedire." />
-              {spediti.length > 0 && <Gruppo titolo="Spediti" ordini={spediti} />}
+              <Gruppo
+                titolo="Da spedire"
+                ordini={daSpedire}
+                vuoto="Niente da spedire."
+                corriere={corriere}
+              />
+              {spediti.length > 0 && <Gruppo titolo="Spediti" ordini={spediti} corriere={null} />}
             </>
           )}
         </div>
 
-        <aside className="md:col-span-3 md:col-start-10">
+        <div className="md:col-span-3 md:col-start-10">
           <h2 className="label">Pagamenti</h2>
           <p className="mt-4 text-sm leading-relaxed text-ink-soft">
             {!stripeConfigurato()
@@ -69,13 +77,35 @@ export default async function OrdiniPage() {
                 ? "Stripe è in modalità di prova: gli ordini sono finti e non si muove denaro."
                 : "Stripe è attivo. I pagamenti e i rimborsi si gestiscono dal pannello di Stripe."}
           </p>
-        </aside>
+
+          <h2 className="label mt-10">Contabilità</h2>
+          <p className="mt-4 text-sm leading-relaxed text-ink-soft">
+            Tutti gli ordini in un foglio di calcolo, da mandare a chi tiene i conti.
+          </p>
+          <a
+            href="/admin/ordini/esporta"
+            download
+            className="link-underline mt-3 inline-block text-sm text-ink transition-colors hover:text-accent"
+          >
+            Scarica gli ordini (CSV)
+          </a>
+        </div>
       </div>
     </section>
   );
 }
 
-function Gruppo({ titolo, ordini, vuoto }: { titolo: string; ordini: Ordine[]; vuoto?: string }) {
+function Gruppo({
+  titolo,
+  ordini,
+  vuoto,
+  corriere,
+}: {
+  titolo: string;
+  ordini: Ordine[];
+  vuoto?: string;
+  corriere: string | null;
+}) {
   return (
     <section className="mt-12">
       <h2 className="label">
@@ -86,7 +116,7 @@ function Gruppo({ titolo, ordini, vuoto }: { titolo: string; ordini: Ordine[]; v
       ) : (
         <ul className="mt-4 border-t border-line">
           {ordini.map((o) => (
-            <Voce key={o.id} ordine={o} />
+            <Voce key={o.id} ordine={o} corriere={corriere} />
           ))}
         </ul>
       )}
@@ -94,7 +124,7 @@ function Gruppo({ titolo, ordini, vuoto }: { titolo: string; ordini: Ordine[]; v
   );
 }
 
-function Voce({ ordine: o }: { ordine: Ordine }) {
+function Voce({ ordine: o, corriere }: { ordine: Ordine; corriere: string | null }) {
   const a = o.indirizzo;
   const spedito = o.stato === "spedito";
 
@@ -147,20 +177,45 @@ function Voce({ ordine: o }: { ordine: Ordine }) {
         </address>
       </div>
 
-      <form action={segnaOrdineAzione} className="mt-4">
-        <input type="hidden" name="id" value={o.id} />
-        <input type="hidden" name="stato" value={spedito ? "pagato" : "spedito"} />
-        <button
-          type="submit"
-          className={
-            spedito
-              ? "link-underline text-xs text-ink-faint transition-colors hover:text-ink"
-              : "border border-line px-3 py-1.5 text-xs text-ink transition-colors hover:border-ink"
-          }
-        >
-          {spedito ? "Rimetti fra quelli da spedire" : "Segna come spedito"}
-        </button>
-      </form>
+      {spedito ? (
+        <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-ink-faint">
+          <span>
+            Spedito{o.spedito && ` il ${data(o.spedito)}`}
+            {o.corriere && ` con ${o.corriere}`}
+            {o.tracking && (
+              <>
+                {" · "}
+                {/^https?:\/\//i.test(o.tracking) ? (
+                  <a href={o.tracking} target="_blank" rel="noopener noreferrer" className="link-underline text-ink-soft">
+                    tracciamento
+                  </a>
+                ) : (
+                  <span className="figures text-ink-soft">{o.tracking}</span>
+                )}
+              </>
+            )}
+          </span>
+          {o.avvisato ? (
+            <span>· Cliente avvisato per mail</span>
+          ) : (
+            <form action={riavvisaAzione} className="flex items-baseline gap-2">
+              <input type="hidden" name="id" value={o.id} />
+              <span className="text-accent">· Cliente non avvisato</span>
+              <button type="submit" className="link-underline text-ink transition-colors hover:text-accent">
+                Avvisalo per mail
+              </button>
+            </form>
+          )}
+          <form action={rimettiDaSpedireAzione}>
+            <input type="hidden" name="id" value={o.id} />
+            <button type="submit" className="link-underline transition-colors hover:text-ink">
+              Rimetti fra quelli da spedire
+            </button>
+          </form>
+        </div>
+      ) : (
+        <SpedisciOrdine id={o.id} corriere={corriere} />
+      )}
     </li>
   );
 }

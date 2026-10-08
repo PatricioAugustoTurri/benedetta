@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "@/components/Icon";
+import { richiediAccesso } from "@/lib/auth";
 import { getWorkById } from "@/lib/works";
 import WorkForm from "../components/WorkForm";
 
@@ -13,6 +14,7 @@ export async function generateMetadata({ params }: Params) {
 }
 
 export default async function EditarObraPage({ params }: Params) {
+  await richiediAccesso();
   const { id } = await params;
 
   // `Number("nueva")` dà NaN, non 0: senza questa guardia, un indirizzo

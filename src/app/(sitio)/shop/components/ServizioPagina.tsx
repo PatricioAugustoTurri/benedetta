@@ -4,6 +4,7 @@ import { ArrowLeft, Mail } from "@/components/Icon";
 import Reveal from "@/components/Reveal";
 import { site } from "@/data/site";
 import type { Servizio } from "@/lib/servizi";
+import type { Testimonianza } from "@/lib/testimonianze";
 import { immagineFerma } from "@/lib/video";
 import Visore from "../../opera/components/Visore";
 import WorkPlate, { WorkPlates } from "../../opera/components/WorkPlate";
@@ -22,7 +23,13 @@ import WorkPlate, { WorkPlates } from "../../opera/components/WorkPlate";
  * in paragrafi dove lei lascia una riga vuota, invece di uscire come un unico
  * blocco.
  */
-export default function ServizioPagina({ servizio: s }: { servizio: Servizio }) {
+export default function ServizioPagina({
+  servizio: s,
+  testimonianze = [],
+}: {
+  servizio: Servizio;
+  testimonianze?: Testimonianza[];
+}) {
   const paragrafi = (s.description ?? "")
     .split(/\n\s*\n/)
     .map((p) => p.trim())
@@ -46,7 +53,7 @@ export default function ServizioPagina({ servizio: s }: { servizio: Servizio }) 
 
       <Link
         href="/shop"
-        className="group inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
+        className="area-tocco group inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
       >
         <ArrowLeft
           size={16}
@@ -79,7 +86,7 @@ export default function ServizioPagina({ servizio: s }: { servizio: Servizio }) 
           <WorkPlate work={s} />
           <WorkPlates work={s} />
 
-          <aside className="opera__scheda">
+          <div className="opera__scheda">
             <Reveal delay={90}>
               <Link href={`/contatti?servizio=${s.slug}`} className={AZIONE}>
                 <Mail size={18} className="shrink-0" />
@@ -90,9 +97,43 @@ export default function ServizioPagina({ servizio: s }: { servizio: Servizio }) 
                 quindi il prezzo si decide insieme.
               </p>
             </Reveal>
-          </aside>
+          </div>
         </div>
       </Visore>
+
+      {/*
+        Le parole di chi l'ha già commissionato. Vengono dopo il lavoro e
+        prima di niente: chi è arrivato fin qui ha visto le tavole e sta
+        decidendo se scrivere. Le virgolette sono il carattere dei titoli, in
+        pallido: segnano dove comincia una voce che non è quella di lei.
+      */}
+      {testimonianze.length > 0 && (
+        <section aria-labelledby="dicono" className="mt-16 border-t border-line pt-8 md:mt-24 md:pt-10">
+          <h2 id="dicono" className="label">
+            Chi l&apos;ha già commissionato
+          </h2>
+          <ul className="mt-8 grid gap-x-14 gap-y-12 md:mt-10 md:grid-cols-2">
+            {testimonianze.map((t, i) => (
+              <li key={t.id}>
+                <Reveal delay={Math.min(i, 3) * 90}>
+                  <figure>
+                    <span aria-hidden="true" className="display-h1 block text-5xl leading-none text-ink-faint/50">
+                      “
+                    </span>
+                    <blockquote className="prose-measure -mt-2 text-lg leading-relaxed text-pretty text-ink">
+                      {t.testo}
+                    </blockquote>
+                    <figcaption className="mt-4 text-sm text-ink-soft">
+                      {t.autore}
+                      {t.dettaglio && <span className="text-ink-faint"> · {t.dettaglio}</span>}
+                    </figcaption>
+                  </figure>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </article>
   );
 }

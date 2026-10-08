@@ -5,6 +5,7 @@ import { ArrowLeft } from "@/components/Icon";
 import { esServizio, getShopCategory, shopCategories } from "@/data/shop";
 import { listPubblicati } from "@/lib/prodotti";
 import { getServizio } from "@/lib/servizi";
+import { listTestimonianze } from "@/lib/testimonianze";
 import { immagineFerma } from "@/lib/video";
 import ServizioPagina from "../components/ServizioPagina";
 import SezioneCategoria from "../components/SezioneCategoria";
@@ -54,9 +55,9 @@ export default async function CategoriaPage({ params }: Params) {
   if (!c) notFound();
 
   if (esServizio(c.slug)) {
-    const servizio = await getServizio(c.slug);
+    const [servizio, testimonianze] = await Promise.all([getServizio(c.slug), listTestimonianze(c.slug)]);
     if (!servizio) notFound();
-    return <ServizioPagina servizio={servizio} />;
+    return <ServizioPagina servizio={servizio} testimonianze={testimonianze} />;
   }
 
   const prodotti = await listPubblicati(c.slug);
@@ -65,7 +66,7 @@ export default async function CategoriaPage({ params }: Params) {
     <div className="shell pt-8 pb-8 md:pt-12">
       <Link
         href="/shop"
-        className="group mb-10 inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink md:mb-14"
+        className="area-tocco group mb-10 inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink md:mb-14"
       >
         <ArrowLeft
           size={16}

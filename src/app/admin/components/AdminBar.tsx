@@ -67,7 +67,7 @@ export default async function AdminBar() {
         <div className="flex shrink-0 items-center gap-5 text-xs">
           {/* Sul telefono la barra serve alle quattro voci: il sito si apre dal menu del browser. */}
           <span className="hidden sm:inline">
-            <Link href="/" className="link-underline text-ink-soft transition-colors hover:text-ink">
+            <Link href="/" className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink">
               Vedi il sito
             </Link>
           </span>
@@ -81,7 +81,7 @@ export default async function AdminBar() {
           <form action={salir}>
             <button
               type="submit"
-              className="link-underline text-ink-soft transition-colors hover:text-ink"
+              className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink"
             >
               Esci
             </button>

@@ -1,3 +1,4 @@
+import { richiediAccesso } from "@/lib/auth";
 import { listLibreria, listPorte } from "@/lib/copertine";
 import CopertineForm from "../../components/CopertineForm";
 import IndietroAlloShop from "../../components/IndietroAlloShop";
@@ -5,6 +6,7 @@ import IndietroAlloShop from "../../components/IndietroAlloShop";
 export const metadata = { title: "Copertine dello Shop" };
 
 export default async function CopertinePage() {
+  await richiediAccesso("/admin/shop/copertine");
   const [porte, libreria] = await Promise.all([listPorte(), listLibreria()]);
 
   return (

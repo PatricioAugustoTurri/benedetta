@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useRef, useState, useTransition } from "react";
 import { inviaContatto } from "@/app/(sitio)/contatti/actions";
 import { AZIONE } from "@/components/azione";
 import { Copy, Mail } from "@/components/Icon";
+import { legaliPronte } from "@/data/legale";
 import { site } from "@/data/site";
 import { MAX, validaContatto, type Campo as Field, type ErroriContatto as Errors } from "@/lib/contacto";
 
@@ -272,8 +274,20 @@ export default function ContactForm({
           <Mail size={18} className="shrink-0" />
           {pending ? "Invio in corso…" : "Invia"}
         </button>
-        <p className="mt-3 text-xs text-ink-faint">
-          Ti arriverà una mail di conferma all&apos;indirizzo che hai scritto.
+        <p className="mt-3 text-xs leading-relaxed text-ink-faint">
+          Ti arriverà una mail di conferma all&apos;indirizzo che hai scritto. Uso i tuoi dati
+          solo per risponderti
+          {legaliPronte() ? (
+            <>
+              :{" "}
+              <Link href="/privacy" className="link-underline text-ink-soft transition-colors hover:text-ink">
+                privacy
+              </Link>
+              .
+            </>
+          ) : (
+            "."
+          )}
         </p>
       </div>
 

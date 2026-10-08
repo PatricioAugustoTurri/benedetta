@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const SESSION_COOKIE = "illustrando_admin";
 
@@ -85,6 +86,20 @@ export async function isAuthenticated(): Promise<boolean> {
   if (!token) return false;
 
   return sameSecret(token, sessionToken(password));
+}
+
+/**
+ * Da usare in cima a ogni pagina dell'admin: senza una sessione valida porta
+ * alla schermata di accesso.
+ *
+ * Il proxy guarda solo se il cookie c'è, non se è buono (vedi `proxy.ts`):
+ * senza questo, un cookie inventato mostrava le pagine —in sola lettura,
+ * perché le azioni ricontrollano— con ordini, indirizzi e iscritti dentro.
+ */
+export async function richiediAccesso(desde?: string): Promise<void> {
+  if (!(await isAuthenticated())) {
+    redirect(desde ? `/admin/login?desde=${encodeURIComponent(desde)}` : "/admin/login");
+  }
 }
 
 /** Da usare in cima a ogni azione: si ferma con un errore se non c'è sessione. */

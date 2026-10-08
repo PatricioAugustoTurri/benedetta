@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { studioFilm } from "@/data/studio";
+import { videoLeggero } from "@/lib/video";
 
 type Props = {
   /** Il trattamento —taglio, velo, filtri— lo mette chi lo usa. */
@@ -79,7 +80,7 @@ export default function StudioFilm({ className = "", priority = false }: Props) 
   return (
     <video
       ref={ref}
-      src={studioFilm.src}
+      src={videoLeggero(studioFilm.src)}
       poster={studioFilm.poster}
       width={studioFilm.width}
       height={studioFilm.height}

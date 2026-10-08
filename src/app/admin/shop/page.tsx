@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Pencil, Plus } from "@/components/Icon";
+import { richiediAccesso } from "@/lib/auth";
 import { cloudinaryConfigurado } from "@/lib/cloudinary";
 import { listPorte, type Porta } from "@/lib/copertine";
+import { listSconti, statoSconto, type Sconto } from "@/lib/sconti";
 import { listProdotti } from "@/lib/prodotti";
 import { listServizi, type Servizio } from "@/lib/servizi";
 import { contarPezzi, immagineFerma } from "@/lib/video";
@@ -23,6 +25,7 @@ export const metadata = { title: "Shop" };
  *   e si cancellano.
  */
 export default async function AdminShopPage() {
+  await richiediAccesso("/admin/shop");
   if (!(await pingDb())) {
     return (
       <section className="shell py-24">
@@ -33,13 +36,21 @@ export default async function AdminShopPage() {
     );
   }
 
-  const [porte, servizi, stampe] = await Promise.all([listPorte(), listServizi(), listProdotti()]);
+  const [porte, servizi, stampe] = await Promise.all([
+    listPorte(),
+    listServizi(),
+    listProdotti(),
+  ]);
+  const sconti = await listSconti();
   const conCloudinary = cloudinaryConfigurado();
 
   return (
     <section className="shell pt-8 pb-16 md:pt-12">
+      {/* La griglia e le sezioni parlano da sole; il titolo serve a chi
+          naviga con un lettore di schermo, per sapere in che pagina è. */}
+      <h1 className="sr-only">Shop</h1>
       {!conCloudinary && (
-        <p className="mb-8 border-l border-accent bg-paper-deep/60 py-2 pl-3 text-sm text-accent">
+        <p className="mb-8 nota">
           Mancano le chiavi di Cloudinary: senza, non si possono caricare immagini.
         </p>
       )}
@@ -53,7 +64,7 @@ export default async function AdminShopPage() {
               </h2>
               <Link
                 href="/admin/shop/copertine"
-                className="group inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
+                className="area-tocco group inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
               >
                 <Pencil size={14} />
                 <span className="link-underline">Cambia</span>
@@ -67,6 +78,33 @@ export default async function AdminShopPage() {
                 <AnteprimaPorta key={p.categoria.slug} porta={p} />
               ))}
             </ul>
+          </section>
+
+          <section aria-labelledby="adm-sconti">
+            <div className="flex items-baseline justify-between gap-6">
+              <h2 id="adm-sconti" className="display-section font-display text-xl leading-tight">
+                Sconti
+              </h2>
+              <span className="text-xs text-ink-faint">Si accendono e si spengono da soli</span>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-ink-faint">
+              Una sezione sotto le categorie dello Shop, con le stampe che scegli e il prezzo
+              scontato. Si prepara prima e vale solo fra le sue date.
+            </p>
+            {sconti.length > 0 && (
+              <ul className="mt-4 border-t border-line">
+                {sconti.map((sc) => (
+                  <RigaSconto key={sc.id} sconto={sc} />
+                ))}
+              </ul>
+            )}
+            <Link
+              href="/admin/shop/sconti/nuovo"
+              className="mt-4 flex w-full items-center justify-center gap-2 border border-dashed border-line bg-paper-deep/40 py-4 text-ink-faint transition-colors hover:border-accent/50 hover:bg-paper-deep/70 hover:text-ink-soft"
+            >
+              <Plus size={16} />
+              <span className="label">Nuovo sconto</span>
+            </Link>
           </section>
 
           <section aria-labelledby="adm-servizi">
@@ -114,7 +152,7 @@ export default async function AdminShopPage() {
           </section>
         </div>
 
-        <aside className="md:col-span-3 md:col-start-10">
+        <div className="md:col-span-3 md:col-start-10">
           <h2 className="label">Come funziona</h2>
           <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-soft">
             <li>
@@ -128,10 +166,64 @@ export default async function AdminShopPage() {
             <li>Le stampe hanno formati e prezzi e vanno nel carrello.</li>
             <li>Una stampa nuova nasce come bozza: nel sito non esce finché non la pubblichi.</li>
             <li>Le frecce cambiano l&apos;ordine in cui escono le stampe.</li>
+            <li>
+              Gli sconti si preparano quando vuoi: escono nello Shop, con il prezzo scontato, solo
+              fra il primo e l&apos;ultimo giorno.
+            </li>
           </ul>
-        </aside>
+        </div>
       </div>
     </section>
+  );
+}
+
+const giorno = (iso: string) =>
+  new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "long", timeZone: "UTC" }).format(
+    new Date(`${iso}T00:00:00Z`),
+  );
+
+/**
+ * Uno sconto nella lista: nome, percentuale e date, quante stampe, e lo stato
+ * con il punto della barra. Terracotta solo per quello in corso, che è
+ * quello che il sito sta mostrando adesso.
+ */
+function RigaSconto({ sconto: sc }: { sconto: Sconto }) {
+  const stato = statoSconto(sc);
+  const etichetta =
+    stato === "in corso"
+      ? "In corso"
+      : stato === "programmato"
+        ? `Programmato · parte il ${giorno(sc.dal)}`
+        : stato === "finito"
+          ? "Finito"
+          : "Spento";
+
+  return (
+    <li className="border-b border-line">
+      <Link href={`/admin/shop/sconti/${sc.id}`} className="group flex items-center gap-4 py-4">
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="link-underline text-[0.9375rem] text-ink transition-colors group-hover:text-accent">
+              {sc.titolo}
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-ink-faint">
+              <span
+                aria-hidden="true"
+                className={`block h-1 w-1 rounded-full ${stato === "in corso" ? "bg-accent" : "bg-ink-faint"}`}
+              />
+              {etichetta}
+            </span>
+          </span>
+          <span className="figures mt-1 block text-xs text-ink-faint">
+            −{sc.percentuale}% · dal {giorno(sc.dal)} al {giorno(sc.al)} ·{" "}
+            {sc.stampe.length === 1 ? "1 stampa" : `${sc.stampe.length} stampe`}
+          </span>
+        </span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center text-ink-soft transition-colors group-hover:text-ink">
+          <Pencil size={16} />
+        </span>
+      </Link>
+    </li>
   );
 }
 

@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useState, useTransition } from "react";
 import { iscriviti } from "@/app/(sitio)/newsletter/actions";
 import { ArrowRight } from "@/components/Icon";
+import { legaliPronte } from "@/data/legale";
 import { pitch } from "@/data/newsletter";
 
 /**
@@ -150,6 +152,18 @@ export default function NewsletterForm() {
           {error}
         </p>
       )}
+
+      <p className="mt-3 text-xs leading-relaxed text-ink-faint">
+        Ti disiscrivi quando vuoi, con un clic.
+        {legaliPronte() && (
+          <>
+            {" "}
+            <Link href="/privacy" className="link-underline text-ink-soft transition-colors hover:text-ink">
+              Privacy
+            </Link>
+          </>
+        )}
+      </p>
     </form>
   );
 }

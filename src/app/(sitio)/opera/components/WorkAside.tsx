@@ -31,7 +31,7 @@ export default function WorkAside({ work, stampa }: { work: Work; stampa?: Prodo
   ];
 
   return (
-    <aside className="opera__scheda">
+    <div className="opera__scheda">
       <Reveal delay={90}>
         <dl className="border-t border-line">
           {ficha.map((row) => (
@@ -122,6 +122,6 @@ export default function WorkAside({ work, stampa }: { work: Work; stampa?: Prodo
           </p>
         )}
       </Reveal>
-    </aside>
+    </div>
   );
 }

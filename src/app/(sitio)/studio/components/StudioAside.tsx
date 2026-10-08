@@ -13,7 +13,7 @@ import { site } from "@/data/site";
  */
 export default function StudioAside() {
   return (
-    <aside className="md:col-span-4 md:col-start-9">
+    <div className="md:col-span-4 md:col-start-9">
       <Reveal delay={150}>
         <div className="border-t border-line pt-5">
           <h2 className="label">Studio</h2>
@@ -38,6 +38,6 @@ export default function StudioAside() {
           </ul>
         </div>
       </Reveal>
-    </aside>
+    </div>
   );
 }

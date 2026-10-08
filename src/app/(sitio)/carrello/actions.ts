@@ -4,7 +4,9 @@ import { origine } from "@/lib/origine";
 import { redirect } from "next/navigation";
 import type { VoceCarrello } from "@/components/carrello/store";
 import { site } from "@/data/site";
+import { prezzoScontato } from "@/data/shop";
 import { stampePerSlug } from "@/lib/prodotti";
+import { scontiInCorso } from "@/lib/sconti";
 import { stripe, stripeConfigurato, tariffeSpedizione, type Zona } from "@/lib/stripe";
 import { immagineFerma } from "@/lib/video";
 
@@ -42,7 +44,13 @@ function leggiRichiesta(crudo: unknown): Richiesta[] {
  * stampa che non c'è più —tolta, tornata bozza, senza quel formato— esce.
  */
 async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
-  const stampe = await stampePerSlug([...new Set(richiesta.map((r) => r.slug))]);
+  const [stampe, sconti] = await Promise.all([
+    stampePerSlug([...new Set(richiesta.map((r) => r.slug))]),
+    // Lo sconto si applica qui, e solo qui: è la stessa funzione che prepara
+    // il carrello e il pagamento, quindi il prezzo scontato che si vede è
+    // quello che Stripe addebita.
+    scontiInCorso().catch(() => new Map()),
+  ]);
   const voci: VoceCarrello[] = [];
   for (const r of richiesta) {
     const p = stampe.find((s) => s.slug === r.slug);
@@ -54,7 +62,7 @@ async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
       formato: f.formato,
       quantita: r.quantita,
       title: p.title,
-      prezzo: f.prezzo,
+      prezzo: prezzoScontato(f.prezzo, sconti.get(p.id)?.percentuale),
       immagine: portada
         ? { url: immagineFerma(portada), width: portada.width, height: portada.height, alt: portada.alt }
         : undefined,

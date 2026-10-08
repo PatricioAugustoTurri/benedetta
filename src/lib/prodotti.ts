@@ -251,6 +251,12 @@ export type Ordine = {
   totale: number;
   stato: "pagato" | "spedito";
   creato: Date;
+  /** Quando è partito, con chi e con che numero: arriva per mail a chi ha comprato. */
+  spedito: Date | null;
+  corriere: string | null;
+  tracking: string | null;
+  /** Quando è partita la mail di spedizione al cliente. */
+  avvisato: Date | null;
 };
 
 function hydrateOrdine(row: Record<string, unknown>): Ordine {
@@ -266,10 +272,14 @@ function hydrateOrdine(row: Record<string, unknown>): Ordine {
     totale: Number(row.totale),
     stato: row.stato === "spedito" ? "spedito" : "pagato",
     creato: new Date(String(row.created_at)),
+    spedito: row.spedito_at ? new Date(String(row.spedito_at)) : null,
+    corriere: row.corriere ? String(row.corriere) : null,
+    tracking: row.tracking ? String(row.tracking) : null,
+    avvisato: row.cliente_avvisato_at ? new Date(String(row.cliente_avvisato_at)) : null,
   };
 }
 
-const COLONNE_ORDINE = `id, stripe_session_id, nome, email, indirizzo, righe, subtotale, spedizione, totale, stato, created_at`;
+const COLONNE_ORDINE = `id, stripe_session_id, nome, email, indirizzo, righe, subtotale, spedizione, totale, stato, created_at, spedito_at, corriere, tracking, cliente_avvisato_at`;
 
 /**
  * Scrive un ordine pagato. Restituisce null se c'era già: Stripe ripete gli
@@ -277,7 +287,7 @@ const COLONNE_ORDINE = `id, stripe_session_id, nome, email, indirizzo, righe, su
  * nascere un secondo ordine né partire un secondo avviso.
  */
 export async function registraOrdine(
-  o: Omit<Ordine, "id" | "stato" | "creato">,
+  o: Omit<Ordine, "id" | "stato" | "creato" | "spedito" | "corriere" | "tracking" | "avvisato">,
 ): Promise<Ordine | null> {
   const rows = await query<Record<string, unknown>>(
     `INSERT INTO ordini (stripe_session_id, nome, email, indirizzo, righe, subtotale, spedizione, totale)
@@ -305,6 +315,45 @@ export async function listOrdini(): Promise<Ordine[]> {
   return rows.map(hydrateOrdine);
 }
 
-export async function segnaOrdine(id: number, stato: Ordine["stato"]): Promise<void> {
-  await query(`UPDATE ordini SET stato = $2 WHERE id = $1`, [id, stato]);
+export async function getOrdine(id: number): Promise<Ordine | null> {
+  const rows = await query<Record<string, unknown>>(
+    `SELECT ${COLONNE_ORDINE} FROM ordini WHERE id = $1`,
+    [id],
+  );
+  return rows[0] ? hydrateOrdine(rows[0]) : null;
+}
+
+/**
+ * Segna un ordine come spedito, con il corriere e il numero se ci sono.
+ * Restituisce l'ordine aggiornato, o null se era già spedito: la mail al
+ * cliente parte una volta sola anche se il modulo arriva due volte.
+ */
+export async function segnaSpedito(
+  id: number,
+  spedizione: { corriere: string | null; tracking: string | null },
+): Promise<Ordine | null> {
+  const rows = await query<Record<string, unknown>>(
+    `UPDATE ordini SET stato = 'spedito', spedito_at = now(), corriere = $2, tracking = $3
+      WHERE id = $1 AND stato <> 'spedito'
+  RETURNING ${COLONNE_ORDINE}`,
+    [id, spedizione.corriere, spedizione.tracking],
+  );
+  return rows[0] ? hydrateOrdine(rows[0]) : null;
+}
+
+export async function segnaAvvisato(id: number): Promise<void> {
+  await query(`UPDATE ordini SET cliente_avvisato_at = now() WHERE id = $1`, [id]);
+}
+
+/** Rimette un ordine fra quelli da spedire, per un errore di clic. Corriere e numero restano scritti. */
+export async function rimettiDaSpedire(id: number): Promise<void> {
+  await query(`UPDATE ordini SET stato = 'pagato', spedito_at = NULL WHERE id = $1`, [id]);
+}
+
+/** L'ultimo corriere usato, per proporlo già scritto nel prossimo ordine. */
+export async function ultimoCorriere(): Promise<string | null> {
+  const rows = await query<{ corriere: string }>(
+    `SELECT corriere FROM ordini WHERE corriere IS NOT NULL ORDER BY spedito_at DESC NULLS LAST LIMIT 1`,
+  );
+  return rows[0]?.corriere ?? null;
 }

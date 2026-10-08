@@ -1,8 +1,7 @@
-import { redirect } from "next/navigation";
 import { Trash } from "@/components/Icon";
 import { prezzo, prezzoMinimo } from "@/data/shop";
 import { site } from "@/data/site";
-import { isAuthenticated } from "@/lib/auth";
+import { richiediAccesso } from "@/lib/auth";
 import { correoConfigurado } from "@/lib/correo";
 import { listInvii, listIscritti, listNovita, type Invio, type Iscritto } from "@/lib/newsletter";
 import { immagineFerma } from "@/lib/video";
@@ -35,7 +34,7 @@ const data = (d: Date) =>
  * sé e non si fida solo della porta del proxy.
  */
 export default async function NewsletterPage() {
-  if (!(await isAuthenticated())) redirect("/admin/login?desde=/admin/newsletter");
+  await richiediAccesso("/admin/newsletter");
 
   if (!(await pingDb())) {
     return (
@@ -100,7 +99,7 @@ export default async function NewsletterPage() {
   return (
     <section className="shell pt-8 pb-16 md:pt-12">
       {!correoConfigurado() && (
-        <p className="mb-8 border-l border-accent bg-paper-deep/60 py-2 pl-3 text-sm text-accent">
+        <p className="mb-8 nota">
           Manca la chiave di Resend: senza, la newsletter non può partire.
         </p>
       )}
@@ -213,7 +212,7 @@ export default async function NewsletterPage() {
           )}
         </div>
 
-        <aside className="md:col-span-3 md:col-start-10">
+        <div className="md:col-span-3 md:col-start-10">
           <h2 className="label">Come funziona</h2>
           <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-soft">
             <li>
@@ -230,7 +229,7 @@ export default async function NewsletterPage() {
             </li>
             <li>In fondo a ogni mail c&apos;è il link per disiscriversi.</li>
           </ul>
-        </aside>
+        </div>
       </div>
     </section>
   );

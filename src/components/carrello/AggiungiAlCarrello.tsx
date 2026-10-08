@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useId, useState } from "react";
 import { AZIONE } from "@/components/azione";
 import { ArrowRight, Borsa } from "@/components/Icon";
-import { prezzo, type Formato } from "@/data/shop";
+import { misuraFormato } from "@/data/legale";
+import { prezzo, prezzoScontato, type Formato } from "@/data/shop";
 import { aggiungi, MAX_QUANTITA, type VoceCarrello } from "./store";
 
 /**
@@ -34,11 +35,14 @@ export default function AggiungiAlCarrello({
   title,
   formati,
   immagine,
+  sconto,
 }: {
   slug: string;
   title: string;
   formati: Formato[];
   immagine?: VoceCarrello["immagine"];
+  /** La percentuale dello sconto in corso, se la stampa è in uno. */
+  sconto?: number | null;
 }) {
   const id = useId();
   const [scelto, setScelto] = useState(formati[0]?.formato ?? "");
@@ -83,8 +87,30 @@ export default function AggiungiAlCarrello({
                   <span className="block h-1.5 w-1.5 rounded-full bg-accent opacity-0 transition-opacity group-data-[scelto=true]:opacity-100" />
                 </span>
                 <span className="text-sm">{f.formato}</span>
+                {/* Quanto è grande davvero: il nome della carta non lo dice a tutti. */}
+                {misuraFormato(f.formato) && (
+                  <span className="figures text-xs text-ink-faint">{misuraFormato(f.formato)}</span>
+                )}
               </span>
-              <span className="figures text-sm">{prezzo(f.prezzo)}</span>
+              {/*
+                Con lo sconto, il prezzo pieno barrato e accanto quello che si
+                paga. Il barrato resta leggibile in pallido: chi compra deve
+                poter confrontare i due numeri, non indovinare il primo.
+              */}
+              {sconto ? (
+                <span className="figures flex items-baseline gap-2 text-sm">
+                  <s className="text-xs text-ink-faint">
+                    <span className="sr-only">Prezzo pieno </span>
+                    {prezzo(f.prezzo)}
+                  </s>
+                  <span>
+                    <span className="sr-only">Prezzo scontato </span>
+                    {prezzo(prezzoScontato(f.prezzo, sconto))}
+                  </span>
+                </span>
+              ) : (
+                <span className="figures text-sm">{prezzo(f.prezzo)}</span>
+              )}
             </label>
           ))}
         </div>
@@ -99,7 +125,9 @@ export default function AggiungiAlCarrello({
             slug,
             title,
             formato: formato.formato,
-            prezzo: formato.prezzo,
+            // Nel carrello va il prezzo scontato; il server lo ricalcola
+            // comunque prima di pagare, quindi questo è solo per mostrarlo.
+            prezzo: prezzoScontato(formato.prezzo, sconto),
             immagine,
           });
           setAggiunto({ formato: formato.formato, pieno: !entrata });
