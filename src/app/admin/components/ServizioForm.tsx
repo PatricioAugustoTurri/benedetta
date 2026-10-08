@@ -103,8 +103,8 @@ export default function ServizioForm({ servizio }: { servizio: Servizio }) {
           onStato={setStatoImmagini}
           nota={
             <>
-              Il primo pezzo è la copertina: quello che esce nello Shop, in verticale 4:5. Gli
-              altri si vedono nella pagina del servizio. Cambiale quando vuoi rinnovarla.
+              Il primo pezzo apre la pagina del servizio, in verticale 4:5. L’immagine nella
+              pagina Shop si sceglie a parte, in «Copertine».
             </>
           }
         />
@@ -129,7 +129,7 @@ export default function ServizioForm({ servizio }: { servizio: Servizio }) {
       <aside className="md:col-span-3 md:col-start-9">
         <h2 className="label">Dove uscirà</h2>
         <ul className="mt-4 space-y-2.5 text-sm text-ink-soft">
-          <li>Nello Shop, fra i lavori su commissione.</li>
+          <li>Nello Shop, come una delle porte: l’immagine la scegli in «Copertine».</li>
           <li>
             Nella sua pagina:{" "}
             <span className="break-all text-xs tracking-[0.01em] text-ink">/shop/{servizio.slug}</span>

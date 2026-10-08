@@ -63,9 +63,10 @@ psql -d illustrando -f db/migrations/001-orden-manual.sql
 psql -d illustrando -f db/migrations/002-shop.sql
 psql -d illustrando -f db/migrations/003-servizi.sql
 psql -d illustrando -f db/migrations/004-mockup.sql
+psql -d illustrando -f db/migrations/005-copertine.sql
 ```
 
-## La tienda: `prodotti`, `servizi` y `ordini`
+## La tienda: `prodotti`, `servizi`, `copertine` y `ordini`
 
 `prodotti` son las stampe, y sólo stampe (`categoria = 'stampe'`). `formati`
 (`[{ "formato": "A4", "prezzo": 1500 }]`, precios en centavos enteros) no puede
@@ -79,6 +80,10 @@ encima.
 `ritratti-illustrati`, que crea la migración 003. Son los dos trabajos por
 encargo: no tienen precio y no se agregan ni se borran; el admin sólo cambia
 su nombre, su texto y sus imágenes.
+
+`copertine` guarda la imagen de cada categoría en la página `/shop`, una fila
+por categoría que la tenga. Se elige en `/admin/shop/copertine`. Sin fila, la
+página usa la primera imagen del servicio o de la primera stampa publicada.
 
 `ordini` la escribe sólo el webhook de Stripe (`/api/stripe/webhook`), una fila
 por pago, con una copia de lo comprado: si mañana cambia un precio, el pedido

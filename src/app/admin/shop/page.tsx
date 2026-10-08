@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Pencil, Plus } from "@/components/Icon";
 import { cloudinaryConfigurado } from "@/lib/cloudinary";
+import { listPorte, type Porta } from "@/lib/copertine";
 import { listProdotti } from "@/lib/prodotti";
 import { listServizi, type Servizio } from "@/lib/servizi";
 import { contarPezzi, immagineFerma } from "@/lib/video";
@@ -10,9 +11,11 @@ import RigaProdotto from "../components/RigaProdotto";
 export const metadata = { title: "Shop" };
 
 /**
- * Lo Shop, con le mani dentro. Due parti che si comportano in modo diverso, e
+ * Lo Shop, con le mani dentro. Tre parti che si comportano in modo diverso, e
  * la pagina lo dice con la forma:
  *
+ * - **Copertine**: le porte della pagina /shop, viste come escono, una
+ *   accanto all'altra. Si cambiano tutte insieme in /admin/shop/copertine.
  * - **Su commissione**: i due servizi. Sono sempre due, quindi non c'è
  *   «nuovo», né cestino, né frecce: solo una riga ciascuno che porta a
  *   modificarli.
@@ -30,7 +33,7 @@ export default async function AdminShopPage() {
     );
   }
 
-  const [servizi, stampe] = await Promise.all([listServizi(), listProdotti()]);
+  const [porte, servizi, stampe] = await Promise.all([listPorte(), listServizi(), listProdotti()]);
   const conCloudinary = cloudinaryConfigurado();
 
   return (
@@ -43,6 +46,29 @@ export default async function AdminShopPage() {
 
       <div className="grid gap-16 md:grid-cols-12">
         <div className="space-y-16 md:col-span-8">
+          <section aria-labelledby="adm-copertine">
+            <div className="flex items-baseline justify-between gap-6">
+              <h2 id="adm-copertine" className="display-section font-display text-xl leading-tight">
+                Copertine
+              </h2>
+              <Link
+                href="/admin/shop/copertine"
+                className="group inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
+              >
+                <Pencil size={14} />
+                <span className="link-underline">Cambia</span>
+              </Link>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-ink-faint">
+              Le porte della pagina Shop, come escono. Ognuna porta alla sua categoria.
+            </p>
+            <ul className="mt-5 grid grid-cols-3 gap-3 md:gap-4">
+              {porte.map((p) => (
+                <AnteprimaPorta key={p.categoria.slug} porta={p} />
+              ))}
+            </ul>
+          </section>
+
           <section aria-labelledby="adm-servizi">
             <div className="flex items-baseline justify-between gap-6">
               <h2 id="adm-servizi" className="display-section font-display text-xl leading-tight">
@@ -92,6 +118,10 @@ export default async function AdminShopPage() {
           <h2 className="label">Come funziona</h2>
           <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-soft">
             <li>
+              Le copertine sono le immagini della pagina Shop, una per categoria. Senza, esce la
+              prima immagine del servizio o della prima stampa.
+            </li>
+            <li>
               Illustrazioni e ritratti sono due servizi: non hanno prezzo e portano al modulo di
               contatto. Ne cambi il testo e le immagini quando vuoi rinnovarli.
             </li>
@@ -102,6 +132,38 @@ export default async function AdminShopPage() {
         </aside>
       </div>
     </section>
+  );
+}
+
+/**
+ * Una porta della pagina /shop in piccolo: la stessa lamina 4:5 e il nome
+ * sotto. Quando l'immagine non è scelta da lei ma è quella di riserva lo dice,
+ * in pallido: non è un errore, è una scelta ancora da fare.
+ */
+function AnteprimaPorta({ porta: { categoria: c, immagine, scelta } }: { porta: Porta }) {
+  return (
+    <li>
+      <Link href="/admin/shop/copertine" className="group block">
+        <span className="block overflow-hidden bg-paper-deep">
+          {immagine ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={immagineFerma(immagine)}
+              alt=""
+              className="aspect-[4/5] w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+            />
+          ) : (
+            <span className="block aspect-[4/5] w-full" />
+          )}
+        </span>
+        <span className="mt-2 block text-[0.8125rem] leading-snug text-ink transition-colors group-hover:text-accent">
+          {c.label}
+        </span>
+        <span className="mt-0.5 block text-xs text-ink-faint">
+          {scelta ? "Scelta da te" : immagine ? "Di riserva" : "Nessuna immagine"}
+        </span>
+      </Link>
+    </li>
   );
 }
 

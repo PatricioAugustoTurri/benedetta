@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
-import { getShopCategory } from "@/data/shop";
-import { listPubblicati } from "@/lib/prodotti";
-import { listServizi } from "@/lib/servizi";
-import ServiziInBreve from "./components/ServiziInBreve";
-import SezioneCategoria from "./components/SezioneCategoria";
-import ShopAside from "./components/ShopAside";
-import ShopIntro from "./components/ShopIntro";
+import { listPorte } from "@/lib/copertine";
+import PorteShop from "./components/PorteShop";
 
 export const metadata: Metadata = {
   title: "Shop",
@@ -15,34 +10,24 @@ export const metadata: Metadata = {
 };
 
 /**
- * Lo Shop intero: l'ingresso, poi i due lavori su commissione —due porte, non
- * una lista— e poi le stampe, che sono il negozio vero e proprio.
+ * Lo Shop: le sue categorie, una accanto all'altra, e niente di più. Ognuna
+ * porta alla sua pagina, dove c'è il dettaglio. Le immagini le sceglie lei da
+ * /admin/shop/copertine.
  *
- * Si serve su richiesta e non al build: i prodotti li carica lei da /admin e
- * devono comparire appena li pubblica. Le azioni dell'admin rivalidano
- * comunque questo percorso.
+ * Si serve su richiesta e non al build: copertine, servizi e stampe li cambia
+ * lei da /admin e devono comparire subito.
  */
 export const dynamic = "force-dynamic";
 
 export default async function ShopPage() {
-  const [servizi, stampe] = await Promise.all([listServizi(), listPubblicati("stampe")]);
-  const categoriaStampe = getShopCategory("stampe")!;
+  const porte = await listPorte();
 
   return (
-    <div className="shell pt-12 pb-8 md:pt-20">
-      {/* La cornice di Contatti e About me: misura di 7 colonne e barra
-          laterale sulla 9. */}
-      <div className="grid gap-12 md:grid-cols-12 md:gap-16">
-        <div className="md:col-span-7">
-          <ShopIntro />
-        </div>
-        <ShopAside />
-      </div>
-
-      <div className="mt-16 space-y-20 md:mt-24 md:space-y-28">
-        <ServiziInBreve servizi={servizi} />
-        <SezioneCategoria categoria={categoriaStampe} prodotti={stampe} conLink eager={0} />
-      </div>
+    <div className="shell pt-10 pb-16 md:pt-16 md:pb-24">
+      {/* La pagina parla con le immagini; il titolo resta per chi la legge
+          con uno screen reader e per i motori di ricerca. */}
+      <h1 className="sr-only">Shop</h1>
+      <PorteShop porte={porte} />
     </div>
   );
 }

@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { esServizio, type Formato } from "@/data/shop";
+import { esServizio, shopCategories, type Formato } from "@/data/shop";
 import { requireSession } from "@/lib/auth";
+import { listCopertine, setCopertina } from "@/lib/copertine";
 import { armarImagenes, ErrorDeImagenes, quitarImagen } from "@/lib/immaginiModulo";
 import {
   createProdotto,
@@ -192,6 +193,49 @@ export async function guardaServizio(
     const sobrantes = anterior.image.filter((v) => !imagenes.some((img) => img.url === v.url));
     await Promise.all(sobrantes.map(quitarImagen));
   }
+
+  rivalida();
+  redirect("/admin/shop");
+}
+
+/**
+ * Salva le copertine delle categorie, tutte insieme: si scelgono guardandole
+ * una accanto all'altra, come escono nella pagina /shop.
+ *
+ * Ogni categoria manda il suo campo, `copertina-<slug>`, con zero o una
+ * immagine. Prima si controllano tutte; solo se sono tutte buone si scrive.
+ */
+export async function guardaCopertine(
+  _previo: EstadoFormulario,
+  formData: FormData,
+): Promise<EstadoFormulario> {
+  await requireSession();
+
+  const nuove: { categoria: (typeof shopCategories)[number]["slug"]; immagine: WorkImage | null }[] = [];
+  for (const c of shopCategories) {
+    let lista: WorkImage[];
+    try {
+      lista = armarImagenes(formData, `copertina-${c.slug}`);
+    } catch (e) {
+      return { error: e instanceof ErrorDeImagenes ? `${c.label}: ${e.message}` : "Le copertine non si sono capite." };
+    }
+    if (lista.length > 1) return { error: `${c.label} ha una copertina sola. Togli quelle in più.` };
+    if (lista[0] && esVideo(lista[0])) return { error: `La copertina di ${c.label} deve essere un’immagine.` };
+    nuove.push({ categoria: c.slug, immagine: lista[0] ?? null });
+  }
+
+  const anteriori = await listCopertine();
+  try {
+    for (const n of nuove) await setCopertina(n.categoria, n.immagine);
+  } catch {
+    return { error: "Il database ha rifiutato le copertine. Riprova." };
+  }
+
+  // Quelle sostituite o tolte se ne vanno anche da Cloudinary.
+  const sobrantes = nuove
+    .map((n) => anteriori[n.categoria])
+    .filter((v): v is WorkImage => Boolean(v) && !nuove.some((n) => n.immagine?.url === v!.url));
+  await Promise.all(sobrantes.map(quitarImagen));
 
   rivalida();
   redirect("/admin/shop");

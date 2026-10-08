@@ -301,6 +301,33 @@ INSERT INTO servizi (slug, title) VALUES
   ('ritratti-illustrati', 'Ritratti Illustrati');
 
 -- --------------------------------------------------------------------------
+-- copertine — l'immagine di ogni categoria nella pagina /shop
+--
+-- Una riga per categoria che ne ha una; senza copertina la riga non c'è e la
+-- pagina usa la prima immagine del servizio o della prima stampa. Vedi la
+-- migrazione 005.
+-- --------------------------------------------------------------------------
+CREATE TABLE copertine (
+  categoria   text        PRIMARY KEY
+              CONSTRAINT copertine_categoria_valida CHECK (
+                categoria IN ('illustrazioni-personalizzate', 'ritratti-illustrati', 'stampe')
+              ),
+
+  -- Un elemento come quelli di works.image.
+  immagine    jsonb       NOT NULL
+              CONSTRAINT copertine_immagine_con_url CHECK (
+                jsonb_typeof(immagine) = 'object' AND jsonb_typeof(immagine -> 'url') = 'string'
+              ),
+
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TRIGGER copertine_set_updated_at
+  BEFORE UPDATE ON copertine
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- --------------------------------------------------------------------------
 -- ordini — quello che è stato pagato
 --
 -- Una riga per pagamento riuscito, e la scrive solo il webhook di Stripe:
