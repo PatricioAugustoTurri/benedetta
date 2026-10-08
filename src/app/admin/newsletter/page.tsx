@@ -159,7 +159,10 @@ export default async function NewsletterPage() {
               <ul className="mt-4 border-t border-line">
                 {confermati.map((i) => (
                   <li key={i.id} className="flex items-center gap-4 border-b border-line py-2.5">
-                    <span className="min-w-0 flex-1 truncate text-sm text-ink">{i.email}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm text-ink">
+                      {i.nome && <span className="mr-2">{i.nome}</span>}
+                      <span className={i.nome ? "text-ink-faint" : undefined}>{i.email}</span>
+                    </span>
                     <span className="figures shrink-0 text-xs text-ink-faint">
                       dal {data(i.confermato ?? i.creato)}
                     </span>

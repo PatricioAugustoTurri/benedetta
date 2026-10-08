@@ -65,6 +65,7 @@ psql -d illustrando -f db/migrations/003-servizi.sql
 psql -d illustrando -f db/migrations/004-mockup.sql
 psql -d illustrando -f db/migrations/005-copertine.sql
 psql -d illustrando -f db/migrations/006-newsletter.sql
+psql -d illustrando -f db/migrations/007-nome-iscritti.sql
 ```
 
 ## La tienda: `prodotti`, `servizi`, `copertine` y `ordini`
@@ -118,7 +119,8 @@ brew services start postgresql@17
 ## La newsletter: `iscritti` e `invii`
 
 Quien se suscribe desde el pie de página queda en `iscritti` sin confirmar y
-recibe una mail con un link; recién al apretar «Conferma» en esa página entra
+recibe una mail con un link (el nombre es opcional y la newsletter lo usa en
+el saludo); recién al apretar «Conferma» en esa página entra
 en la lista (`confermato_at`). Darse de baja llena `disiscritto_at` y la fila
 se queda, como prueba de que no hay que escribirle más. Las suscripciones sin
 confirmar se borran solas a los 30 días.

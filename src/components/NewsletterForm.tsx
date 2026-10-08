@@ -68,6 +68,24 @@ export default function NewsletterForm() {
       <p className="text-sm leading-relaxed text-ink-soft">{pitch}</p>
 
       {/*
+        Il nome, facoltativo: la newsletter è una lettera e comincia con «Ciao
+        Giulia,». Stessa riga su filetto del campo email, senza il pulsante.
+      */}
+      <label htmlFor={`${id}-nome`} className="sr-only">
+        Il tuo nome (facoltativo)
+      </label>
+      <input
+        id={`${id}-nome`}
+        name="nome"
+        type="text"
+        autoComplete="given-name"
+        maxLength={80}
+        placeholder="il tuo nome"
+        // `text-base` per la stessa ragione del campo email: niente zoom su iPhone.
+        className="mt-4 block w-full border-0 border-b border-line bg-transparent py-2.5 text-base text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-ink"
+      />
+
+      {/*
         La riga: un solo filetto in basso, come qualsiasi campo del sito, e il
         pulsante dentro lo stesso filetto invece che sotto. `has-[:focus]`
         porta il filetto a inchiostro pieno —qui non c'è `:focus-within`
@@ -85,7 +103,7 @@ export default function NewsletterForm() {
       */}
       <div
         data-error={Boolean(error)}
-        className="mt-5 flex items-center gap-2 border-b border-line transition-colors has-[input:focus]:border-ink data-[error=true]:border-accent data-[error=true]:has-[input:focus]:border-accent"
+        className="mt-1 flex items-center gap-2 border-b border-line transition-colors has-[input:focus]:border-ink data-[error=true]:border-accent data-[error=true]:has-[input:focus]:border-accent"
       >
         {/* Il vasetto di miele, uguale a quello del modulo di contatto. */}
         <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">

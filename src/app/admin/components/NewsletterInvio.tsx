@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useId, useState } from "react";
+import { annuncioNovita } from "@/data/newsletter";
 import { newsletterAzione, type EsitoNewsletter } from "../newsletter/actions";
 import { CONTROL, LABEL } from "./campo";
 
@@ -115,7 +116,14 @@ export default function NewsletterInvio({
             Messaggio
           </label>
           <p className="mt-1.5 text-xs leading-relaxed text-ink-faint">
-            Facoltativo. Due righe tue in apertura, prima delle immagini.
+            Viene dopo «Ciao Giulia,», con il nome di ognuno.
+            {nScelte > 0 && (
+              <>
+                {" "}
+                Se lo lasci vuoto, la mail dice: «
+                {annuncioNovita(voci.filter((v) => scelte.has(`${v.tipo}-${v.id}`)))}»
+              </>
+            )}
           </p>
           <textarea
             id={`${idBase}-testo`}
@@ -164,6 +172,17 @@ export default function NewsletterInvio({
               {iscritti === 0
                 ? "Nessun iscritto ancora"
                 : `Invia a ${iscritti === 1 ? "1 iscritto" : `${iscritti} iscritti`}`}
+            </button>
+            <button
+              type="submit"
+              formAction="/admin/newsletter/anteprima"
+              formMethod="get"
+              formTarget="_blank"
+              formNoValidate
+              disabled={nScelte === 0}
+              className="link-underline text-sm text-ink-soft transition-colors hover:text-ink disabled:opacity-50"
+            >
+              Anteprima
             </button>
             <button
               type="submit"

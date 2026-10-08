@@ -396,6 +396,10 @@ CREATE TABLE iscritti (
   -- non dice niente di chi è.
   token               text        NOT NULL UNIQUE,
 
+  -- Facoltativo: la newsletter comincia con «Ciao <nome>,». Vedi la 007.
+  nome                text
+                      CONSTRAINT iscritti_nome_misura CHECK (nome IS NULL OR length(nome) BETWEEN 1 AND 80),
+
   confermato_at       timestamptz,
   disiscritto_at      timestamptz,
 

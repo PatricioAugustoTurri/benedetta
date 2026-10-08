@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { site } from "@/data/site";
 import type { DatiContatto } from "@/lib/contacto";
+import { annuncioNovita } from "@/data/newsletter";
 import { prezzo } from "@/data/shop";
 import type { Ordine } from "@/lib/prodotti";
 
@@ -349,36 +350,117 @@ ${per === "cliente" ? `<p style="margin:24px 0 0;font-family:${FONT};font-size:1
 
 /* ----------------------------------------------------------- newsletter */
 
+/*
+  La newsletter e la sua conferma sono lettere di lei, non avvisi di un
+  negozio: il logo scritto a mano in alto, «Ciao Giulia,», il suo messaggio in
+  carattere da libro, le opere grandi una sotto l'altra, la firma e la foto di
+  lei nei campi intorno a Foligno. Caprasimo, il carattere dei titoli del
+  sito, arriva dove il programma di posta carica i caratteri (Apple Mail,
+  iOS); altrove resta Georgia, che regge lo stesso tono.
+
+  Il logo e la foto si servono sempre dal dominio del sito: una mail si apre
+  giorni dopo, da qualsiasi parte, e deve trovarli.
+*/
+const DISPLAY = "'Caprasimo', Georgia, 'Times New Roman', serif";
+const LOGO = `${site.url}/benedetta-zibetti-wordmark.png`;
+const FOTO = `${site.url}/_next/image?url=${encodeURIComponent("/Bebi about 2.jpg")}&w=1200&q=75`;
+const INSTAGRAM = site.socials.find((s) => s.label === "Instagram")?.href;
+
+/** «Ciao Giulia,» o, senza nome, «Ciao,». */
+const saluto = (nome: string | null) => (nome ? `Ciao ${nome},` : "Ciao,");
+
+function lettera(preheader: string, contenuto: string, disiscrivi: string | null): string {
+  return `<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light">
+<link href="https://fonts.googleapis.com/css2?family=Caprasimo&display=swap" rel="stylesheet">
+<title>${esc(site.name)}</title>
+<style>@media (max-width:620px){.px{padding-left:22px!important;padding-right:22px!important}}</style>
+</head>
+<body style="margin:0;padding:0;background:${C.paperDeep};-webkit-text-size-adjust:100%;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(preheader)}&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.paperDeep};">
+<tr><td align="center" style="padding:24px 12px 40px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
+<tr><td style="background:${C.paper};border:1px solid ${C.line};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<tr><td align="center" style="padding:40px 40px 8px;"><a href="${esc(site.url)}"><img src="${esc(LOGO)}" width="150" alt="${esc(site.name)}" style="display:block;width:150px;height:auto;border:0;"></a></td></tr>
+${contenuto}
+</table>
+</td></tr>
+<tr><td class="px" style="padding:28px 40px 0;font-family:${FONT};font-size:12px;line-height:1.7;color:${C.inkFaint};text-align:center;">
+${esc(site.name)} · ${esc(site.role)} · ${esc(site.location)}<br>
+<a href="${esc(site.url)}" style="color:${C.inkFaint};">${esc(site.url.replace(/^https?:\/\//, ""))}</a>${INSTAGRAM ? ` · <a href="${esc(INSTAGRAM)}" style="color:${C.inkFaint};">Instagram</a>` : ""}
+${disiscrivi ? `<br><br>Ricevi questa mail perché ti sei iscritta o iscritto alla newsletter sul sito.<br><a href="${esc(disiscrivi)}" style="color:${C.inkFaint};text-decoration:underline;">Non voglio più riceverla</a>` : ""}
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+}
+
+function firma(): string {
+  return `<p style="margin:22px 0 0;font-family:${DISPLAY};font-size:26px;line-height:1.2;color:${C.ink};">Benedetta</p>`;
+}
+
+function paragrafo(testo: string): string {
+  return testo
+    .trim()
+    .split(/\n\s*\n/)
+    .map(
+      (p, i) =>
+        `<p style="margin:${i === 0 ? 18 : 14}px 0 0;font-family:${SERIF};font-size:18px;line-height:1.65;color:${C.inkSoft};">${esc(p.trim()).replace(/\n/g, "<br>")}</p>`,
+    )
+    .join("");
+}
+
 /**
  * La mail che chiede di confermare l'iscrizione. Il link porta a una pagina
  * con un pulsante, e non conferma da solo: molti programmi di posta aprono i
  * link per controllarli, e un'iscrizione confermata da un antivirus non è un
  * consenso.
  */
-export async function inviaConfermaIscrizione(email: string, link: string): Promise<void> {
+export async function inviaConfermaIscrizione(
+  email: string,
+  nome: string | null,
+  link: string,
+): Promise<void> {
+  const testo =
+    "grazie per esserti iscritta o iscritto! Manca un passo: conferma che questo indirizzo è tuo, e ti scrivo quando ci sono lavori nuovi o stampe disponibili.";
   const { error } = await cliente().emails.send({
     from: desde(),
     to: email,
     replyTo: para(),
     subject: `Conferma l’iscrizione alla newsletter — ${site.name}`,
-    html: cornice(
-      "Un clic per confermare e ricevere le novità.",
-      `<tr><td style="padding:32px 32px 8px;">
-<h1 style="margin:0;font-family:${SERIF};font-weight:normal;font-size:24px;line-height:1.3;color:${C.ink};">Conferma l’iscrizione</h1>
-<p style="margin:16px 0 0;font-family:${FONT};font-size:16px;line-height:1.65;color:${C.inkSoft};">Grazie! Per ricevere la newsletter manca un passo: conferma che questo indirizzo è tuo.</p>
+    html: lettera(
+      "Manca un clic per ricevere le novità.",
+      `<tr><td class="px" style="padding:36px 40px 8px;">
+<p style="margin:0;font-family:${DISPLAY};font-size:28px;line-height:1.2;color:${C.ink};">${esc(saluto(nome))}</p>
+${paragrafo(testo)}
 </td></tr>
-<tr><td style="padding:20px 32px 8px;">${pulsante(link, "Conferma l’iscrizione")}</td></tr>
-<tr><td style="padding:16px 32px 32px;">
-<p style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${C.inkFaint};">Se non sei stata o stato tu, ignora questa mail: senza conferma non riceverai niente e il tuo indirizzo verrà cancellato.</p>
+<tr><td class="px" style="padding:26px 40px 8px;">${pulsante(link, "Conferma l’iscrizione")}</td></tr>
+<tr><td class="px" style="padding:8px 40px 40px;">
+${firma()}
+<p style="margin:26px 0 0;font-family:${FONT};font-size:12px;line-height:1.6;color:${C.inkFaint};">Se non sei stata o stato tu, ignora questa mail: senza conferma non riceverai niente e il tuo indirizzo verrà cancellato.</p>
 </td></tr>`,
+      null,
     ),
     text: [
-      "Grazie! Per ricevere la newsletter manca un passo: conferma che questo indirizzo è tuo.",
+      saluto(nome),
+      "",
+      testo,
       "",
       link,
       "",
-      "Se non sei stata o stato tu, ignora questa mail: senza conferma non riceverai niente e il tuo indirizzo verrà cancellato.",
+      "Benedetta",
       "",
+      "—",
+      "Se non sei stata o stato tu, ignora questa mail: senza conferma non riceverai niente e il tuo indirizzo verrà cancellato.",
       `${site.name} · ${site.url}`,
     ].join("\n"),
   });
@@ -387,6 +469,7 @@ export async function inviaConfermaIscrizione(email: string, link: string): Prom
 
 /** Una novità come entra nella mail: già pronta, con indirizzi assoluti. */
 export type VoceNewsletter = {
+  tipo: "opera" | "stampa";
   title: string;
   /** «Nuova opera · 2026» o «Stampa · da 10 €». */
   riga: string;
@@ -395,16 +478,26 @@ export type VoceNewsletter = {
   immagine: string | null;
 };
 
-export type ContenutoNewsletter = { oggetto: string; testo: string | null; voci: VoceNewsletter[] };
+export type ContenutoNewsletter = {
+  oggetto: string;
+  /** Il messaggio di lei. Senza, la mail dice in una riga cosa c'è di nuovo. */
+  testo: string | null;
+  voci: VoceNewsletter[];
+};
 
-/** I due indirizzi di disiscrizione di una persona: la pagina e il clic unico dei programmi di posta. */
-export type DestinatarioNewsletter = { email: string; disiscrivi: string; disiscriviSubito: string };
+/** A chi va una copia: il nome per il saluto e i due indirizzi di disiscrizione. */
+export type DestinatarioNewsletter = {
+  email: string;
+  nome: string | null;
+  disiscrivi: string;
+  disiscriviSubito: string;
+};
 
 /**
  * Manda la newsletter a tutti, a pacchetti di cento (il massimo di Resend per
- * chiamata). Ognuno riceve la sua copia, con il suo link per disiscriversi e
- * l'intestazione List-Unsubscribe, che Gmail e gli altri mostrano come
- * «Annulla iscrizione» accanto al mittente.
+ * chiamata). Ognuno riceve la sua copia, con il suo nome nel saluto, il suo
+ * link per disiscriversi e l'intestazione List-Unsubscribe, che Gmail e gli
+ * altri mostrano come «Annulla iscrizione» accanto al mittente.
  *
  * Non si ferma al primo pacchetto fallito: restituisce quante mail sono
  * partite, e chi chiama decide cosa dire.
@@ -425,8 +518,8 @@ export async function inviaNewsletter(
         to: d.email,
         replyTo: para(),
         subject: unaRiga(c.oggetto),
-        html: htmlNewsletter(c, d.disiscrivi),
-        text: testoNewsletter(c, d.disiscrivi),
+        html: htmlNewsletter(c, d.nome, d.disiscrivi),
+        text: testoNewsletter(c, d.nome, d.disiscrivi),
         headers: {
           "List-Unsubscribe": `<${d.disiscriviSubito}>`,
           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
@@ -444,24 +537,40 @@ export async function inviaNewsletter(
   return partite;
 }
 
-/** Una copia di prova a lei, prima di mandarla a tutti. */
+/** Una copia di prova a lei, prima di mandarla a tutti. Il saluto è quello di chi non ha dato il nome. */
 export async function inviaProvaNewsletter(c: ContenutoNewsletter): Promise<void> {
   const finto = `${site.url}/newsletter`;
   const { error } = await cliente().emails.send({
     from: desde(),
     to: para(),
     subject: `[Prova] ${unaRiga(c.oggetto)}`,
-    html: htmlNewsletter(c, finto),
-    text: testoNewsletter(c, finto),
+    html: htmlNewsletter(c, null, finto),
+    text: testoNewsletter(c, null, finto),
   });
   if (error) throw new Error(`Resend (prova newsletter): ${error.message}`);
 }
 
-function testoNewsletter(c: ContenutoNewsletter, disiscrivi: string): string {
-  const testo = c.testo?.trim();
+/** La mail come la riceve una persona, per l'anteprima dell'admin. Il link di disiscrizione non porta da nessuna parte. */
+export function anteprimaNewsletter(c: ContenutoNewsletter, nome: string | null): string {
+  return htmlNewsletter(c, nome, "#");
+}
+
+/** La riga che chiude: se c'è una stampa, che si può avere; se no, dove trovare il resto. */
+function chiusura(c: ContenutoNewsletter): string {
+  return c.voci.some((v) => v.tipo === "stampa")
+    ? "Se una ti piace, la stampo e te la spedisco io, in Italia e in Europa."
+    : "Le trovi sul sito, insieme al resto dell’archivio.";
+}
+
+function testoNewsletter(c: ContenutoNewsletter, nome: string | null, disiscrivi: string): string {
   return [
-    ...(testo ? [testo, ""] : []),
+    saluto(nome),
+    "",
+    (c.testo?.trim() || annuncioNovita(c.voci)).trim(),
+    "",
     ...c.voci.flatMap((v) => [`${v.title} — ${v.riga}`, v.url, ""]),
+    chiusura(c),
+    "",
     "Benedetta",
     "",
     "—",
@@ -470,35 +579,72 @@ function testoNewsletter(c: ContenutoNewsletter, disiscrivi: string): string {
   ].join("\n");
 }
 
-function htmlNewsletter(c: ContenutoNewsletter, disiscrivi: string): string {
-  const voci = c.voci
-    .map(
-      (v) => `<tr><td style="padding:12px 32px 20px;">
-<a href="${esc(v.url)}" style="text-decoration:none;color:${C.ink};">
-${v.immagine ? `<img src="${esc(v.immagine)}" width="536" alt="${esc(v.title)}" style="display:block;width:100%;max-width:536px;height:auto;border:0;background:${C.paperDeep};">` : ""}
-<div style="margin-top:14px;font-family:${SERIF};font-size:20px;line-height:1.3;color:${C.ink};">${esc(v.title)}</div>
-</a>
-<div style="margin-top:4px;font-family:${FONT};font-size:13px;color:${C.inkFaint};">${esc(v.riga)}</div>
-<div style="margin-top:10px;font-family:${FONT};font-size:14px;"><a href="${esc(v.url)}" style="color:${C.accent};text-decoration:underline;">Guarda sul sito</a></div>
-</td></tr>`,
-    )
-    .join("");
+function htmlNewsletter(c: ContenutoNewsletter, nome: string | null, disiscrivi: string): string {
+  const testo = c.testo?.trim() || annuncioNovita(c.voci);
 
-  const testo = c.testo?.trim();
-  return cornice(
-    testo ? testo.split("\n")[0] : c.voci.map((v) => v.title).join(" · "),
-    `${testo ? `<tr><td style="padding:32px 32px 12px;">${corpo(testo)}</td></tr>` : `<tr><td style="padding:20px 0 0;"></td></tr>`}
+  /*
+    Fino a tre novità, ognuna grande, una sotto l'altra: si guardano come
+    tavole. Da quattro in su la prima resta grande e le altre vanno a due a
+    due, più piccole: otto tavole intere farebbero una lettera da scorrere per
+    un minuto.
+  */
+  const grandi = c.voci.length > 3 ? c.voci.slice(0, 1) : c.voci;
+  const piccole = c.voci.length > 3 ? c.voci.slice(1) : [];
+
+  const voceGrande = (v: VoceNewsletter) => `<tr><td class="px" style="padding:0 40px 40px;">
+<a href="${esc(v.url)}" style="text-decoration:none;">${
+    v.immagine
+      ? `<img src="${esc(v.immagine)}" width="520" alt="${esc(v.title)}" style="display:block;width:100%;max-width:520px;height:auto;border:0;background:${C.paperDeep};">`
+      : ""
+  }</a>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;"><tr>
+<td valign="top" style="font-family:${SERIF};font-size:20px;line-height:1.3;color:${C.ink};">${esc(v.title)}<div style="margin-top:4px;font-family:${FONT};font-size:13px;color:${C.inkFaint};">${esc(v.riga)}</div></td>
+<td align="right" valign="top" style="padding:4px 0 0 16px;white-space:nowrap;"><a href="${esc(v.url)}" style="font-family:${FONT};font-size:14px;color:${C.accent};text-decoration:underline;">Guarda</a></td>
+</tr></table>
+</td></tr>`;
+
+  const vocePiccola = (v: VoceNewsletter | undefined, lato: "sx" | "dx") =>
+    `<td width="50%" valign="top" style="padding:0 ${lato === "sx" ? "8px" : "0"} 30px ${lato === "dx" ? "8px" : "0"};">${
+      v
+        ? `<a href="${esc(v.url)}" style="text-decoration:none;color:${C.ink};">${
+            v.immagine
+              ? `<img src="${esc(v.immagine)}" width="252" alt="${esc(v.title)}" style="display:block;width:100%;max-width:252px;height:auto;border:0;background:${C.paperDeep};">`
+              : ""
+          }<div style="margin-top:10px;font-family:${SERIF};font-size:17px;line-height:1.3;color:${C.ink};">${esc(v.title)}</div><div style="margin-top:3px;font-family:${FONT};font-size:12px;color:${C.inkFaint};">${esc(v.riga)}</div></a>`
+        : ""
+    }</td>`;
+
+  const coppie: string[] = [];
+  for (let i = 0; i < piccole.length; i += 2) {
+    coppie.push(`<tr>${vocePiccola(piccole[i], "sx")}${vocePiccola(piccole[i + 1], "dx")}</tr>`);
+  }
+
+  const voci =
+    grandi.map(voceGrande).join("") +
+    (coppie.length > 0
+      ? `<tr><td class="px" style="padding:0 40px 10px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${coppie.join("")}</table></td></tr>`
+      : "");
+
+  return lettera(
+    testo.split("\n")[0],
+    `<tr><td class="px" style="padding:36px 40px 8px;">
+<p style="margin:0;font-family:${DISPLAY};font-size:28px;line-height:1.2;color:${C.ink};">${esc(saluto(nome))}</p>
+${paragrafo(testo)}
+</td></tr>
+<tr><td class="px" style="padding:28px 40px 32px;"><div style="border-top:1px solid ${C.line};font-size:0;line-height:0;">&nbsp;</div></td></tr>
 ${voci}
-<tr><td style="padding:8px 32px 28px;">
-<p style="margin:0;font-family:${SERIF};font-size:18px;color:${C.ink};">Benedetta</p>
-<p style="margin:20px 0 0;font-family:${FONT};font-size:12px;line-height:1.6;color:${C.inkFaint};">Ricevi questa mail perché ti sei iscritta o iscritto alla newsletter sul sito. <a href="${esc(disiscrivi)}" style="color:${C.inkFaint};text-decoration:underline;">Non voglio più riceverla</a>.</p>
-</td></tr>`,
+<tr><td class="px" style="padding:0 40px 8px;">
+${paragrafo(chiusura(c)).replace("margin:18px 0 0", "margin:0")}
+${firma()}
+</td></tr>
+<tr><td style="padding:32px 0 0;"><img src="${esc(FOTO)}" width="600" alt="Benedetta nei campi intorno a Foligno" style="display:block;width:100%;max-width:600px;height:auto;border:0;"></td></tr>`,
+    disiscrivi,
   );
 }
 
 function pulsante(href: string, testo: string): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border:1px solid ${C.accent};border-radius:6px;">
-<a href="${esc(href)}" style="display:inline-block;padding:11px 22px;font-family:${FONT};font-size:14px;color:${C.accent};text-decoration:none;">${esc(testo)}</a>
+  return `<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:${C.accent};border-radius:6px;">
+<a href="${esc(href)}" style="display:inline-block;padding:13px 26px;font-family:${FONT};font-size:15px;color:#ffffff;text-decoration:none;">${esc(testo)}</a>
 </td></tr></table>`;
 }
 

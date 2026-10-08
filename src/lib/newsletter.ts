@@ -18,6 +18,8 @@ export type StatoIscritto = "in attesa" | "iscritto" | "disiscritto";
 export type Iscritto = {
   id: number;
   email: string;
+  /** Facoltativo: la newsletter comincia con «Ciao <nome>,». */
+  nome: string | null;
   token: string;
   stato: StatoIscritto;
   creato: Date;
@@ -29,6 +31,7 @@ function hydrate(row: Record<string, unknown>): Iscritto {
   return {
     id: Number(row.id),
     email: String(row.email),
+    nome: row.nome ? String(row.nome) : null,
     token: String(row.token),
     stato: row.disiscritto_at ? "disiscritto" : confermato ? "iscritto" : "in attesa",
     creato: new Date(String(row.created_at)),
@@ -36,9 +39,18 @@ function hydrate(row: Record<string, unknown>): Iscritto {
   };
 }
 
-const COLONNE = `id, email, token, confermato_at, disiscritto_at, created_at`;
+const COLONNE = `id, email, nome, token, confermato_at, disiscritto_at, created_at`;
 
 const nuovoToken = () => randomBytes(24).toString("base64url");
+
+/**
+ * Il nome come entra nella lista: una riga sola, senza caratteri di
+ * controllo, al massimo 80 caratteri. Vuoto vale come nessun nome.
+ */
+export function pulisciNome(grezzo: string): string | null {
+  const nome = grezzo.replace(/[\u0000-\u001f\u007f<>]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+  return nome.length > 0 ? nome : null;
+}
 
 /** Lo stesso controllo del modulo, ripetuto qui perché un'azione si chiama anche senza modulo. */
 export function emailValida(email: string): boolean {
@@ -59,7 +71,8 @@ export function emailValida(email: string): boolean {
  */
 export async function richiediIscrizione(
   emailGrezza: string,
-): Promise<{ token: string; inviaConferma: boolean }> {
+  nome: string | null,
+): Promise<{ token: string; nome: string | null; inviaConferma: boolean }> {
   const email = emailGrezza.trim().toLowerCase();
 
   return transaction(async (run) => {
@@ -69,13 +82,16 @@ export async function richiediIscrizione(
     );
 
     const [riga] = await run<Record<string, unknown>>(
-      `INSERT INTO iscritti (email, token) VALUES ($1, $2)
-       ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
+      // Un nome nuovo sostituisce il vecchio; un modulo senza nome non lo cancella.
+      `INSERT INTO iscritti (email, token, nome) VALUES ($1, $2, $3)
+       ON CONFLICT (email) DO UPDATE SET nome = COALESCE(EXCLUDED.nome, iscritti.nome)
        RETURNING ${COLONNE}, conferma_inviata_at`,
-      [email, nuovoToken()],
+      [email, nuovoToken(), nome],
     );
     const iscritto = hydrate(riga);
-    if (iscritto.stato === "iscritto") return { token: iscritto.token, inviaConferma: false };
+    if (iscritto.stato === "iscritto") {
+      return { token: iscritto.token, nome: iscritto.nome, inviaConferma: false };
+    }
 
     // Torna in attesa (se era disiscritto) e segna l'invio, ma solo se
     // l'ultimo è abbastanza lontano. La condizione è nell'UPDATE stesso, così
@@ -88,7 +104,7 @@ export async function richiediIscrizione(
     RETURNING id`,
       [iscritto.id],
     );
-    return { token: iscritto.token, inviaConferma: aggiornate.length > 0 };
+    return { token: iscritto.token, nome: iscritto.nome, inviaConferma: aggiornate.length > 0 };
   });
 }
 

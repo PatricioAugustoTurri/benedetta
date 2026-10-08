@@ -2,7 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { correoConfigurado, inviaConfermaIscrizione } from "@/lib/correo";
-import { confermaIscrizione, disiscrivi, emailValida, richiediIscrizione } from "@/lib/newsletter";
+import {
+  confermaIscrizione,
+  disiscrivi,
+  emailValida,
+  pulisciNome,
+  richiediIscrizione,
+} from "@/lib/newsletter";
 import { origine } from "@/lib/origine";
 
 export type EsitoIscrizione = { ok: true } | { ok: false; error: string };
@@ -17,6 +23,7 @@ export async function iscriviti(formData: FormData): Promise<EsitoIscrizione> {
   if (String(formData.get("sito") ?? "").trim() !== "") return { ok: true };
 
   const email = String(formData.get("email") ?? "").trim();
+  const nomeScritto = pulisciNome(String(formData.get("nome") ?? ""));
   if (!emailValida(email)) return { ok: false, error: "Questa email non sembra completa." };
 
   if (!correoConfigurado()) {
@@ -25,9 +32,9 @@ export async function iscriviti(formData: FormData): Promise<EsitoIscrizione> {
   }
 
   try {
-    const { token, inviaConferma } = await richiediIscrizione(email);
+    const { token, nome, inviaConferma } = await richiediIscrizione(email, nomeScritto);
     if (inviaConferma) {
-      await inviaConfermaIscrizione(email, `${await origine()}/newsletter/conferma/${token}`);
+      await inviaConfermaIscrizione(email, nome, `${await origine()}/newsletter/conferma/${token}`);
     }
   } catch (e) {
     console.error("Newsletter: iscrizione non riuscita.", e);

@@ -1,14 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prezzo, prezzoMinimo, prodottoHref } from "@/data/shop";
 import { requireSession } from "@/lib/auth";
 import {
   correoConfigurado,
   inviaNewsletter,
   inviaProvaNewsletter,
   type ContenutoNewsletter,
-  type VoceNewsletter,
 } from "@/lib/correo";
 import {
   apriInvio,
@@ -17,26 +15,11 @@ import {
   listDestinatari,
   listNovita,
   segnaAnnunciate,
-  type VoceInvio,
 } from "@/lib/newsletter";
+import { vociNewsletter } from "@/lib/newsletterVoci";
 import { origine } from "@/lib/origine";
-import { immagineFerma } from "@/lib/video";
-import type { WorkImage } from "@/lib/works";
 
 export type EsitoNewsletter = { error?: string; fatto?: string };
-
-/**
- * L'immagine come entra in una mail: assoluta, ferma, e già tagliata in 4:5
- * alla misura della colonna (il doppio, per gli schermi densi). I programmi di
- * posta non ridimensionano bene, e una scansione da 8 MB in una mail è una
- * mail che non si apre.
- */
-function immagineMail(img: WorkImage | undefined, base: string): string | null {
-  if (!img) return null;
-  const url = immagineFerma(img);
-  if (url.startsWith("/")) return `${base}${url}`;
-  return url.replace("/upload/", "/upload/c_fill,g_auto,w_1072,h_1340,q_auto,f_jpg/");
-}
 
 /**
  * Un solo punto d'entrata per i tre pulsanti del modulo —inviare a tutti,
@@ -83,27 +66,7 @@ export async function newsletterAzione(
   if (!correoConfigurado()) return { error: "Manca la chiave di Resend: la posta non può partire." };
 
   const base = await origine();
-  const voci: (VoceNewsletter & VoceInvio)[] = [
-    ...opere.map((w) => ({
-      tipo: "opera" as const,
-      id: w.id,
-      title: w.title,
-      riga: ["Nuova opera", String(w.year), w.tecnica].filter(Boolean).join(" · "),
-      url: `${base}/opera/${w.slug}`,
-      immagine: immagineMail(w.image[0], base),
-    })),
-    ...stampe.map((p) => {
-      const minimo = prezzoMinimo(p.formati);
-      return {
-        tipo: "stampa" as const,
-        id: p.id,
-        title: p.title,
-        riga: minimo !== null ? `Stampa · da ${prezzo(minimo)}` : "Stampa",
-        url: `${base}${prodottoHref(p)}`,
-        immagine: immagineMail(p.image[0], base),
-      };
-    }),
-  ];
+  const voci = vociNewsletter(opere, stampe, base);
   const contenuto: ContenutoNewsletter = { oggetto, testo, voci };
 
   if (modo === "prova") {
@@ -137,6 +100,7 @@ export async function newsletterAzione(
       contenuto,
       destinatari.map((d) => ({
         email: d.email,
+        nome: d.nome,
         disiscrivi: `${base}/newsletter/disiscriviti/${d.token}`,
         disiscriviSubito: `${base}/api/newsletter/disiscriviti/${d.token}`,
       })),
