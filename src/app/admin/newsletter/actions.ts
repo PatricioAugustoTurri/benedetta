@@ -104,7 +104,9 @@ export async function newsletterAzione(
         disiscrivi: `${base}/newsletter/disiscriviti/${d.token}`,
         disiscriviSubito: `${base}/api/newsletter/disiscriviti/${d.token}`,
       })),
-      `newsletter-${invio.id}`,
+      // Unica anche se due database (locale e produzione) hanno un invio con
+      // lo stesso numero: Resend ricorda le chiavi di tutto l'account per 24 ore.
+      `newsletter-${invio.id}-${invio.creato.getTime()}`,
     );
   } catch (e) {
     console.error("Newsletter: invio fallito.", e);
