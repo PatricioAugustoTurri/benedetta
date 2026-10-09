@@ -68,6 +68,7 @@ psql -d illustrando -f db/migrations/006-newsletter.sql
 psql -d illustrando -f db/migrations/007-nome-iscritti.sql
 psql -d illustrando -f db/migrations/008-spedizioni-testimonianze.sql
 psql -d illustrando -f db/migrations/009-sconti.sql
+psql -d illustrando -f db/migrations/010-codici.sql
 ```
 
 ## La tienda: `prodotti`, `servizi`, `copertine` y `ordini`
@@ -152,3 +153,30 @@ categorías en `/shop`, y el precio rebajado es el que calcula el servidor para
 la ficha, el carrito y Stripe. Si una stampa está en dos descuentos a la vez,
 vale el mayor.
 
+
+## Códigos de descuento: `codici`
+
+Un código que se escribe en el carrito antes de pagar: `codice` (mayúsculas,
+números y guiones, 3 a 30), `percentuale`, `attivo`, `scade` (último día,
+incluido, hora de Italia; vacío = no vence) y `monouso` (vale un solo pedido).
+Dos tipos en la misma tabla:
+
+- **Generales** (`ordine_id` vacío): `BENZIBET98` al 15%, el de la primera
+  tarjetita igual para todos, lo crea la migración 010. Se manejan desde
+  `/admin/shop`, donde también se pueden hacer códigos personales a mano.
+- **Biglietti** (`ordine_id` = el pedido en cuyo paquete va): uno por pedido,
+  lo crea el webhook al registrar el pago (`BEN-` + cuatro signos sin O/0/I/L/1,
+  porque se copian a mano). 15%, `monouso`, y `scade` vacío hasta que el pedido
+  se marca como enviado: ahí queda en 90 días, si ella no eligió otra fecha.
+  Código, porcentaje y fecha se corrigen desde el pedido en `/admin/ordini`.
+  Va también en el mail «La tua stampa è partita» mientras vale.
+
+Usado un monouso, queda con `usato_ordine_id` y no vale más: no se borra,
+para que se vea quién volvió a comprar.
+
+No se suma a los descuentos de temporada: el porcentaje se calcula sólo sobre
+las stampe que no están ya rebajadas, y nunca sobre el envío. El servidor lo
+vuelve a verificar al crear la sesión y se lo pasa a Stripe como un cupón por
+importe fijo (`codice-<CODIGO>-<pct>-<centavos>`, creado la primera vez que
+hace falta), así que la página de pago y el recibo muestran la línea del
+descuento. El pedido guarda `sconto` (centavos) y `codice`.

@@ -70,6 +70,12 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
     A5 10 €, 20×20 cm 15 €, A4 20 €, A3 30 €, editable por stampa. Sin stock: se imprimen a pedido.
     Los pedidos los escribe el webhook de Stripe en `ordini` y ella los marca como
     enviados en `/admin/ordini`.
+  - **Códigos de descuento** (2026-10-09): se escriben en el carrito antes de
+    Stripe. `BENZIBET98` (15%) es la tarjetita igual para todos. Además, cada
+    pedido trae su **biglietto**: un código personal que ella escribe a mano en
+    una tarjeta del paquete, 15%, un solo uso, vence 90 días después del envío,
+    y todo —código, porcentaje, fecha— se corrige desde el pedido antes de
+    mandarlo. Ningún código se suma a los sconti de temporada ni toca el envío.
   - **Illustrazioni Personalizzate** y **Ritratti Illustrati** no son productos: son
     dos servicios, uno cada uno y siempre los mismos (tabla `servizi`, dos filas
     fijas). Una página que se lee —de qué se trata, cómo funciona, ejemplos— y lleva a

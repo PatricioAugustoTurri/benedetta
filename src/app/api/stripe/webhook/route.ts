@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { creaBiglietto, segnaUsato } from "@/lib/codici";
 import { avvisaOrdine, confermaOrdine, correoConfigurado } from "@/lib/correo";
 import { registraOrdine, type RigaOrdine } from "@/lib/prodotti";
 import { stripe, stripeConfigurato } from "@/lib/stripe";
@@ -102,11 +103,27 @@ async function registra(sessione: Stripe.Checkout.Session) {
     righe: voci,
     subtotale: sessione.amount_subtotal ?? 0,
     spedizione: sessione.total_details?.amount_shipping ?? 0,
+    sconto: sessione.total_details?.amount_discount ?? 0,
+    codice: sessione.metadata?.codice || null,
     totale: sessione.amount_total ?? 0,
   });
 
   // Già registrato: è un evento ripetuto, e le mail sono già partite.
-  if (!ordine || !correoConfigurado()) return;
+  if (!ordine) return;
+
+  /*
+    I codici, dopo l'ordine e senza farlo fallire: l'ordine è la cosa che non
+    si può perdere. Un biglietto che non nasce qui si crea dalla pagina degli
+    ordini; un codice monouso non segnato è al peggio un secondo uso.
+  */
+  try {
+    if (ordine.codice) await segnaUsato(ordine.codice, ordine.id);
+    await creaBiglietto(ordine.id);
+  } catch (e) {
+    console.error("Webhook: codici dell'ordine non aggiornati", ordine.id, e);
+  }
+
+  if (!correoConfigurado()) return;
 
   /*
     Le mail non fanno fallire il webhook. L'ordine è già scritto; se Resend

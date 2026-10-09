@@ -7,3 +7,10 @@
 export function oggiInItalia(): string {
   return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Rome" }).format(new Date());
 }
+
+/** «2027-01-07» → «7 gennaio 2027». La data è un giorno, non un istante: niente fuso. */
+export function giornoLungo(iso: string): string {
+  return new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
+    new Date(`${iso}T00:00:00Z`),
+  );
+}

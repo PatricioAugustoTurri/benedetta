@@ -3,19 +3,29 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useActionState, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { vaiAlPagamento, verificaCarrello, type EsitoPagamento } from "@/app/(sitio)/carrello/actions";
+import type { RefObject } from "react";
+import {
+  vaiAlPagamento,
+  verificaCarrello,
+  verificaCodice,
+  type EsitoPagamento,
+} from "@/app/(sitio)/carrello/actions";
 import { AZIONE } from "@/components/azione";
 import { ArrowRight, Meno, Plus } from "@/components/Icon";
 import { legaliPronte } from "@/data/legale";
-import { prezzo, prodottoHref } from "@/data/shop";
+import { prezzo, prodottoHref, scontoCodice } from "@/data/shop";
 import type { TariffaSpedizione, Zona } from "@/lib/stripe";
+import CodiceSconto from "./CodiceSconto";
 import {
   cambiaQuantita,
+  codiceRicordato,
   MAX_QUANTITA,
+  ricordaCodice,
   sostituisci,
   togli,
   totaleCarrello,
   useCarrello,
+  type CodiceApplicato,
   type VoceCarrello,
 } from "./store";
 
@@ -48,6 +58,16 @@ export default function CarrelloVista({
   const montato = useSyncExternalStore(nessuno, () => true, () => false);
   const [avviso, setAvviso] = useState<string | null>(null);
   const [zona, setZona] = useState<Zona>("italia");
+  const [codice, setCodice] = useState<CodiceApplicato | null>(null);
+  // Quello che un lettore di schermo sente quando il codice entra o esce:
+  // la riga compare nei conti, ma comparire non si annuncia da solo.
+  const [annuncio, setAnnuncio] = useState("");
+  // Dopo «Togli» il fuoco torna alla riga «Hai un codice sconto?», non sul
+  // fondo della pagina.
+  const [rifuoca, setRifuoca] = useState(false);
+  // Dopo «Applica» il campo si chiude e sparisce: il fuoco va sulla riga del
+  // codice nei conti, che è dove è andato quello che si è appena scritto.
+  const rigaCodice = useRef<HTMLDivElement>(null);
   const [esito, paga, pagando] = useActionState<EsitoPagamento, FormData>(vaiAlPagamento, {});
   const verificato = useRef(false);
   const id = useId();
@@ -77,6 +97,29 @@ export default function CarrelloVista({
       });
   }, [montato, voci]);
 
+  /*
+    Il codice ricordato dall'ultima visita si ricontrolla prima di mostrarlo:
+    lei può averlo spento nel frattempo, e uno sconto che si vede nel carrello
+    e sparisce al pagamento è peggio di uno che si dice subito che non c'è.
+  */
+  useEffect(() => {
+    if (!montato) return;
+    const ricordato = codiceRicordato();
+    if (!ricordato) return;
+    verificaCodice(ricordato.codice)
+      .then((e) => {
+        if (e.ok) {
+          setCodice({ codice: e.codice, percentuale: e.percentuale });
+          ricordaCodice({ codice: e.codice, percentuale: e.percentuale });
+        } else {
+          ricordaCodice(null);
+          setAvviso(`Il codice ${ricordato.codice} non vale più ed è stato tolto.`);
+        }
+      })
+      // Senza rete si mostra com'era: il pagamento lo ricontrolla comunque.
+      .catch(() => setCodice(ricordato));
+  }, [montato]);
+
   if (!montato) return <div className="min-h-[40vh]" aria-hidden="true" />;
 
   if (voci.length === 0) {
@@ -100,6 +143,29 @@ export default function CarrelloVista({
   const subtotale = totaleCarrello(voci);
   const tariffa = tariffe.find((t) => t.zona === zona);
   const spedizione = tariffa?.prezzo ?? null;
+  const sconto = codice ? scontoCodice(voci, codice.percentuale) : 0;
+  const totale = subtotale - sconto + (spedizione ?? 0);
+  // Quante righe restano fuori dal codice perché già in sconto di stagione.
+  const fuori = voci.filter((v) => v.scontata).length;
+
+  const applica = (c: CodiceApplicato) => {
+    setCodice(c);
+    ricordaCodice(c);
+    setRifuoca(false);
+    requestAnimationFrame(() => rigaCodice.current?.focus());
+    const toglie = scontoCodice(voci, c.percentuale);
+    setAnnuncio(
+      toglie > 0
+        ? `Codice ${c.codice} applicato: meno ${prezzo(toglie)}.`
+        : `Codice ${c.codice} applicato, ma le stampe nel carrello sono già in sconto.`,
+    );
+  };
+  const toglilo = () => {
+    setCodice(null);
+    ricordaCodice(null);
+    setRifuoca(true);
+    setAnnuncio("Codice tolto.");
+  };
 
   return (
     <div className="grid gap-12 md:grid-cols-12 md:gap-16">
@@ -129,6 +195,7 @@ export default function CarrelloVista({
             name="voci"
             value={JSON.stringify(voci.map(({ slug, formato, quantita }) => ({ slug, formato, quantita })))}
           />
+          <input type="hidden" name="codice" value={codice?.codice ?? ""} />
 
           <fieldset>
             <legend className="label">Spedizione</legend>
@@ -164,8 +231,16 @@ export default function CarrelloVista({
             </div>
           </fieldset>
 
+          {!codice && <CodiceSconto onApplica={applica} focusAllInizio={rifuoca} />}
+          <p role="status" className="sr-only">
+            {annuncio}
+          </p>
+
           <dl className="mt-8 border-t border-line">
             <Conto etichetta="Subtotale" valore={prezzo(subtotale)} />
+            {codice && (
+              <RigaCodice ref={rigaCodice} codice={codice} sconto={sconto} fuori={fuori} righe={voci.length} onTogli={toglilo} />
+            )}
             <Conto
               etichetta="Spedizione"
               valore={spedizione === null ? "—" : prezzo(spedizione)}
@@ -173,7 +248,7 @@ export default function CarrelloVista({
             <div className="flex items-baseline justify-between gap-6 border-b border-line py-3.5">
               <dt className="label text-ink">Totale</dt>
               <dd className="figures text-lg font-medium">
-                {spedizione === null ? prezzo(subtotale) : prezzo(subtotale + spedizione)}
+                {prezzo(totale)}
               </dd>
             </div>
           </dl>
@@ -224,6 +299,68 @@ export default function CarrelloVista({
           )}
         </form>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Il codice nei conti: una riga fra Subtotale e Spedizione, perché toglie
+ * dalle stampe e non dal resto. Il nome del codice in inchiostro accanto
+ * all'etichetta, la cifra in terracotta —è una parola di stato, la sola nei
+ * conti— e sotto, piccolo, su cosa vale e come toglierlo.
+ *
+ * Se tutte le stampe sono già in sconto di stagione il codice resta, ma lo
+ * dice: «già in sconto» e niente cifra, invece di un «−0,00 €» che sembra un
+ * errore.
+ */
+function RigaCodice({
+  ref,
+  codice,
+  sconto,
+  fuori,
+  righe,
+  onTogli,
+}: {
+  ref: RefObject<HTMLDivElement | null>;
+  codice: CodiceApplicato;
+  sconto: number;
+  fuori: number;
+  righe: number;
+  onTogli: () => void;
+}) {
+  const nota =
+    fuori === 0
+      ? `−${codice.percentuale}% sulle stampe`
+      : fuori === righe
+        ? "Le stampe nel carrello sono già in sconto: il codice non si somma"
+        : `−${codice.percentuale}% sulle stampe non già in sconto`;
+
+  return (
+    <div
+      ref={ref}
+      tabIndex={-1}
+      className="codice-entra flex items-start justify-between gap-6 border-b border-line py-3 focus:outline-none"
+    >
+      <dt className="min-w-0">
+        <span className="label">
+          Codice <span className="figures text-ink">{codice.codice}</span>
+        </span>
+        <span className="mt-1.5 flex flex-wrap items-baseline gap-x-2 text-xs leading-relaxed text-ink-faint">
+          <span>{nota}</span>
+          <span aria-hidden="true">·</span>
+          <button
+            type="button"
+            onClick={onTogli}
+            className="area-tocco text-ink-soft transition-colors hover:text-accent"
+          >
+            <span className="link-underline">Togli</span>
+            <span className="sr-only"> il codice {codice.codice}</span>
+          </button>
+        </span>
+      </dt>
+      <dd className={`figures shrink-0 text-sm ${sconto > 0 ? "text-accent" : "text-ink-faint"}`}>
+        {sconto > 0 ? `−${prezzo(sconto)}` : "—"}
+      </dd>
     </div>
   );
 }

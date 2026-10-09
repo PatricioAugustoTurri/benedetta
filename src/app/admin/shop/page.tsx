@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Pencil, Plus } from "@/components/Icon";
 import { richiediAccesso } from "@/lib/auth";
 import { cloudinaryConfigurado } from "@/lib/cloudinary";
+import { contaBiglietti, listCodici, type Codice } from "@/lib/codici";
+import { giornoLungo, oggiInItalia } from "@/lib/oggi";
 import { listPorte, type Porta } from "@/lib/copertine";
 import { listSconti, statoSconto, type Sconto } from "@/lib/sconti";
 import { listProdotti } from "@/lib/prodotti";
@@ -41,7 +43,8 @@ export default async function AdminShopPage() {
     listServizi(),
     listProdotti(),
   ]);
-  const sconti = await listSconti();
+  const [sconti, codici, biglietti] = await Promise.all([listSconti(), listCodici(), contaBiglietti()]);
+  const oggi = oggiInItalia();
   const conCloudinary = cloudinaryConfigurado();
 
   return (
@@ -107,6 +110,50 @@ export default async function AdminShopPage() {
             </Link>
           </section>
 
+          <section aria-labelledby="adm-codici">
+            <div className="flex items-baseline justify-between gap-6">
+              <h2 id="adm-codici" className="display-section font-display text-xl leading-tight">
+                Codici sconto
+              </h2>
+              <span className="text-xs text-ink-faint">Si scrivono nel carrello</span>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-ink-faint">
+              Valgono sulle stampe che non sono già in sconto, non sulla spedizione.
+            </p>
+            {codici.length > 0 && (
+              <ul className="mt-4 border-t border-line">
+                {codici.map((c) => (
+                  <RigaCodice key={c.id} codice={c} oggi={oggi} />
+                ))}
+              </ul>
+            )}
+            {/*
+              I biglietti degli ordini si contano soltanto: sono uno per
+              pacco, e una lista che cresce a ogni ordine seppellirebbe i pochi
+              codici fatti a mano. Si cambiano dall'ordine, dove lei è
+              quando scrive il biglietto.
+            */}
+            <p className="figures mt-4 flex flex-wrap items-baseline gap-x-2 border-b border-line pb-4 text-xs text-ink-faint">
+              <span className="text-ink-soft">Biglietti nei pacchi:</span>
+              {biglietti.dati === 0
+                ? "ancora nessuno"
+                : `${biglietti.dati} ${biglietti.dati === 1 ? "dato" : "dati"} · ${biglietti.usati} ${
+                    biglietti.usati === 1 ? "tornato" : "tornati"
+                  } come ordine`}
+              <span aria-hidden="true">·</span>
+              <Link href="/admin/ordini" className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink">
+                Si cambiano negli ordini
+              </Link>
+            </p>
+            <Link
+              href="/admin/shop/codici/nuovo"
+              className="mt-4 flex w-full items-center justify-center gap-2 border border-dashed border-line bg-paper-deep/40 py-4 text-ink-faint transition-colors hover:border-accent/50 hover:bg-paper-deep/70 hover:text-ink-soft"
+            >
+              <Plus size={16} />
+              <span className="label">Nuovo codice</span>
+            </Link>
+          </section>
+
           <section aria-labelledby="adm-servizi">
             <div className="flex items-baseline justify-between gap-6">
               <h2 id="adm-servizi" className="display-section font-display text-xl leading-tight">
@@ -167,6 +214,10 @@ export default async function AdminShopPage() {
             <li>Una stampa nuova nasce come bozza: nel sito non esce finché non la pubblichi.</li>
             <li>Le frecce cambiano l&apos;ordine in cui escono le stampe.</li>
             <li>
+              I codici sconto li scrive chi compra, nel carrello. Non si sommano agli sconti di
+              stagione.
+            </li>
+            <li>
               Gli sconti si preparano quando vuoi: escono nello Shop, con il prezzo scontato, solo
               fra il primo e l&apos;ultimo giorno.
             </li>
@@ -217,6 +268,54 @@ function RigaSconto({ sconto: sc }: { sconto: Sconto }) {
           <span className="figures mt-1 block text-xs text-ink-faint">
             −{sc.percentuale}% · dal {giorno(sc.dal)} al {giorno(sc.al)} ·{" "}
             {sc.stampe.length === 1 ? "1 stampa" : `${sc.stampe.length} stampe`}
+          </span>
+        </span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center text-ink-soft transition-colors group-hover:text-ink">
+          <Pencil size={16} />
+        </span>
+      </Link>
+    </li>
+  );
+}
+
+/**
+ * Un codice nella lista: la parola in tabulari, lo sconto e quante volte è
+ * servito. Il punto è terracotta quando è acceso: vuol dire che adesso, nel
+ * carrello, qualcuno lo può usare.
+ */
+function RigaCodice({ codice: c, oggi }: { codice: Codice; oggi: string }) {
+  const usato = c.usatoOrdineId !== null;
+  const scaduto = !usato && c.scade !== null && c.scade < oggi;
+  const vale = c.attivo && !usato && !scaduto;
+  const stato = usato
+    ? `Usato nell’ordine #${c.usatoOrdineId}`
+    : scaduto
+      ? "Scaduto"
+      : c.attivo
+        ? "Acceso"
+        : "Spento";
+  return (
+    <li className="border-b border-line">
+      <Link href={`/admin/shop/codici/${c.id}`} className="group flex items-center gap-4 py-4">
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="link-underline figures text-[0.9375rem] tracking-[0.06em] text-ink transition-colors group-hover:text-accent">
+              {c.codice}
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-ink-faint">
+              <span
+                aria-hidden="true"
+                className={`block h-1 w-1 rounded-full ${vale ? "bg-accent" : "bg-ink-faint"}`}
+              />
+              {stato}
+            </span>
+          </span>
+          <span className="figures mt-1 block text-xs text-ink-faint">
+            −{c.percentuale}%
+            {c.monouso ? " · una volta sola" : ""}
+            {c.scade ? ` · ${scaduto ? "scaduto il" : "fino al"} ${giornoLungo(c.scade)}` : ""}
+            {!c.monouso &&
+              ` · ${c.usi === 0 ? "ancora nessun ordine" : c.usi === 1 ? "usato in 1 ordine" : `usato in ${c.usi} ordini`}`}
           </span>
         </span>
         <span className="flex h-8 w-8 shrink-0 items-center justify-center text-ink-soft transition-colors group-hover:text-ink">

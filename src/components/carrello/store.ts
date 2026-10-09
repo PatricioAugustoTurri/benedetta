@@ -19,6 +19,11 @@ export type VoceCarrello = {
   title: string;
   /** Centesimi, per copia. */
   prezzo: number;
+  /**
+   * In uno sconto di stagione: un codice sconto non la tocca. Come il prezzo,
+   * è per mostrarlo; il pagamento lo ricalcola.
+   */
+  scontata?: boolean;
   immagine?: { url: string; width: number; height: number; alt: string };
 };
 
@@ -179,4 +184,39 @@ export function sostituisci(lista: VoceCarrello[]) {
 
 export function svuota() {
   scrivi(VUOTO);
+}
+
+/* ---------------------------------------------------------- il codice */
+
+/**
+ * Il codice sconto scritto nel carrello, ricordato come il carrello: chi lo
+ * scrive, va a guardare un'altra stampa e torna, lo ritrova. È solo una
+ * comodità —il carrello lo ricontrolla quando si apre e il pagamento quando
+ * parte— quindi se il browser non lo tiene, si riscrive.
+ */
+export type CodiceApplicato = { codice: string; percentuale: number };
+
+const CHIAVE_CODICE = "illustrando.codice";
+
+export function codiceRicordato(): CodiceApplicato | null {
+  try {
+    const crudo = window.localStorage.getItem(CHIAVE_CODICE);
+    const c: unknown = crudo ? JSON.parse(crudo) : null;
+    if (
+      typeof c === "object" &&
+      c !== null &&
+      typeof (c as CodiceApplicato).codice === "string" &&
+      Number.isInteger((c as CodiceApplicato).percentuale)
+    ) {
+      return c as CodiceApplicato;
+    }
+  } catch {}
+  return null;
+}
+
+export function ricordaCodice(c: CodiceApplicato | null) {
+  try {
+    if (c) window.localStorage.setItem(CHIAVE_CODICE, JSON.stringify(c));
+    else window.localStorage.removeItem(CHIAVE_CODICE);
+  } catch {}
 }

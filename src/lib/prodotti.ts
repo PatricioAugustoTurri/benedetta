@@ -247,6 +247,10 @@ export type Ordine = {
   indirizzo: Indirizzo;
   righe: RigaOrdine[];
   subtotale: number;
+  /** Quanto ha tolto un codice sconto, in centesimi; 0 senza codice. */
+  sconto: number;
+  /** Il codice usato, così come valeva quel giorno. */
+  codice: string | null;
   spedizione: number;
   totale: number;
   stato: "pagato" | "spedito";
@@ -268,6 +272,8 @@ function hydrateOrdine(row: Record<string, unknown>): Ordine {
     indirizzo: row.indirizzo as Indirizzo,
     righe: Array.isArray(row.righe) ? (row.righe as RigaOrdine[]) : [],
     subtotale: Number(row.subtotale),
+    sconto: Number(row.sconto ?? 0),
+    codice: row.codice ? String(row.codice) : null,
     spedizione: Number(row.spedizione),
     totale: Number(row.totale),
     stato: row.stato === "spedito" ? "spedito" : "pagato",
@@ -279,7 +285,7 @@ function hydrateOrdine(row: Record<string, unknown>): Ordine {
   };
 }
 
-const COLONNE_ORDINE = `id, stripe_session_id, nome, email, indirizzo, righe, subtotale, spedizione, totale, stato, created_at, spedito_at, corriere, tracking, cliente_avvisato_at`;
+const COLONNE_ORDINE = `id, stripe_session_id, nome, email, indirizzo, righe, subtotale, sconto, codice, spedizione, totale, stato, created_at, spedito_at, corriere, tracking, cliente_avvisato_at`;
 
 /**
  * Scrive un ordine pagato. Restituisce null se c'era già: Stripe ripete gli
@@ -290,8 +296,8 @@ export async function registraOrdine(
   o: Omit<Ordine, "id" | "stato" | "creato" | "spedito" | "corriere" | "tracking" | "avvisato">,
 ): Promise<Ordine | null> {
   const rows = await query<Record<string, unknown>>(
-    `INSERT INTO ordini (stripe_session_id, nome, email, indirizzo, righe, subtotale, spedizione, totale)
-          VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8)
+    `INSERT INTO ordini (stripe_session_id, nome, email, indirizzo, righe, subtotale, spedizione, totale, sconto, codice)
+          VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10)
      ON CONFLICT (stripe_session_id) DO NOTHING
        RETURNING ${COLONNE_ORDINE}`,
     [
@@ -303,6 +309,8 @@ export async function registraOrdine(
       o.subtotale,
       o.spedizione,
       o.totale,
+      o.sconto,
+      o.codice,
     ],
   );
   return rows[0] ? hydrateOrdine(rows[0]) : null;

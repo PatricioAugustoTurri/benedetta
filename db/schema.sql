@@ -361,6 +361,10 @@ CREATE TABLE ordini (
   spedizione        integer     NOT NULL CHECK (spedizione >= 0),
   totale            integer     NOT NULL CHECK (totale >= 0),
 
+  -- Quanto ha tolto un codice sconto, e quale. Vedi la 010.
+  sconto            integer     NOT NULL DEFAULT 0 CONSTRAINT ordini_sconto_positivo CHECK (sconto >= 0),
+  codice            text,
+
   -- Pagato quando arriva, spedito quando lei lo segna.
   stato             text        NOT NULL DEFAULT 'pagato'
                     CONSTRAINT ordini_stato_valido CHECK (stato IN ('pagato', 'spedito')),
@@ -377,6 +381,7 @@ CREATE TABLE ordini (
 
 -- L'elenco dell'admin va dal più recente.
 CREATE INDEX ordini_created_at ON ordini (created_at DESC);
+CREATE INDEX ordini_codice ON ordini (codice) WHERE codice IS NOT NULL;
 
 CREATE TRIGGER ordini_set_updated_at
   BEFORE UPDATE ON ordini
@@ -498,6 +503,41 @@ CREATE TABLE sconti_stampe (
   posizione   integer NOT NULL DEFAULT 0,
   PRIMARY KEY (sconto_id, prodotto_id)
 );
+
+-- ---------------------------------------------------------------------------
+-- codici — i codici sconto che si scrivono nel carrello. Vedi la 010.
+-- ---------------------------------------------------------------------------
+-- Generali (BENZIBET98, uguale per tutti) e personali (uno per ordine, scritto
+-- a mano sul biglietto del pacco, una volta sola). Non si sommano agli sconti
+-- di stagione: valgono solo sulle stampe che non sono già scontate.
+CREATE TABLE codici (
+  id          integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  -- Sempre in maiuscolo e senza spazi: chi lo scrive non deve indovinare come.
+  codice      text        NOT NULL UNIQUE
+              CONSTRAINT codici_codice_forma CHECK (codice ~ '^[A-Z0-9-]{3,30}$'),
+  -- La percentuale, intera: 15 vuol dire −15%.
+  percentuale smallint    NOT NULL CONSTRAINT codici_percentuale_valida CHECK (percentuale BETWEEN 1 AND 90),
+  -- Spento a mano: resta salvato, con il conto degli usi, ma non vale.
+  attivo      boolean     NOT NULL DEFAULT true,
+  -- L'ultimo giorno in cui vale, compreso, con l'ora italiana. Vuoto: sempre.
+  scade       date,
+  -- Vale per un ordine solo: dopo il primo pagamento resta, segnato, e non vale più.
+  monouso     boolean     NOT NULL DEFAULT false,
+  -- Il codice personale del biglietto: l'ordine nel cui pacco va. Uno per
+  -- ordine. Finché il pacco non parte la scadenza resta vuota; la fissa la
+  -- spedizione, 90 giorni dopo, se lei non ne ha scelta un'altra.
+  ordine_id   integer     UNIQUE REFERENCES ordini (id) ON DELETE SET NULL,
+  -- L'ordine in cui un codice monouso è stato speso.
+  usato_ordine_id integer REFERENCES ordini (id) ON DELETE SET NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TRIGGER codici_set_updated_at
+  BEFORE UPDATE ON codici
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+INSERT INTO codici (codice, percentuale) VALUES ('BENZIBET98', 15);
 
 
 COMMIT;

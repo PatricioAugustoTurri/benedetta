@@ -123,6 +123,22 @@ export function prezzoScontato(centesimi: number, percentuale: number | null | u
   return Math.round((centesimi * (100 - percentuale)) / 100);
 }
 
+/**
+ * Quanto toglie un codice sconto, in centesimi. Lo calcolano tutti e due, il
+ * carrello per mostrarlo e il server per farlo pagare, con questa funzione e
+ * con un solo arrotondamento sul totale: così non possono non coincidere.
+ *
+ * Le stampe già in uno sconto di stagione restano fuori: il codice non si
+ * somma (cliente, 2026-10-09). La spedizione non entra mai.
+ */
+export function scontoCodice(
+  voci: { prezzo: number; quantita: number; scontata?: boolean }[],
+  percentuale: number,
+): number {
+  const base = voci.reduce((n, v) => (v.scontata ? n : n + v.prezzo * v.quantita), 0);
+  return Math.round((base * percentuale) / 100);
+}
+
 /** I formati di una stampa con lo sconto applicato; senza sconto, gli stessi. */
 export function formatiScontati(formati: Formato[], percentuale: number | null | undefined): Formato[] {
   return percentuale ? formati.map((f) => ({ ...f, prezzo: prezzoScontato(f.prezzo, percentuale) })) : formati;

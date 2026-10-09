@@ -4,7 +4,9 @@ import { origine } from "@/lib/origine";
 import { redirect } from "next/navigation";
 import type { VoceCarrello } from "@/components/carrello/store";
 import { site } from "@/data/site";
-import { prezzoScontato } from "@/data/shop";
+import { prezzoScontato, scontoCodice } from "@/data/shop";
+import { cercaCodice, normalizzaCodice, type Ricerca } from "@/lib/codici";
+import { giornoLungo } from "@/lib/oggi";
 import { stampePerSlug } from "@/lib/prodotti";
 import { scontiInCorso } from "@/lib/sconti";
 import { stripe, stripeConfigurato, tariffeSpedizione, type Zona } from "@/lib/stripe";
@@ -63,6 +65,7 @@ async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
       quantita: r.quantita,
       title: p.title,
       prezzo: prezzoScontato(f.prezzo, sconti.get(p.id)?.percentuale),
+      scontata: sconti.has(p.id),
       immagine: portada
         ? { url: immagineFerma(portada), width: portada.width, height: portada.height, alt: portada.alt }
         : undefined,
@@ -94,6 +97,67 @@ export async function verificaCarrello(
       return typeof p === "number" && p !== v.prezzo;
     }),
   };
+}
+
+export type EsitoCodice =
+  | { ok: true; codice: string; percentuale: number }
+  | { ok: false; error: string };
+
+/**
+ * Il codice sconto che si scrive nel carrello. Dice solo se esiste e quanto
+ * toglie: il conto in euro lo fa il carrello con `scontoCodice`, e il
+ * pagamento lo rifà da capo con la stessa funzione.
+ */
+export async function verificaCodice(crudo: string): Promise<EsitoCodice> {
+  const scritto = normalizzaCodice(String(crudo ?? ""));
+  if (scritto.length === 0) return { ok: false, error: "Scrivi il codice." };
+  try {
+    const r = await cercaCodice(scritto);
+    return r.stato === "valido"
+      ? { ok: true, codice: r.codice, percentuale: r.percentuale }
+      : { ok: false, error: motivo(r) };
+  } catch {
+    return { ok: false, error: "Non riesco a controllare il codice adesso. Riprova tra un momento." };
+  }
+}
+
+/** Perché un codice non vale, detto a chi ha il biglietto in mano. */
+function motivo(r: Exclude<Ricerca, { stato: "valido" }>): string {
+  switch (r.stato) {
+    case "usato":
+      return `Il codice ${r.codice} è già stato usato: vale per un ordine solo.`;
+    case "scaduto":
+      return `Il codice ${r.codice} è scaduto il ${giornoLungo(r.scade)}.`;
+    default:
+      return `«${r.codice}» non è un codice valido. Controlla di averlo scritto bene.`;
+  }
+}
+
+/**
+ * Lo sconto come lo vede Stripe: un buono a importo fisso, che Checkout
+ * mostra come riga a sé («BENZIBET98 −15%») sopra il totale e nella
+ * ricevuta. A importo fisso e non in percentuale perché la percentuale di
+ * Stripe varrebbe su tutte le righe, anche su quelle già in sconto di
+ * stagione; l'importo lo calcola `scontoCodice`, che le lascia fuori.
+ *
+ * L'id dice codice, percentuale e importo, così lo stesso buono serve a
+ * tutti i carrelli con lo stesso sconto invece di nascerne uno per pagamento.
+ * Si crea la prima volta che serve; se esiste già, si usa quello.
+ */
+async function buonoStripe(codice: string, percentuale: number, importo: number): Promise<string> {
+  const id = `codice-${codice}-${percentuale}-${importo}`;
+  try {
+    await stripe().coupons.create({
+      id,
+      name: `${codice} −${percentuale}%`,
+      amount_off: importo,
+      currency: "eur",
+      duration: "once",
+    });
+  } catch (e) {
+    if ((e as { code?: string }).code !== "resource_already_exists") throw e;
+  }
+  return id;
 }
 
 export type EsitoPagamento = { error?: string };
@@ -135,12 +199,36 @@ export async function vaiAlPagamento(
   const voci = await rifai(leggiRichiesta(richiesta));
   if (voci.length === 0) return { error: "Il carrello è vuoto." };
 
+  /*
+    Il codice si ricontrolla qui, non si crede al carrello: può essersi spento
+    fra il momento in cui è stato scritto e adesso. Se non vale più si dice e
+    ci si ferma, invece di far pagare in silenzio il prezzo pieno a chi
+    aspettava lo sconto.
+  */
+  const scritto = normalizzaCodice(String(formData.get("codice") ?? ""));
+  let codice: { codice: string; percentuale: number } | null = null;
+  if (scritto) {
+    let r: Ricerca;
+    try {
+      r = await cercaCodice(scritto);
+    } catch {
+      return { error: "Non riesco a controllare il codice adesso. Riprova tra un momento." };
+    }
+    if (r.stato !== "valido") return { error: `${motivo(r)} Toglilo per continuare.` };
+    codice = { codice: r.codice, percentuale: r.percentuale };
+  }
+  const importoSconto = codice ? scontoCodice(voci, codice.percentuale) : 0;
+
   // L'indirizzo a cui Stripe riporta. In produzione è il dominio; in
   // sviluppo, quello da cui si sta navigando.
   const base = await origine();
 
   let url: string | null;
   try {
+    const buono =
+      codice && importoSconto > 0
+        ? await buonoStripe(codice.codice, codice.percentuale, importoSconto)
+        : null;
     const sessione = await stripe().checkout.sessions.create({
       mode: "payment",
       locale: "it",
@@ -168,10 +256,12 @@ export async function vaiAlPagamento(
           },
         },
       ],
+      discounts: buono ? [{ coupon: buono }] : undefined,
       phone_number_collection: { enabled: true },
       success_url: `${base}/carrello/grazie?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/carrello`,
-      metadata: { zona: tariffa.zona },
+      // Il webhook lo scrive nell'ordine: Stripe dice quanto, non con quale codice.
+      metadata: { zona: tariffa.zona, ...(buono && codice ? { codice: codice.codice } : {}) },
     });
     url = sessione.url;
   } catch (e) {

@@ -708,6 +708,22 @@ underneath) lands on *cancel*, never on save.
   same radio list, then Subtotale/Spedizione/Totale as a Specification List and the
   full-width primary action. The page renders nothing until mounted, so it never
   flashes "vuoto" for a cart that lives in localStorage.
+- **Discount code (cart):** between the shipping zone and the totals, one closed
+  line, "Hai un codice sconto?" with a 14px chevron, that unrolls (0fr→1fr,
+  420ms) into the One Field drawing: small-caps label, a single bottom rule
+  owned by the row, the code in tabular uppercase, and "Applica" as an
+  underlined word at the end of that rule — never a second button, the form's
+  only box is the payment. Error outranks focus (rule, label and caption go
+  terracotta). Applied, the field disappears and the code becomes a row of the
+  totals between Subtotale and Spedizione: "Codice BENZIBET98" with the amount
+  in terracotta (a word of state) and a caption line with what it covers and
+  "Togli"; the row rises 4px into place (520ms, none under reduced motion).
+- **The ticket (Admin Ordini):** every order carries "Biglietto", its personal
+  code, set at `text-xl` 500 with 0.08em tracking so it can be copied by hand
+  onto the card in the parcel, with its terms in a faint caption. "Modifica"
+  opens code / sconto / scade il in place, on the same field drawing and the
+  admin's small ink commit. A used code is struck through and names, in
+  terracotta, the order it came back with.
 - **Admin Shop:** tabs Opere | Shop | Ordini in the admin bar (count beside each;
   orders count only those to ship, in accent). Two parts: "Su commissione" — two
   service rows that only open the edit form (no add, delete or reorder; a missing text

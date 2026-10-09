@@ -6,6 +6,7 @@ import { esServizio, shopCategories, type Formato } from "@/data/shop";
 import { requireSession } from "@/lib/auth";
 import { listLibreria, setCopertina } from "@/lib/copertine";
 import { aggiungiTestimonianza, cancellaTestimonianza } from "@/lib/testimonianze";
+import { cancellaCodice, erroreCodice, normalizzaCodice, salvaCodice } from "@/lib/codici";
 import { cancellaSconto, salvaSconto } from "@/lib/sconti";
 import { armarImagenes, ErrorDeImagenes, quitarImagen } from "@/lib/immaginiModulo";
 import {
@@ -334,6 +335,49 @@ export async function cancellaScontoAzione(formData: FormData): Promise<void> {
   if (!Number.isInteger(id)) return;
   await cancellaSconto(id);
   rivalida();
+  redirect("/admin/shop");
+}
+
+/**
+ * Salva un codice sconto. Il codice si salva come lo controlla il carrello:
+ * maiuscolo e senza spazi, così «benzibet 98» scritto qui è lo stesso che
+ * chi compra trova sul biglietto.
+ */
+export async function salvaCodiceAzione(
+  _previo: EstadoFormulario,
+  formData: FormData,
+): Promise<EstadoFormulario> {
+  await requireSession();
+  const idCrudo = String(formData.get("id") ?? "");
+  const id = idCrudo ? Number(idCrudo) : undefined;
+  const codice = normalizzaCodice(String(formData.get("codice") ?? ""));
+  const percentuale = Number(formData.get("percentuale"));
+  const attivo = formData.get("attivo") === "on";
+  const monouso = formData.get("monouso") === "on";
+  const scade = String(formData.get("scade") ?? "").trim() || null;
+
+  const errore = erroreCodice(codice, percentuale, scade);
+  if (errore) return { error: errore };
+
+  try {
+    await salvaCodice({ id, codice, percentuale, attivo, scade, monouso });
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("codici_codice_key")) {
+      return { error: `Il codice «${codice}» c’è già.` };
+    }
+    console.error("Codici: salvataggio fallito.", e);
+    return { error: "Il database ha rifiutato il codice. Riprova." };
+  }
+  revalidatePath("/admin/shop");
+  redirect("/admin/shop");
+}
+
+export async function cancellaCodiceAzione(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  await cancellaCodice(id);
+  revalidatePath("/admin/shop");
   redirect("/admin/shop");
 }
 

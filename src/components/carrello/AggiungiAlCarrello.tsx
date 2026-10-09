@@ -128,6 +128,7 @@ export default function AggiungiAlCarrello({
             // Nel carrello va il prezzo scontato; il server lo ricalcola
             // comunque prima di pagare, quindi questo è solo per mostrarlo.
             prezzo: prezzoScontato(formato.prezzo, sconto),
+            scontata: Boolean(sconto),
             immagine,
           });
           setAggiunto({ formato: formato.formato, pieno: !entrata });

@@ -22,7 +22,7 @@ export async function GET() {
 
   const intestazione = [
     "Ordine", "Data", "Stato", "Nome", "Email", "Indirizzo", "CAP", "Città", "Provincia", "Paese",
-    "Stampe", "Subtotale €", "Spedizione €", "Totale €", "Spedito il", "Corriere", "Tracciamento", "Pagamento Stripe",
+    "Stampe", "Subtotale €", "Sconto €", "Codice", "Spedizione €", "Totale €", "Spedito il", "Corriere", "Tracciamento", "Pagamento Stripe",
   ];
   const righe = ordini.map((o) => [
     o.id,
@@ -37,6 +37,8 @@ export async function GET() {
     o.indirizzo.country ?? "",
     o.righe.map((r) => `${r.quantita} × ${r.title} (${r.formato})`).join(" | "),
     euro(o.subtotale),
+    euro(o.sconto),
+    o.codice ?? "",
     euro(o.spedizione),
     euro(o.totale),
     data(o.spedito),

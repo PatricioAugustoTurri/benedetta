@@ -1,8 +1,11 @@
 import { prezzo } from "@/data/shop";
 import { richiediAccesso } from "@/lib/auth";
+import { bigliettiPerOrdine, type Codice } from "@/lib/codici";
+import { oggiInItalia } from "@/lib/oggi";
 import { listOrdini, ultimoCorriere, type Ordine } from "@/lib/prodotti";
 import { stripeConfigurato, stripeInProva } from "@/lib/stripe";
 import { pingDb } from "@/lib/works";
+import BigliettoOrdine from "../components/BigliettoOrdine";
 import SpedisciOrdine from "../components/SpedisciOrdine";
 import { riavvisaAzione, rimettiDaSpedireAzione } from "./actions";
 
@@ -38,7 +41,12 @@ export default async function OrdiniPage() {
     );
   }
 
-  const [ordini, corriere] = await Promise.all([listOrdini(), ultimoCorriere()]);
+  const [ordini, corriere, biglietti] = await Promise.all([
+    listOrdini(),
+    ultimoCorriere(),
+    bigliettiPerOrdine(),
+  ]);
+  const oggi = oggiInItalia();
   const daSpedire = ordini.filter((o) => o.stato === "pagato");
   const spediti = ordini.filter((o) => o.stato === "spedito");
 
@@ -62,8 +70,12 @@ export default async function OrdiniPage() {
                 ordini={daSpedire}
                 vuoto="Niente da spedire."
                 corriere={corriere}
+                biglietti={biglietti}
+                oggi={oggi}
               />
-              {spediti.length > 0 && <Gruppo titolo="Spediti" ordini={spediti} corriere={null} />}
+              {spediti.length > 0 && (
+                <Gruppo titolo="Spediti" ordini={spediti} corriere={null} biglietti={biglietti} oggi={oggi} />
+              )}
             </>
           )}
         </div>
@@ -100,11 +112,15 @@ function Gruppo({
   ordini,
   vuoto,
   corriere,
+  biglietti,
+  oggi,
 }: {
   titolo: string;
   ordini: Ordine[];
   vuoto?: string;
   corriere: string | null;
+  biglietti: Map<number, Codice>;
+  oggi: string;
 }) {
   return (
     <section className="mt-12">
@@ -116,7 +132,7 @@ function Gruppo({
       ) : (
         <ul className="mt-4 border-t border-line">
           {ordini.map((o) => (
-            <Voce key={o.id} ordine={o} corriere={corriere} />
+            <Voce key={o.id} ordine={o} corriere={corriere} biglietto={biglietti.get(o.id) ?? null} oggi={oggi} />
           ))}
         </ul>
       )}
@@ -124,7 +140,17 @@ function Gruppo({
   );
 }
 
-function Voce({ ordine: o, corriere }: { ordine: Ordine; corriere: string | null }) {
+function Voce({
+  ordine: o,
+  corriere,
+  biglietto,
+  oggi,
+}: {
+  ordine: Ordine;
+  corriere: string | null;
+  biglietto: Codice | null;
+  oggi: string;
+}) {
   const a = o.indirizzo;
   const spedito = o.stato === "spedito";
 
@@ -157,6 +183,12 @@ function Voce({ ordine: o, corriere }: { ordine: Ordine; corriere: string | null
               <span className="figures shrink-0 text-ink-soft">{prezzo(r.prezzo * r.quantita)}</span>
             </li>
           ))}
+          {o.sconto > 0 && (
+            <li className="figures flex justify-between gap-4 pt-1 text-xs text-ink-faint">
+              <span>Codice {o.codice ?? "sconto"}</span>
+              <span>−{prezzo(o.sconto)}</span>
+            </li>
+          )}
           <li className="figures flex justify-between gap-4 pt-1 text-xs text-ink-faint">
             <span>Spedizione</span>
             <span>{prezzo(o.spedizione)}</span>
@@ -176,6 +208,8 @@ function Voce({ ordine: o, corriere }: { ordine: Ordine; corriere: string | null
           </a>
         </address>
       </div>
+
+      <BigliettoOrdine ordine={o.id} biglietto={biglietto} spedito={spedito} oggi={oggi} />
 
       {spedito ? (
         <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-ink-faint">

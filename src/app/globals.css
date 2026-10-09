@@ -1264,3 +1264,22 @@ code {
   }
 }
 
+
+/*
+  Il codice entra nei conti. La riga sale di 4px e si accende sull'ease
+  morbido —lo stesso passo del numero che entra nella borsa—, così si vede
+  dove è andato quello che si è appena scritto, mentre il campo si richiude
+  sopra. Con meno movimento compare e basta.
+*/
+@keyframes codice-entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .codice-entra {
+    animation: codice-entra 520ms var(--ease-out-soft);
+  }
+}

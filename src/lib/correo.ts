@@ -3,6 +3,8 @@ import { site } from "@/data/site";
 import type { DatiContatto } from "@/lib/contacto";
 import { annuncioNovita } from "@/data/newsletter";
 import { prezzo } from "@/data/shop";
+import type { Codice } from "@/lib/codici";
+import { giornoLungo, oggiInItalia } from "@/lib/oggi";
 import type { Ordine } from "@/lib/prodotti";
 
 /**
@@ -300,6 +302,7 @@ function testoOrdine(o: Ordine, per: "lei" | "cliente"): string {
     ),
     "",
     `Subtotale:   ${prezzo(o.subtotale)}`,
+    ...(o.sconto > 0 ? [`Sconto${o.codice ? ` ${o.codice}` : ""}: −${prezzo(o.sconto)}`] : []),
     `Spedizione:  ${prezzo(o.spedizione)}`,
     `Totale:      ${prezzo(o.totale)}`,
     "",
@@ -322,6 +325,12 @@ function htmlOrdine(o: Ordine, per: "lei" | "cliente"): string {
     .join("");
   const conti = [
     riga("Subtotale", `<span style="float:right;">${esc(prezzo(o.subtotale))}</span>`),
+    o.sconto > 0
+      ? riga(
+          "Sconto",
+          `${o.codice ? esc(o.codice) : ""}<span style="float:right;">−${esc(prezzo(o.sconto))}</span>`,
+        )
+      : "",
     riga("Spedizione", `<span style="float:right;">${esc(prezzo(o.spedizione))}</span>`),
     riga("Totale", `<strong style="float:right;font-weight:600;">${esc(prezzo(o.totale))}</strong>`),
   ].join("");
@@ -660,8 +669,26 @@ const eLink = (s: string) => /^https?:\/\//i.test(s);
  * partito, cosa c'è dentro, dove arriva e come seguirlo. Ha la forma delle
  * lettere della newsletter, perché è lei che scrive, non un magazzino.
  */
-export async function avvisaSpedizione(o: Ordine): Promise<void> {
+export async function avvisaSpedizione(o: Ordine, biglietto: Codice | null = null): Promise<void> {
   const nome = o.nome?.split(" ")[0] ?? null;
+  /*
+    Il codice del biglietto, se vale ancora: lo stesso che lei ha scritto a
+    mano nel pacco. Nella lettera è un poscritto e non un banner —è un
+    regalo, non una promozione—, su carta scura come il numero di
+    spedizione, con il codice grande da copiare.
+  */
+  const regalo =
+    biglietto &&
+    biglietto.attivo &&
+    biglietto.usatoOrdineId === null &&
+    (!biglietto.scade || biglietto.scade >= oggiInItalia())
+      ? biglietto
+      : null;
+  const condizioni = regalo
+    ? `−${regalo.percentuale}% sulle stampe del tuo prossimo ordine${regalo.monouso ? ", una volta sola" : ""}${
+        regalo.scade ? `, fino al ${giornoLungo(regalo.scade)}` : ""
+      }. Lo scrivi nel carrello, prima di pagare. Non si somma agli sconti in corso.`
+    : "";
   const tracciamento = o.tracking
     ? eLink(o.tracking)
       ? `<a href="${esc(o.tracking)}" style="color:${C.accent};text-decoration:underline;">Segui il pacco</a>`
@@ -701,7 +728,20 @@ ${
 <tr><td class="px" style="padding:20px 40px 40px;">
 ${paragrafo("Se arriva rovinata o c’è qualcosa che non va, rispondi a questa mail: ci penso io.").replace("margin:18px 0 0", "margin:0")}
 ${firma()}
-</td></tr>`,
+</td></tr>${
+  regalo
+    ? `
+<tr><td class="px" style="padding:0 40px 40px;"><div style="border-top:1px solid ${C.line};padding-top:24px;">
+<div style="font-family:${FONT};font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${C.inkFaint};">P.S. Nel pacco c’è un biglietto</div>
+<p style="margin:10px 0 0;font-family:${FONT};font-size:15px;line-height:1.65;color:${C.inkSoft};">Con un codice tuo, per la prossima stampa. Te lo lascio anche qui, se il biglietto si perde:</p>
+<div style="margin-top:14px;background:${C.paperDeep};padding:16px 18px;">
+<div style="font-family:${FONT};font-size:22px;letter-spacing:.08em;color:${C.ink};">${esc(regalo.codice)}</div>
+<div style="margin-top:6px;font-family:${FONT};font-size:13px;line-height:1.5;color:${C.inkFaint};">${esc(condizioni)}</div>
+</div>
+<p style="margin:14px 0 0;"><a href="${esc(`${site.url}/shop/stampe`)}" style="font-family:${FONT};font-size:14px;color:${C.accent};text-decoration:underline;">Guarda le stampe</a></p>
+</div></td></tr>`
+    : ""
+}`,
       null,
     ),
     text: [
@@ -718,6 +758,17 @@ ${firma()}
       "Se arriva rovinata o c’è qualcosa che non va, rispondi a questa mail: ci penso io.",
       "",
       "Benedetta",
+      ...(regalo
+        ? [
+            "",
+            "—",
+            "P.S. Nel pacco c’è un biglietto con un codice tuo, per la prossima stampa. Te lo lascio anche qui:",
+            "",
+            regalo.codice,
+            condizioni,
+            `${site.url}/shop/stampe`,
+          ]
+        : []),
     ].join("\n"),
   });
   if (error) throw new Error(`Resend (spedizione): ${error.message}`);
