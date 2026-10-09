@@ -70,7 +70,7 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   con Node y una base, no una carpeta de archivos. Ver `db/README.md`.
 - **Tienda.** Volvió el 2026-10-07 y desde ese día vende. Dos cosas distintas:
   - **Stampe** son productos y se agregan seguido (tabla `prodotti`): formatos con
-    precio, carrito, pago con Stripe, envío a Italia (5 €) y a la UE (10 €), por pedido. Lista base del cliente:
+    precio, carrito, pago con Stripe, envío a Italia (8 €) y a la UE (15 €), por pedido. Lista base del cliente:
     A5 10 €, 20×20 cm 15 €, A4 20 €, A3 30 €, editable por stampa. Sin stock: se imprimen a pedido.
     Los pedidos los escribe el webhook de Stripe en `ordini` y ella los marca como
     enviados en `/admin/ordini`.

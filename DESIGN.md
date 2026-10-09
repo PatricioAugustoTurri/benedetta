@@ -278,7 +278,9 @@ and every future call to action stay as they are.
 
 **The Two-Rank Rule Rule.** Hierarchy among hairlines is carried by colour, not
 weight: every rule on the site is 1px, the year rule is terracotta, everything else
-is `{colors.line}`. A new separator inherits `{colors.line}` unless it opens a year.
+is `{colors.line}`. A new separator inherits `{colors.line}` unless it opens a year. The single
+exception is the 4px ink rule that opens each section of the admin Shop (see
+Admin Shop); it never reaches a public page.
 
 **The Ground-Is-Constant Rule.** One ground colour, light only. No dark mode, no
 per-page tint, no gradient — a ground that shifts changes how the artwork reads.
@@ -725,11 +727,21 @@ underneath) lands on *cancel*, never on save.
   admin's small ink commit. A used code is struck through and names, in
   terracotta, the order it came back with.
 - **Admin Shop:** tabs Opere | Shop | Ordini in the admin bar (count beside each;
-  orders count only those to ship, in accent). Two parts: "Su commissione" — two
-  service rows that only open the edit form (no add, delete or reorder; a missing text
-  or image is flagged in accent) — and "Stampe" — rows with status and price list,
-  ↑/↓ forms instead of drag, and the archive's dashed tile stretched into "Nuova
-  stampa".
+  orders count only those to ship, in accent). Five sections — Copertine, Stampe,
+  Su commissione, Sconti, Codici sconto — each opened by a **4px ink rule** across
+  the full shell: the one rule in the system heavier than a hairline, admin-only,
+  because five unlike jobs share one long page and she needs to see where one ends
+  while scrolling. Hairlines stay inside the sections, between rows. From 1024px
+  each section puts its name, a faint one-line count or behaviour, and its own
+  "how it works" notes in the left 3 columns and the work in the right 9; below
+  that they stack. "Stampe" is the /shop/stampe grid itself — two columns, three
+  from 1024px, the same tight column gap, 4:5 plates, only extra row gap for the
+  caption (title, "N formati · da X €", a Bozza dot) — dragged by the same grip as
+  the archive (`GrigliaOrdenabile`), with the dashed "Nuova stampa" tile first
+  because a new print lands at the top. A draft plate sits at 45% opacity: it holds
+  its place but is not on the wall visitors see. "Su commissione" stays two
+  service rows that only open the edit form (a missing text or image is flagged in
+  accent).
 
 ### Specification List
 - **Style:** a definition list opened and closed by `{colors.line}` hairlines, one

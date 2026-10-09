@@ -189,32 +189,37 @@ export async function deleteProdotto(id: number): Promise<Prodotto | null> {
 }
 
 /**
- * Scambia di posto un prodotto con il vicino sopra o sotto nella sua
- * categoria. Con poche righe per categoria, due frecce dicono tutto quello che
- * serve; il trascinamento della griglia d'opera resta là, dove le righe sono
- * tante e si giudicano a colpo d'occhio.
+ * Scrive l'ordine di una categoria così come lo ha lasciato la griglia
+ * dell'admin. Prima erano due frecce che scambiavano una stampa con la vicina;
+ * adesso si trascina, come le opere, perché quello da giudicare è come stanno
+ * le copertine una accanto all'altra, e quello si vede solo in griglia.
+ *
+ * Restituisce false se la lista non è esattamente quella della tabella —una
+ * stampa nata o cancellata da un'altra scheda—: scrivere un ordine costruito
+ * su una categoria che non esiste più lascerebbe posti a caso.
  */
-export async function spostaProdotto(id: number, verso: -1 | 1): Promise<boolean> {
+export async function riordinaProdotti(categoria: ShopCategoria, orden: number[]): Promise<boolean> {
   return transaction(async (run) => {
-    const [io] = await run<{ categoria: string; position: number }>(
-      `SELECT categoria, position FROM prodotti WHERE id = $1 FOR UPDATE`,
-      [id],
+    const actuales = await run<{ id: number }>(
+      `SELECT id FROM prodotti WHERE categoria = $1 ORDER BY id FOR UPDATE`,
+      [categoria],
     );
-    if (!io) return false;
 
-    const [vicino] = await run<{ id: number; position: number }>(
-      verso === -1
-        ? `SELECT id, position FROM prodotti WHERE categoria = $1 AND position < $2
-            ORDER BY position DESC LIMIT 1 FOR UPDATE`
-        : `SELECT id, position FROM prodotti WHERE categoria = $1 AND position > $2
-            ORDER BY position ASC LIMIT 1 FOR UPDATE`,
-      [io.categoria, io.position],
+    const hay = new Set(actuales.map((r) => Number(r.id)));
+    const pedidas = new Set(orden);
+    if (pedidas.size !== orden.length) return false;
+    if (pedidas.size !== hay.size) return false;
+    if (orden.some((id) => !hay.has(id))) return false;
+
+    // Il vincolo sui posti è differito: a metà aggiornamento due righe
+    // possono condividere un numero, alla fine no.
+    await run(
+      `UPDATE prodotti AS p
+          SET position = nuevo.n
+         FROM unnest($1::int[]) WITH ORDINALITY AS nuevo(id, n)
+        WHERE p.id = nuevo.id`,
+      [orden],
     );
-    if (!vicino) return false;
-
-    // Il vincolo è differito: per un istante i due hanno lo stesso posto.
-    await run(`UPDATE prodotti SET position = $2 WHERE id = $1`, [id, vicino.position]);
-    await run(`UPDATE prodotti SET position = $2 WHERE id = $1`, [vicino.id, io.position]);
     return true;
   });
 }

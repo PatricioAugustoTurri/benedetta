@@ -59,9 +59,9 @@ export type TariffaSpedizione = {
  * Scegliendo qui, a Stripe arriva una tariffa sola e solo i paesi di quella
  * zona, quindi l'indirizzo e il prezzo non possono non coincidere.
  *
- * Quanto costa spedire l'ha deciso la cliente (2026-10-07): 5 € in Italia,
- * 10 € nel resto dell'Unione Europea, a ordine e non a copia. Vive nel codice
- * come il listino delle stampe (FORMATI_BASE): prima stava in due variabili
+ * Quanto costa spedire l'ha deciso la cliente (2026-10-07, ritoccato il
+ * 2026-10-09): 8 € in Italia, 15 € nel resto dell'Unione Europea, a ordine
+ * e non a copia. Vive nel codice come il listino delle stampe (FORMATI_BASE): prima stava in due variabili
  * d'ambiente perché la cifra non c'era ancora e il pagamento doveva restare
  * fermo finché lei non la dava.
  */
@@ -70,13 +70,13 @@ export function tariffeSpedizione(): TariffaSpedizione[] {
     {
       zona: "italia",
       etichetta: "Italia",
-      prezzo: 500,
+      prezzo: 800,
       paesi: ["IT"],
     },
     {
       zona: "ue",
       etichetta: "Unione Europea",
-      prezzo: 1000,
+      prezzo: 1500,
       paesi: PAESI_UE,
     },
   ];

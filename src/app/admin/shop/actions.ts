@@ -13,14 +13,14 @@ import {
   createProdotto,
   deleteProdotto,
   getProdottoById,
-  spostaProdotto,
+  riordinaProdotti,
   updateProdotto,
 } from "@/lib/prodotti";
 import { getServizio, updateServizio } from "@/lib/servizi";
 import { esVideo } from "@/lib/video";
 import type { WorkImage } from "@/lib/works";
 import { getWork } from "@/lib/works";
-import type { EstadoFormulario } from "../actions";
+import type { EstadoFormulario, Salida } from "../actions";
 
 /*
   Ogni azione ricontrolla la sessione, come quelle delle opere: una Server
@@ -394,13 +394,37 @@ export async function cancellaProdotto(formData: FormData): Promise<void> {
   redirect("/admin/shop");
 }
 
-export async function spostaProdottoAzione(formData: FormData): Promise<void> {
+/**
+ * L'ordine delle stampe, come lo lascia la griglia dell'admin. Stessa forma di
+ * `reordenarArchivo`, e per la stessa ragione: la griglia è la stessa e i suoi
+ * guasti pure.
+ */
+export async function riordinaStampe(
+  orden: number[],
+): Promise<{ ok: true } | { ok: false; error: string; salida: Salida }> {
   await requireSession();
-  const id = Number(formData.get("id"));
-  const verso = Number(formData.get("verso"));
-  if (!Number.isInteger(id) || (verso !== 1 && verso !== -1)) return;
-  await spostaProdotto(id, verso);
+  if (!Array.isArray(orden) || orden.some((id) => !Number.isInteger(id))) {
+    return { ok: false, error: "L’ordine è arrivato male.", salida: "reintentar" };
+  }
+
+  let guardado: boolean;
+  try {
+    guardado = await riordinaProdotti("stampe", orden);
+  } catch {
+    return { ok: false, error: "Il database non ha accettato l’ordine.", salida: "reintentar" };
+  }
+  if (!guardado) {
+    return {
+      ok: false,
+      error:
+        "Le stampe sono cambiate da quando hai aperto questa schermata, quindi quest’ordine non è stato salvato. " +
+        "Ricarica e risistemalo su quello che c’è adesso.",
+      salida: "recargar",
+    };
+  }
+
   rivalida();
+  return { ok: true };
 }
 
 /*

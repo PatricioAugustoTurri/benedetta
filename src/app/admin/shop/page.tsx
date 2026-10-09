@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Pencil, Plus } from "@/components/Icon";
 import { richiediAccesso } from "@/lib/auth";
 import { cloudinaryConfigurado } from "@/lib/cloudinary";
@@ -10,21 +11,25 @@ import { listProdotti } from "@/lib/prodotti";
 import { listServizi, type Servizio } from "@/lib/servizi";
 import { contarPezzi, immagineFerma } from "@/lib/video";
 import { pingDb } from "@/lib/works";
-import RigaProdotto from "../components/RigaProdotto";
+import StampeOrdenabili from "../components/StampeOrdenabili";
 
 export const metadata = { title: "Shop" };
 
 /**
- * Lo Shop, con le mani dentro. Tre parti che si comportano in modo diverso, e
- * la pagina lo dice con la forma:
+ * Lo Shop, con le mani dentro. Cinque parti che si comportano in modo
+ * diverso, e ognuna si apre con un filetto spesso d'inchiostro: è il solo
+ * posto del sistema dove una riga pesa più di un pixel, e pesa perché qui si
+ * lavora su cinque cose diverse nella stessa pagina e bisogna sapere, a colpo
+ * d'occhio e scorrendo, dove ne finisce una e ne comincia un'altra. I filetti
+ * sottili restano dentro le sezioni, a separare le righe.
  *
- * - **Copertine**: le porte della pagina /shop, viste come escono, una
- *   accanto all'altra. Si cambiano tutte insieme in /admin/shop/copertine.
- * - **Su commissione**: i due servizi. Sono sempre due, quindi non c'è
- *   «nuovo», né cestino, né frecce: solo una riga ciascuno che porta a
- *   modificarli.
- * - **Stampe**: la lista che cresce. Si aggiungono, si ordinano con le frecce
- *   e si cancellano.
+ * Ogni sezione ha a sinistra il suo nome e come funziona —prima stava tutto in
+ * una colonna a parte, lontano dalla cosa che spiegava— e a destra la cosa:
+ *
+ * - **Copertine**: le porte della pagina /shop, viste come escono.
+ * - **Sconti** e **Codici sconto**: righe che si aprono per modificarle.
+ * - **Su commissione**: i due servizi, sempre quelli. Niente «nuovo».
+ * - **Stampe**: la griglia di /shop/stampe, che si ordina trascinando.
  */
 export default async function AdminShopPage() {
   await richiediAccesso("/admin/shop");
@@ -38,17 +43,19 @@ export default async function AdminShopPage() {
     );
   }
 
-  const [porte, servizi, stampe] = await Promise.all([
+  const [porte, servizi, prodotti] = await Promise.all([
     listPorte(),
     listServizi(),
     listProdotti(),
   ]);
+  const stampe = prodotti.filter((p) => p.categoria === "stampe");
+  const bozze = stampe.filter((p) => !p.pubblicato).length;
   const [sconti, codici, biglietti] = await Promise.all([listSconti(), listCodici(), contaBiglietti()]);
   const oggi = oggiInItalia();
   const conCloudinary = cloudinaryConfigurado();
 
   return (
-    <section className="shell pt-8 pb-16 md:pt-12">
+    <section className="shell pt-8 pb-24 md:pt-12">
       {/* La griglia e le sezioni parlano da sole; il titolo serve a chi
           naviga con un lettore di schermo, per sapere in che pagina è. */}
       <h1 className="sr-only">Shop</h1>
@@ -58,173 +65,201 @@ export default async function AdminShopPage() {
         </p>
       )}
 
-      <div className="grid gap-16 md:grid-cols-12">
-        <div className="space-y-16 md:col-span-8">
-          <section aria-labelledby="adm-copertine">
-            <div className="flex items-baseline justify-between gap-6">
-              <h2 id="adm-copertine" className="display-section font-display text-xl leading-tight">
-                Copertine
-              </h2>
-              <Link
-                href="/admin/shop/copertine"
-                className="area-tocco group inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
-              >
-                <Pencil size={14} />
-                <span className="link-underline">Cambia</span>
-              </Link>
-            </div>
-            <p className="mt-2 text-xs leading-relaxed text-ink-faint">
-              Le porte della pagina Shop, come escono. Ognuna porta alla sua categoria.
-            </p>
-            <ul className="mt-5 grid grid-cols-3 gap-3 md:gap-4">
-              {porte.map((p) => (
-                <AnteprimaPorta key={p.categoria.slug} porta={p} />
-              ))}
-            </ul>
-          </section>
-
-          <section aria-labelledby="adm-sconti">
-            <div className="flex items-baseline justify-between gap-6">
-              <h2 id="adm-sconti" className="display-section font-display text-xl leading-tight">
-                Sconti
-              </h2>
-              <span className="text-xs text-ink-faint">Si accendono e si spengono da soli</span>
-            </div>
-            <p className="mt-2 text-xs leading-relaxed text-ink-faint">
-              Una sezione sotto le categorie dello Shop, con le stampe che scegli e il prezzo
-              scontato. Si prepara prima e vale solo fra le sue date.
-            </p>
-            {sconti.length > 0 && (
-              <ul className="mt-4 border-t border-line">
-                {sconti.map((sc) => (
-                  <RigaSconto key={sc.id} sconto={sc} />
-                ))}
-              </ul>
-            )}
+      <div className="space-y-20 md:space-y-28">
+        <Sezione
+          id="adm-copertine"
+          titolo="Copertine"
+          accanto="Una per categoria"
+          azione={
             <Link
-              href="/admin/shop/sconti/nuovo"
-              className="mt-4 flex w-full items-center justify-center gap-2 border border-dashed border-line bg-paper-deep/40 py-4 text-ink-faint transition-colors hover:border-accent/50 hover:bg-paper-deep/70 hover:text-ink-soft"
+              href="/admin/shop/copertine"
+              className="area-tocco group inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
             >
-              <Plus size={16} />
-              <span className="label">Nuovo sconto</span>
+              <Pencil size={14} />
+              <span className="link-underline">Cambia</span>
             </Link>
-          </section>
-
-          <section aria-labelledby="adm-codici">
-            <div className="flex items-baseline justify-between gap-6">
-              <h2 id="adm-codici" className="display-section font-display text-xl leading-tight">
-                Codici sconto
-              </h2>
-              <span className="text-xs text-ink-faint">Si scrivono nel carrello</span>
-            </div>
-            <p className="mt-2 text-xs leading-relaxed text-ink-faint">
-              Valgono sulle stampe che non sono già in sconto, non sulla spedizione.
-            </p>
-            {codici.length > 0 && (
-              <ul className="mt-4 border-t border-line">
-                {codici.map((c) => (
-                  <RigaCodice key={c.id} codice={c} oggi={oggi} />
-                ))}
-              </ul>
-            )}
-            {/*
-              I biglietti degli ordini si contano soltanto: sono uno per
-              pacco, e una lista che cresce a ogni ordine seppellirebbe i pochi
-              codici fatti a mano. Si cambiano dall'ordine, dove lei è
-              quando scrive il biglietto.
-            */}
-            <p className="figures mt-4 flex flex-wrap items-baseline gap-x-2 border-b border-line pb-4 text-xs text-ink-faint">
-              <span className="text-ink-soft">Biglietti nei pacchi:</span>
-              {biglietti.dati === 0
-                ? "ancora nessuno"
-                : `${biglietti.dati} ${biglietti.dati === 1 ? "dato" : "dati"} · ${biglietti.usati} ${
-                    biglietti.usati === 1 ? "tornato" : "tornati"
-                  } come ordine`}
-              <span aria-hidden="true">·</span>
-              <Link href="/admin/ordini" className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink">
-                Si cambiano negli ordini
-              </Link>
-            </p>
-            <Link
-              href="/admin/shop/codici/nuovo"
-              className="mt-4 flex w-full items-center justify-center gap-2 border border-dashed border-line bg-paper-deep/40 py-4 text-ink-faint transition-colors hover:border-accent/50 hover:bg-paper-deep/70 hover:text-ink-soft"
-            >
-              <Plus size={16} />
-              <span className="label">Nuovo codice</span>
-            </Link>
-          </section>
-
-          <section aria-labelledby="adm-servizi">
-            <div className="flex items-baseline justify-between gap-6">
-              <h2 id="adm-servizi" className="display-section font-display text-xl leading-tight">
-                Su commissione
-              </h2>
-              <span className="text-xs text-ink-faint">Due servizi, sempre quelli</span>
-            </div>
-            <ul className="mt-4 border-t border-line">
-              {servizi.map((s) => (
-                <RigaServizio key={s.slug} servizio={s} />
-              ))}
-            </ul>
-          </section>
-
-          <section aria-labelledby="adm-stampe">
-            <div className="flex items-baseline justify-between gap-6">
-              <h2 id="adm-stampe" className="display-section font-display text-xl leading-tight">
-                Stampe
-              </h2>
-              <span className="figures text-xs text-ink-faint">
-                {stampe.length} {stampe.length === 1 ? "stampa" : "stampe"}
-              </span>
-            </div>
-
-            <ul className="mt-4 border-t border-line">
-              {stampe.map((p, i) => (
-                <RigaProdotto key={p.id} prodotto={p} primo={i === 0} ultimo={i === stampe.length - 1} />
-              ))}
-            </ul>
-
-            {/*
-              L'aggiunta è la casella tratteggiata dell'archivio, distesa in
-              una riga: lo stesso segno per «qui ne entra un'altra». Solo qui:
-              i servizi non si aggiungono.
-            */}
-            <Link
-              href="/admin/shop/nuovo"
-              className="mt-4 flex w-full items-center justify-center gap-2 border border-dashed border-line bg-paper-deep/40 py-4 text-ink-faint transition-colors hover:border-accent/50 hover:bg-paper-deep/70 hover:text-ink-soft"
-            >
-              <Plus size={16} />
-              <span className="label">Nuova stampa</span>
-            </Link>
-          </section>
-        </div>
-
-        <div className="md:col-span-3 md:col-start-10">
-          <h2 className="label">Come funziona</h2>
-          <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-soft">
-            <li>
-              Le copertine sono le immagini della pagina Shop, una per categoria. Senza, esce la
-              prima immagine del servizio o della prima stampa.
-            </li>
-            <li>
-              Illustrazioni e ritratti sono due servizi: non hanno prezzo e portano al modulo di
-              contatto. Ne cambi il testo e le immagini quando vuoi rinnovarli.
-            </li>
-            <li>Le stampe hanno formati e prezzi e vanno nel carrello.</li>
-            <li>Una stampa nuova nasce come bozza: nel sito non esce finché non la pubblichi.</li>
-            <li>Le frecce cambiano l&apos;ordine in cui escono le stampe.</li>
-            <li>
-              I codici sconto li scrive chi compra, nel carrello. Non si sommano agli sconti di
-              stagione.
-            </li>
-            <li>
-              Gli sconti si preparano quando vuoi: escono nello Shop, con il prezzo scontato, solo
-              fra il primo e l&apos;ultimo giorno.
-            </li>
+          }
+          testo={
+            <>
+              <p>Le porte della pagina Shop, come escono. Ognuna porta alla sua categoria.</p>
+              <p>Senza una scelta, esce la prima immagine del servizio o della prima stampa.</p>
+            </>
+          }
+        >
+          <ul className="grid grid-cols-3 gap-3 md:gap-4">
+            {porte.map((p) => (
+              <AnteprimaPorta key={p.categoria.slug} porta={p} />
+            ))}
           </ul>
-        </div>
+        </Sezione>
+
+        <Sezione
+          id="adm-stampe"
+          titolo="Stampe"
+          accanto={
+            <>
+              {stampe.length} {stampe.length === 1 ? "stampa" : "stampe"}
+              {bozze > 0 && ` · ${bozze} ${bozze === 1 ? "bozza" : "bozze"}`}
+            </>
+          }
+          testo={
+            <>
+              <p>Hanno formati e prezzi e vanno nel carrello.</p>
+              <p>
+                Una stampa nuova entra in cima e nasce come bozza: sbiadita qui, assente nel
+                sito finché non la pubblichi.
+              </p>
+            </>
+          }
+        >
+          <StampeOrdenabili stampe={stampe} />
+        </Sezione>
+
+        <Sezione
+          id="adm-servizi"
+          titolo="Su commissione"
+          accanto="Due servizi, sempre quelli"
+          testo={
+            <p>
+              Illustrazioni e ritratti non hanno prezzo e portano al modulo di contatto. Ne cambi
+              il testo e le immagini quando vuoi rinnovarli.
+            </p>
+          }
+        >
+          <ul className="border-t border-line lg:-mt-4 lg:border-t-0">
+            {servizi.map((s) => (
+              <RigaServizio key={s.slug} servizio={s} />
+            ))}
+          </ul>
+        </Sezione>
+
+        <Sezione
+          id="adm-sconti"
+          titolo="Sconti"
+          accanto="Si accendono e si spengono da soli"
+          testo={
+            <p>
+              Una sezione sotto le categorie dello Shop, con le stampe che scegli e il prezzo
+              scontato. Si prepara quando vuoi e vale solo fra il primo e l&apos;ultimo giorno.
+            </p>
+          }
+        >
+          {sconti.length > 0 && (
+            <ul className="border-t border-line lg:-mt-4 lg:border-t-0">
+              {sconti.map((sc) => (
+                <RigaSconto key={sc.id} sconto={sc} />
+              ))}
+            </ul>
+          )}
+          <Aggiungi href="/admin/shop/sconti/nuovo" primo={sconti.length === 0}>
+            Nuovo sconto
+          </Aggiungi>
+        </Sezione>
+
+        <Sezione
+          id="adm-codici"
+          titolo="Codici sconto"
+          accanto="Si scrivono nel carrello"
+          testo={
+            <p>
+              Valgono sulle stampe che non sono già in sconto, non sulla spedizione, e non si
+              sommano agli sconti di stagione.
+            </p>
+          }
+        >
+          {codici.length > 0 && (
+            <ul className="border-t border-line lg:-mt-4 lg:border-t-0">
+              {codici.map((c) => (
+                <RigaCodice key={c.id} codice={c} oggi={oggi} />
+              ))}
+            </ul>
+          )}
+          {/*
+            I biglietti degli ordini si contano soltanto: sono uno per
+            pacco, e una lista che cresce a ogni ordine seppellirebbe i pochi
+            codici fatti a mano. Si cambiano dall'ordine, dove lei è
+            quando scrive il biglietto.
+          */}
+          <p
+            className={`figures flex flex-wrap items-baseline gap-x-2 border-b border-line pb-4 text-xs text-ink-faint ${
+              codici.length > 0 ? "mt-4" : ""
+            }`}
+          >
+            <span className="text-ink-soft">Biglietti nei pacchi:</span>
+            {biglietti.dati === 0
+              ? "ancora nessuno"
+              : `${biglietti.dati} ${biglietti.dati === 1 ? "dato" : "dati"} · ${biglietti.usati} ${
+                  biglietti.usati === 1 ? "tornato" : "tornati"
+                } come ordine`}
+            <span aria-hidden="true">·</span>
+            <Link href="/admin/ordini" className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink">
+              Si cambiano negli ordini
+            </Link>
+          </p>
+          <Aggiungi href="/admin/shop/codici/nuovo">Nuovo codice</Aggiungi>
+        </Sezione>
       </div>
     </section>
+  );
+}
+
+/**
+ * Una parte dello Shop. Il filetto spesso la apre su tutta la larghezza; sotto,
+ * da 1024px, il nome e la spiegazione a sinistra e la cosa a destra, così la
+ * spiegazione sta accanto a quello che spiega. Sul telefono uno sotto l'altro.
+ */
+function Sezione({
+  id,
+  titolo,
+  accanto,
+  testo,
+  azione,
+  children,
+}: {
+  id: string;
+  titolo: string;
+  /** Una riga breve sotto il nome: quante sono, o come si comportano. */
+  accanto: ReactNode;
+  testo: ReactNode;
+  azione?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      aria-labelledby={id}
+      className="grid gap-6 border-t-4 border-ink pt-6 md:pt-8 lg:grid-cols-12 lg:gap-8"
+    >
+      <header className="lg:col-span-3">
+        <h2 id={id} className="display-section font-display text-xl leading-tight">
+          {titolo}
+        </h2>
+        <p className="figures mt-1 text-xs text-ink-faint">{accanto}</p>
+        <div className="mt-4 max-w-[38ch] space-y-2 text-[0.8125rem] leading-relaxed text-ink-soft">
+          {testo}
+        </div>
+        {azione && <div className="mt-4">{azione}</div>}
+      </header>
+      <div className="min-w-0 lg:col-span-9">{children}</div>
+    </section>
+  );
+}
+
+/**
+ * La casella tratteggiata dell'archivio, distesa in una riga: lo stesso segno
+ * per «qui ne entra un'altra». Quando la lista è vuota è la prima cosa della
+ * sezione e non ha niente da cui staccarsi.
+ */
+function Aggiungi({ href, primo = false, children }: { href: string; primo?: boolean; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className={`flex w-full items-center justify-center gap-2 border border-dashed border-line bg-paper-deep/40 py-4 text-ink-faint transition-colors hover:border-accent/50 hover:bg-paper-deep/70 hover:text-ink-soft ${
+        primo ? "" : "mt-4"
+      }`}
+    >
+      <Plus size={16} />
+      <span className="label">{children}</span>
+    </Link>
   );
 }
 
