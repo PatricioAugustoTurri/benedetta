@@ -39,7 +39,7 @@ export const site = {
   // link al profilo, e pubblicarlo puntando alla home di behance.net porta il
   // visitatore da nessuna parte: torna in lista quando ci sarà l'URL.
   socials: [
-    { label: "Instagram", href: "https://www.instagram.com/illustrando.adocchichiusi/" },
+    { label: "Instagram", href: "https://www.instagram.com/benedetta.zibetti/" },
   ],
 } as const;
 

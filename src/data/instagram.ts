@@ -49,10 +49,10 @@ export type Post = {
   href: string;
 };
 
-const PROFILE = "https://www.instagram.com/illustrando.adocchichiusi/";
+const PROFILE = "https://www.instagram.com/benedetta.zibetti/";
 
 export const profileUrl = PROFILE;
-export const handle = "@illustrando.adocchichiusi";
+export const handle = "@benedetta.zibetti";
 
 /*
   Gli `alt` li ho scritti guardando ogni immagine, in italiano come il resto

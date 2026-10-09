@@ -122,7 +122,7 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
 
 - **Nombre de marca:** Illustrando.
 - **Nombre de la autora:** Benedetta.
-- **Instagram:** https://www.instagram.com/illustrando.adocchichiusi/ — cuenta activa.
+- **Instagram:** https://www.instagram.com/benedetta.zibetti/ — cuenta activa.
 - **Behance:** tiene cuenta; falta la URL.
 - **Mail de contacto:** bzibetti98@gmail.com.
 
