@@ -41,12 +41,15 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { c, p } = trovato;
   const portada = p.image[0];
 
+  // «Stampa» nel titolo: una stampa fatta da un'opera ha lo stesso nome della
+  // pagina dell'opera, e due risultati uguali in Google non dicono quale sia
+  // quella che si compra.
   return {
-    title: p.title,
+    title: `${p.title} — Stampa`,
     description: p.description ?? c.label,
     alternates: { canonical: prodottoHref(p) },
     openGraph: {
-      title: `${p.title} · ${site.name}`,
+      title: `${p.title} — Stampa · ${site.name}`,
       description: p.description ?? c.label,
       images: portada
         ? [{ url: immagineFerma(portada), width: portada.width, height: portada.height, alt: portada.alt }]

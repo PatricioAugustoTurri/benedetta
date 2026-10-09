@@ -55,8 +55,12 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
 ## Capabilities and Constraints
 
 - **Stack:** Next.js 16 (App Router, Turbopack) + React 19 + Tailwind v4 y
-  TypeScript. Rutas públicas: `/` (el archivo), `/opera/<slug>`, `/studio` y
-  `/contatti`; más `/admin`, que es la pantalla de trabajo y no se indexa.
+  TypeScript. Rutas públicas: `/` (el archivo), `/opera/<slug>`, `/studio`,
+  `/contatti`, `/shop` (con `/shop/<categoria>` y `/shop/stampe/<slug>`),
+  `/carrello` y la newsletter; `/privacy`, `/condizioni-di-vendita` y
+  `/spedizioni-e-resi` existen pero dan 404 hasta que estén los datos fiscales
+  (ver «Para vender de verdad»). Más `/admin`, que es la pantalla de trabajo y
+  no se indexa.
   El diario y el portfolio se eliminaron por pedido del cliente; el diario es
   recuperable del commit `6db3fb9`.
 - **El sitio dejó de ser estático puro.** La obra vive en PostgreSQL (base
@@ -92,11 +96,11 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   navegación), `src/data/instagram.ts` (la cinta del pie) y `src/data/studio.ts`.
   `src/data/illustrations.ts` ya no existe: era donde vivían las doce obras y lo
   reemplazó la base.
-- **Idioma:** el cuerpo de texto sigue íntegramente en español rioplatense ("contame",
-  "tenés", "escribime"). Hay que reescribirlo en italiano. Esto no es una traducción
-  mecánica: la voz actual es de otro país. Las rutas ya están en italiano; los rótulos
-  **Work** y **About** del menú son interinos y vuelven a Opera y Studio en esa misma
-  pasada. `lang` en `layout.tsx` pasa de `"es"` a `"it"` en el mismo commit.
+- **Idioma:** el sitio público está en italiano y `lang="it"`. Verificado el
+  2026-10-09 recorriendo las 65 páginas del sitemap: no queda texto en español.
+  El admin sigue mezclando italiano y español, y es sólo para ella. El menú dice
+  **Works** y **About me**, en inglés: queda por decidir si pasan a italiano
+  (Opere, Studio).
 
 ### Decisiones abiertas — no inventar
 
@@ -139,11 +143,11 @@ y que trabaja desde Foligno, Umbría.
 | Textos de los dos servicios ("Illustrazioni personalizzate", "Ritratti") | `src/data/studio.ts` | Los títulos son de su bio; los dos textos los escribí yo a partir de ella. Falta que los confirme. |
 | La tabla `works` | base `illustrando` | **Arranca vacía, por pedido del cliente.** Las doce obras de maqueta no se migraron: ella carga las suyas por `/admin`. Mientras esté vacía, la portada dice que el archivo está en preparación. |
 | Cliente y medidas por obra | — | Ya no existen: la tabla `works` no tiene esas columnas, y la ficha de una obra quedó en dos filas, Anno y Tecnica. Si vuelven a hacer falta, vuelven como columnas y como campos del admin. |
-| Las tres entradas del diario | `src/data/journal.ts` | Inventadas enteras, con fechas incluidas. |
-| El feed de Instagram | `src/data/instagram.ts` | Lista escrita a mano que reusa las imágenes de la maqueta. No lee la cuenta real. |
-| Todo el cuerpo de texto | todas las páginas | Español rioplatense, no italiano. |
+| El feed de Instagram | `src/data/instagram.ts` | Tres imágenes en `public/instagram/`, puestas a mano. No lee la cuenta real: si ella publica, la cinta no cambia. |
 
-Resueltos desde el registro anterior, para que nadie los vuelva a buscar: la
+Resueltos desde el registro anterior, para que nadie los vuelva a buscar: el
+cuerpo de texto en español (ya está en italiano), el diario inventado (se
+eliminó con `src/data/journal.ts`), la
 sección «Ho lavorato con» de About me, con seis clientes inventados —se eliminó
 entera por pedido del cliente; si vuelve, vuelve con la lista verdadera—, el mail falso
 `hola@benedetta.com`, la ubicación falsa `Buenos Aires, AR`, el link a la home de Behance,

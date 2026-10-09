@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -12,6 +13,10 @@ import { ArrowLeft } from "@/components/Icon";
  * documento, e senza questo un link vecchio lascerebbe il visitatore in una
  * pagina senza uscita.
  */
+// Senza, la scheda diceva il titolo della home: chi ha tre schede aperte non
+// capiva quale fosse quella sbagliata.
+export const metadata: Metadata = { title: "Pagina non trovata" };
+
 export default function NotFound() {
   return (
     <>
