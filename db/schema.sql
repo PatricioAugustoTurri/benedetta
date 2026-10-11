@@ -348,6 +348,8 @@ CREATE TABLE ordini (
   email             text        NOT NULL,
   -- Per il corriere.
   telefono          text CONSTRAINT ordini_telefono_misura CHECK (telefono IS NULL OR length(telefono) <= 24),
+  -- Obbligatorio per chi spedisce in Italia; vuoto altrove. Vedi la 011.
+  codice_fiscale    text CONSTRAINT ordini_codice_fiscale_forma CHECK (codice_fiscale IS NULL OR codice_fiscale ~ '^([A-Z0-9]{16}|[0-9]{11})$'),
 
   -- L'indirizzo di spedizione così come l'ha scritto chi compra:
   -- { "line1", "line2", "city", "postal_code", "state", "country" }.

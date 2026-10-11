@@ -212,6 +212,11 @@ function Voce({
               <span className="figures">{o.telefono}</span>
             </a>
           )}
+          {o.codiceFiscale && (
+            <span className="mt-1 block text-xs text-ink-soft">
+              CF <span className="figures tracking-[0.04em]">{o.codiceFiscale}</span>
+            </span>
+          )}
           {o.transazione && (
             <span className="mt-1 block text-xs text-ink-faint">
               SumUp <span className="figures">{o.transazione}</span>

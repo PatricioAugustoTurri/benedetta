@@ -22,7 +22,10 @@ ALTER TABLE ordini
   -- salvava: gli ordini di prima restano senza.
   ADD COLUMN telefono    text CONSTRAINT ordini_telefono_misura CHECK (telefono IS NULL OR length(telefono) <= 24),
   -- Il codice della transazione che lei ritrova nell'app di SumUp, per un rimborso.
-  ADD COLUMN transazione text;
+  ADD COLUMN transazione text,
+  -- Obbligatorio per chi spedisce in Italia (cliente, 2026-10-11): 16
+  -- caratteri, o le 11 cifre di un'azienda. Vuoto per il resto dell'Unione.
+  ADD COLUMN codice_fiscale text CONSTRAINT ordini_codice_fiscale_forma CHECK (codice_fiscale IS NULL OR codice_fiscale ~ '^([A-Z0-9]{16}|[0-9]{11})$');
 
 -- --------------------------------------------------------------------------
 -- pagamenti — l'ordine prima di essere pagato

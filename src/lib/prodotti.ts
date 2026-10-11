@@ -254,6 +254,8 @@ export type Ordine = {
   email: string;
   /** Per il corriere. Gli ordini pagati con Stripe, prima di SumUp, non l'hanno. */
   telefono: string | null;
+  /** Obbligatorio per gli ordini in Italia, in maiuscolo e senza spazi; null altrove. */
+  codiceFiscale: string | null;
   indirizzo: Indirizzo;
   righe: RigaOrdine[];
   subtotale: number;
@@ -281,6 +283,7 @@ function hydrateOrdine(row: Record<string, unknown>): Ordine {
     nome: row.nome === null ? null : String(row.nome),
     email: String(row.email),
     telefono: row.telefono ? String(row.telefono) : null,
+    codiceFiscale: row.codice_fiscale ? String(row.codice_fiscale) : null,
     indirizzo: row.indirizzo as Indirizzo,
     righe: Array.isArray(row.righe) ? (row.righe as RigaOrdine[]) : [],
     subtotale: Number(row.subtotale),
@@ -297,7 +300,7 @@ function hydrateOrdine(row: Record<string, unknown>): Ordine {
   };
 }
 
-const COLONNE_ORDINE = `id, pagamento, transazione, nome, email, telefono, indirizzo, righe, subtotale, sconto, codice, spedizione, totale, stato, created_at, spedito_at, corriere, tracking, cliente_avvisato_at`;
+const COLONNE_ORDINE = `id, pagamento, transazione, nome, email, telefono, codice_fiscale, indirizzo, righe, subtotale, sconto, codice, spedizione, totale, stato, created_at, spedito_at, corriere, tracking, cliente_avvisato_at`;
 
 /**
  * Scrive un ordine pagato. Restituisce null se c'era già: lo stesso
@@ -310,8 +313,8 @@ export async function registraOrdine(
   o: Omit<Ordine, "id" | "stato" | "creato" | "spedito" | "corriere" | "tracking" | "avvisato">,
 ): Promise<Ordine | null> {
   const rows = await query<Record<string, unknown>>(
-    `INSERT INTO ordini (pagamento, nome, email, indirizzo, righe, subtotale, spedizione, totale, sconto, codice, telefono, transazione)
-          VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10, $11, $12)
+    `INSERT INTO ordini (pagamento, nome, email, indirizzo, righe, subtotale, spedizione, totale, sconto, codice, telefono, transazione, codice_fiscale)
+          VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10, $11, $12, $13)
      ON CONFLICT (pagamento) DO NOTHING
        RETURNING ${COLONNE_ORDINE}`,
     [
@@ -327,6 +330,7 @@ export async function registraOrdine(
       o.codice,
       o.telefono,
       o.transazione,
+      o.codiceFiscale,
     ],
   );
   return rows[0] ? hydrateOrdine(rows[0]) : null;

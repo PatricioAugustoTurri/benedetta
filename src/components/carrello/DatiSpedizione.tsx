@@ -26,9 +26,9 @@ const PAESI = paesiSpedizione();
  *
  * **Il paese decide il resto.** Sceglie la tariffa di spedizione —i conti a
  * destra cambiano appena lo si sceglie— e il modulo: in Italia il CAP sono
- * cinque cifre e la provincia è una sigla da una lista; altrove la provincia
- * non si chiede, perché il codice postale basta al corriere, e il CAP prende
- * lettere e spazi.
+ * cinque cifre, la provincia è una sigla da una lista e il codice fiscale è
+ * obbligatorio; altrove provincia e codice fiscale non si chiedono, perché il
+ * codice postale basta al corriere, e il CAP prende lettere e spazi.
  *
  * Ogni campo porta il suo `autocomplete` con il prefisso `shipping`: il
  * browser e il gestore di password riempiono l'indirizzo in un tocco, come
@@ -122,6 +122,26 @@ export default function DatiSpedizione({
             </Menu>,
             { classe: "sm:col-span-12" },
           )}
+          {/*
+            Subito sotto il paese, perché è il paese a chiederlo: scegliendo
+            Italia compare, scegliendone un altro se ne va. Chi lo vede nascere
+            sotto la sua scelta capisce perché è lì.
+          */}
+          {italia &&
+            campo(
+              "codiceFiscale",
+              "Codice fiscale",
+              <input
+                {...comune("codiceFiscale")}
+                type="text"
+                autoComplete="off"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+                className={`${CONTROL} figures mt-2 tracking-[0.06em] uppercase`}
+              />,
+              { classe: "sm:col-span-12" },
+            )}
           {campo(
             "indirizzo",
             "Indirizzo",
@@ -205,6 +225,7 @@ export default function DatiSpedizione({
 const suggerimenti: Partial<Record<CampoSpedizione, string>> = {
   email: "Qui ti arriva la conferma dell'ordine.",
   telefono: "Per il corriere, se deve chiamarti.",
+  codiceFiscale: "Obbligatorio per gli ordini in Italia: lo trovi sulla tessera sanitaria.",
 };
 
 /*

@@ -188,9 +188,9 @@ export default function CassaVista({ inProva }: { inProva: boolean }) {
     if (campo === "paese" && valore !== "IT") nuovi.provincia = "";
     setDati(nuovi);
     ricordaDati(nuovi);
-    // Cambiare paese cambia le regole del CAP e della provincia: se erano
+    // Cambiare paese cambia le regole del codice fiscale, del CAP e della provincia: se erano
     // segnati, si ricontrollano anche loro.
-    const dipendenti: CampoSpedizione[] = campo === "paese" ? ["paese", "cap", "provincia"] : [campo];
+    const dipendenti: CampoSpedizione[] = campo === "paese" ? ["paese", "codiceFiscale", "cap", "provincia"] : [campo];
     if (dipendenti.some((c) => errori[c])) {
       const trovati = validaSpedizione(nuovi);
       const dopo = { ...errori };

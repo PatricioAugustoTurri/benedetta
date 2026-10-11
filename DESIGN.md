@@ -734,8 +734,11 @@ underneath) lands on *cancel*, never on save.
   except the first, which opens the column. Every field is the One Field drawing;
   the two menus are the same line with the system arrow replaced by the 14px
   chevron, and an unchosen provincia reads "Scegli" in faint ink. The country
-  decides the shipping rate, the CAP rule and whether provincia is asked (Italy
-  only). The form ends in "Paga 58 €" — the amount in the button, so the press
+  decides the shipping rate, the CAP rule and whether provincia and codice fiscale
+  are asked (Italy only). The codice fiscale is born right under Paese, so the field
+  appears beneath the choice that called it; it is set in tabular uppercase with
+  0.06em tracking, like the discount code, and checked against its control letter
+  as you type once it has failed. The form ends in "Paga 58 €" — the amount in the button, so the press
   knows what it costs — as the One Loud Thing at full width. Both halves hug the
   seam (max 34–36rem) so on a wide screen they face each other instead of fleeing
   to the edges. A failed try puts "Controlla i dati segnati in rosso." above the

@@ -96,8 +96,9 @@ una fila por pago, con una copia de lo comprado: si mañana cambia un precio, el
 pedido de ayer sigue diciendo lo que se pagó. `pagamento` (el id del pago en
 SumUp) es único: lo confirman dos entradas —el aviso de SumUp en
 `/api/sumup/webhook` y la página `/carrello/grazie`— y gana la primera que
-llega, sin duplicar el pedido ni los mails. `telefono` y `transazione` (el
-código que ella ve en la app de SumUp) llegan con la 011; los pedidos de
+llega, sin duplicar el pedido ni los mails. `telefono`, `codice_fiscale`
+(obligatorio si se envía a Italia, vacío si no) y `transazione` (el código
+que ella ve en la app de SumUp) llegan con la 011; los pedidos de
 prueba de Stripe no los tienen.
 
 `pagamenti` es el pedido antes de pagarse. Un pago de SumUp es sólo un

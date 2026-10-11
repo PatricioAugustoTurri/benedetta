@@ -211,6 +211,7 @@ export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagame
       nome: dati.nome,
       email: dati.email,
       telefono: dati.telefono,
+      codiceFiscale: dati.codiceFiscale || null,
       indirizzo: {
         line1: dati.indirizzo,
         line2: dati.interno || null,

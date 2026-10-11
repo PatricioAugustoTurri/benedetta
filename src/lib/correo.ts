@@ -315,6 +315,7 @@ function testoOrdine(o: Ordine, per: "lei" | "cliente"): string {
       "",
       `Email: ${o.email}`,
       ...(o.telefono ? [`Telefono: ${o.telefono}`] : []),
+      ...(o.codiceFiscale ? [`Codice fiscale: ${o.codiceFiscale}`] : []),
       `SumUp: ${o.transazione ?? o.pagamento}`,
     );
   else righe.push("", "Per qualsiasi domanda basta rispondere a questa mail.", "", "Benedetta");
@@ -360,6 +361,7 @@ function htmlOrdine(o: Ordine, per: "lei" | "cliente"): string {
 <div style="font-family:${FONT};font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${C.inkFaint};margin-bottom:10px;">Spedizione a</div>
 <div style="font-family:${FONT};font-size:15px;line-height:1.6;color:${C.ink};">${indirizzoInRighe(o).map(esc).join("<br>")}</div>
 ${per === "lei" && o.telefono ? `<div style="margin-top:8px;font-family:${FONT};font-size:14px;color:${C.inkSoft};">Telefono <a href="tel:${esc(o.telefono.replace(/[^\d+]/g, ""))}" style="color:${C.accent};">${esc(o.telefono)}</a></div>` : ""}
+${per === "lei" && o.codiceFiscale ? `<div style="margin-top:4px;font-family:${FONT};font-size:14px;color:${C.inkSoft};">Codice fiscale <span style="color:${C.ink};letter-spacing:.04em;">${esc(o.codiceFiscale)}</span></div>` : ""}
 ${per === "cliente" ? `<p style="margin:24px 0 0;font-family:${FONT};font-size:14px;line-height:1.6;color:${C.inkSoft};">Per qualsiasi domanda basta rispondere a questa mail.</p><p style="margin:16px 0 0;font-family:${SERIF};font-size:18px;color:${C.ink};">Benedetta</p>` : ""}
 </td></tr>`,
   );

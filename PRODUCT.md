@@ -115,7 +115,8 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
      clave de API y su código de comercio (`SUMUP_API_KEY`, `SUMUP_MERCHANT_CODE`
      en Coolify); hasta entonces el carrito dice que el pago no está activo.
      SumUp sólo recibe el importe: los datos de envío —mail, teléfono, nombre,
-     dirección, CAP, ciudad, provincia, país— y el código de descuento se
+     dirección, CAP, ciudad, provincia, país, y el codice fiscale, obligatorio
+     sólo si se envía a Italia (cliente, 2026-10-11)— y el código de descuento se
      escriben en la cassa (`/carrello/cassa`), una página aparte con la forma de
      Stripe Checkout (pedido a la izquierda, datos a la derecha), pedida por el
      cliente el 2026-10-11.
