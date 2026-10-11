@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import CarrelloVista from "@/components/carrello/CarrelloVista";
 import Reveal from "@/components/Reveal";
-import { stripeInProva, tariffeSpedizione } from "@/lib/stripe";
 
 export const metadata: Metadata = {
   title: "Carrello",
@@ -18,7 +17,7 @@ export default function CarrelloPage() {
         <h1 className="display-h1 text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1]">Carrello</h1>
       </Reveal>
       <div className="mt-10 md:mt-14">
-        <CarrelloVista tariffe={tariffeSpedizione()} inProva={stripeInProva()} />
+        <CarrelloVista />
       </div>
     </section>
   );

@@ -3,7 +3,8 @@ import { richiediAccesso } from "@/lib/auth";
 import { bigliettiPerOrdine, type Codice } from "@/lib/codici";
 import { oggiInItalia } from "@/lib/oggi";
 import { listOrdini, ultimoCorriere, type Ordine } from "@/lib/prodotti";
-import { stripeConfigurato, stripeInProva } from "@/lib/stripe";
+import { nomePaese } from "@/lib/spedizione";
+import { sumupConfigurato, sumupInProva } from "@/lib/sumup";
 import { pingDb } from "@/lib/works";
 import BigliettoOrdine from "../components/BigliettoOrdine";
 import SpedisciOrdine from "../components/SpedisciOrdine";
@@ -23,7 +24,7 @@ const data = (d: Date) =>
 
 /**
  * Gli ordini pagati, dal più recente. Ognuno porta tutto quello che serve
- * per spedirlo —cosa, quante copie, a chi, dove— senza aprire Stripe, e un
+ * per spedirlo —cosa, quante copie, a chi, dove— senza aprire SumUp, e un
  * solo controllo: segnarlo come spedito.
  *
  * Quelli da spedire vanno sopra e con il punto terracotta, perché sono
@@ -83,11 +84,11 @@ export default async function OrdiniPage() {
         <div className="md:col-span-3 md:col-start-10">
           <h2 className="label">Pagamenti</h2>
           <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-            {!stripeConfigurato()
-              ? "Stripe non è ancora collegato: il carrello funziona, ma il pagamento non parte."
-              : stripeInProva()
-                ? "Stripe è in modalità di prova: gli ordini sono finti e non si muove denaro."
-                : "Stripe è attivo. I pagamenti e i rimborsi si gestiscono dal pannello di Stripe."}
+            {!sumupConfigurato()
+              ? "SumUp non è ancora collegato: il carrello funziona, ma il pagamento non parte."
+              : sumupInProva()
+                ? "SumUp è in modalità di prova: gli ordini sono finti e non si muove denaro."
+                : "SumUp è attivo. Gli incassi e i rimborsi si gestiscono dall'app di SumUp: ogni ordine dice il suo codice di transazione."}
           </p>
 
           <h2 className="label mt-10">Contabilità</h2>
@@ -196,7 +197,7 @@ function Voce({
         </ul>
 
         <address className="text-sm not-italic leading-relaxed">
-          {[o.nome, a.line1, a.line2, [a.postal_code, a.city, a.state].filter(Boolean).join(" "), a.country]
+          {[o.nome, a.line1, a.line2, [a.postal_code, a.city, a.state].filter(Boolean).join(" "), a.country && nomePaese(a.country)]
             .filter((r) => r && r.trim().length > 0)
             .map((r, i) => (
               <span key={i} className="block">
@@ -206,6 +207,16 @@ function Voce({
           <a href={`mailto:${o.email}`} className="link-underline mt-1 block break-all text-xs text-ink-soft">
             {o.email}
           </a>
+          {o.telefono && (
+            <a href={`tel:${o.telefono.replace(/[^\d+]/g, "")}`} className="link-underline mt-1 block text-xs text-ink-soft">
+              <span className="figures">{o.telefono}</span>
+            </a>
+          )}
+          {o.transazione && (
+            <span className="mt-1 block text-xs text-ink-faint">
+              SumUp <span className="figures">{o.transazione}</span>
+            </span>
+          )}
         </address>
       </div>
 

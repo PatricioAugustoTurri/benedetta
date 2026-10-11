@@ -11,17 +11,16 @@ import type { CodiceApplicato } from "./store";
  * **Chiuso, è una riga sola.** Chi non ha un codice non deve vedere una
  * casella vuota che gli dice che altri pagano meno: la riga «Hai un codice
  * sconto?» si srotola (0fr → 1fr, come le categorie dello Shop nel menu) solo
- * per chi lo cerca. Chi ha il biglietto in mano la trova sopra i conti, dove
- * si guarda prima di pagare.
+ * per chi lo cerca. Chi ha il biglietto in mano la trova nell'ordine della
+ * cassa, fra il subtotale e la spedizione, dove si guarda prima di pagare.
  *
  * Aperto è il campo del sistema, lo stesso del modulo di Contatti: etichetta
  * in maiuscoletto, un filetto solo, nessun riquadro. «Applica» è una parola in
  * fondo alla riga e non un pulsante: il pulsante del modulo è uno, ed è il
  * pagamento.
  *
- * Il campo sta dentro il modulo del pagamento ma non ha `name`: Invio lo
- * applica invece di partire per Stripe, e a Stripe va solo il codice già
- * controllato, nel campo nascosto del carrello.
+ * Invio lo applica e non fa partire niente: il campo sta nell'ordine, fuori
+ * dal modulo dei dati, e al pagamento va solo il codice già controllato.
  */
 export default function CodiceSconto({
   onApplica,

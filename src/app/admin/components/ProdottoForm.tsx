@@ -348,7 +348,7 @@ export default function ProdottoForm({
               /shop/stampe/{direccion || "…"}
             </span>
           </li>
-          <li>Con il carrello e il pagamento su Stripe.</li>
+          <li>Con il carrello e il pagamento su SumUp.</li>
         </ul>
       </div>
     </form>

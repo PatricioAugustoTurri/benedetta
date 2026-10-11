@@ -5,7 +5,7 @@ import PaginaLegale, { Dato, type SezioneLegale } from "@/components/legale/Pagi
 import { elencoCorrieri, legale, misuraFormato, legaliPronte } from "@/data/legale";
 import { FORMATI_BASE, prezzo } from "@/data/shop";
 import { listPubblicati } from "@/lib/prodotti";
-import { tariffeSpedizione } from "@/lib/stripe";
+import { tariffeSpedizione } from "@/lib/spedizione";
 
 export const metadata: Metadata = {
   title: "Spedizioni e resi",

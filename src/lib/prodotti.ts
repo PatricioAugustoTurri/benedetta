@@ -246,9 +246,14 @@ export type Indirizzo = {
 
 export type Ordine = {
   id: number;
-  stripeSessionId: string;
+  /** Il pagamento SumUp da cui viene: lo stesso pagamento non fa mai due ordini. */
+  pagamento: string;
+  /** Il codice che lei ritrova nell'app di SumUp accanto all'incasso, per un rimborso. */
+  transazione: string | null;
   nome: string | null;
   email: string;
+  /** Per il corriere. Gli ordini pagati con Stripe, prima di SumUp, non l'hanno. */
+  telefono: string | null;
   indirizzo: Indirizzo;
   righe: RigaOrdine[];
   subtotale: number;
@@ -271,9 +276,11 @@ export type Ordine = {
 function hydrateOrdine(row: Record<string, unknown>): Ordine {
   return {
     id: Number(row.id),
-    stripeSessionId: String(row.stripe_session_id),
+    pagamento: String(row.pagamento),
+    transazione: row.transazione ? String(row.transazione) : null,
     nome: row.nome === null ? null : String(row.nome),
     email: String(row.email),
+    telefono: row.telefono ? String(row.telefono) : null,
     indirizzo: row.indirizzo as Indirizzo,
     righe: Array.isArray(row.righe) ? (row.righe as RigaOrdine[]) : [],
     subtotale: Number(row.subtotale),
@@ -290,23 +297,25 @@ function hydrateOrdine(row: Record<string, unknown>): Ordine {
   };
 }
 
-const COLONNE_ORDINE = `id, stripe_session_id, nome, email, indirizzo, righe, subtotale, sconto, codice, spedizione, totale, stato, created_at, spedito_at, corriere, tracking, cliente_avvisato_at`;
+const COLONNE_ORDINE = `id, pagamento, transazione, nome, email, telefono, indirizzo, righe, subtotale, sconto, codice, spedizione, totale, stato, created_at, spedito_at, corriere, tracking, cliente_avvisato_at`;
 
 /**
- * Scrive un ordine pagato. Restituisce null se c'era già: Stripe ripete gli
- * eventi quando non riceve risposta in tempo, e la seconda volta non deve
- * nascere un secondo ordine né partire un secondo avviso.
+ * Scrive un ordine pagato. Restituisce null se c'era già: lo stesso
+ * pagamento lo confermano sia l'avviso di SumUp sia la pagina di
+ * ringraziamento, e SumUp ripete l'avviso quando non riceve risposta in
+ * tempo. Arriva prima chi arriva prima; il secondo non fa nascere un secondo
+ * ordine né partire un secondo avviso.
  */
 export async function registraOrdine(
   o: Omit<Ordine, "id" | "stato" | "creato" | "spedito" | "corriere" | "tracking" | "avvisato">,
 ): Promise<Ordine | null> {
   const rows = await query<Record<string, unknown>>(
-    `INSERT INTO ordini (stripe_session_id, nome, email, indirizzo, righe, subtotale, spedizione, totale, sconto, codice)
-          VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10)
-     ON CONFLICT (stripe_session_id) DO NOTHING
+    `INSERT INTO ordini (pagamento, nome, email, indirizzo, righe, subtotale, spedizione, totale, sconto, codice, telefono, transazione)
+          VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10, $11, $12)
+     ON CONFLICT (pagamento) DO NOTHING
        RETURNING ${COLONNE_ORDINE}`,
     [
-      o.stripeSessionId,
+      o.pagamento,
       o.nome,
       o.email,
       JSON.stringify(o.indirizzo),
@@ -316,6 +325,8 @@ export async function registraOrdine(
       o.totale,
       o.sconto,
       o.codice,
+      o.telefono,
+      o.transazione,
     ],
   );
   return rows[0] ? hydrateOrdine(rows[0]) : null;

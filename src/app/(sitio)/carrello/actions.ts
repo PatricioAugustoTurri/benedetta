@@ -1,7 +1,6 @@
 "use server";
 
 import { origine } from "@/lib/origine";
-import { redirect } from "next/navigation";
 import type { VoceCarrello } from "@/components/carrello/store";
 import { site } from "@/data/site";
 import { prezzoScontato, scontoCodice } from "@/data/shop";
@@ -9,7 +8,9 @@ import { cercaCodice, normalizzaCodice, type Ricerca } from "@/lib/codici";
 import { giornoLungo } from "@/lib/oggi";
 import { stampePerSlug } from "@/lib/prodotti";
 import { scontiInCorso } from "@/lib/sconti";
-import { stripe, stripeConfigurato, tariffeSpedizione, type Zona } from "@/lib/stripe";
+import { apriPagamento, legaCheckout } from "@/lib/pagamento";
+import { pulisci, tariffaPer, validaSpedizione, type DatiSpedizione, type ErroriSpedizione } from "@/lib/spedizione";
+import { creaCheckout, sumupConfigurato } from "@/lib/sumup";
 import { immagineFerma } from "@/lib/video";
 
 // Lo stesso tetto del carrello (store.ts), ripetuto perché quello è un modulo client.
@@ -50,7 +51,7 @@ async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
     stampePerSlug([...new Set(richiesta.map((r) => r.slug))]),
     // Lo sconto si applica qui, e solo qui: è la stessa funzione che prepara
     // il carrello e il pagamento, quindi il prezzo scontato che si vede è
-    // quello che Stripe addebita.
+    // quello che SumUp addebita.
     scontiInCorso().catch(() => new Map()),
   ]);
   const voci: VoceCarrello[] = [];
@@ -133,70 +134,48 @@ function motivo(r: Exclude<Ricerca, { stato: "valido" }>): string {
   }
 }
 
-/**
- * Lo sconto come lo vede Stripe: un buono a importo fisso, che Checkout
- * mostra come riga a sé («BENZIBET98 −15%») sopra il totale e nella
- * ricevuta. A importo fisso e non in percentuale perché la percentuale di
- * Stripe varrebbe su tutte le righe, anche su quelle già in sconto di
- * stagione; l'importo lo calcola `scontoCodice`, che le lascia fuori.
- *
- * L'id dice codice, percentuale e importo, così lo stesso buono serve a
- * tutti i carrelli con lo stesso sconto invece di nascerne uno per pagamento.
- * Si crea la prima volta che serve; se esiste già, si usa quello.
- */
-async function buonoStripe(codice: string, percentuale: number, importo: number): Promise<string> {
-  const id = `codice-${codice}-${percentuale}-${importo}`;
-  try {
-    await stripe().coupons.create({
-      id,
-      name: `${codice} −${percentuale}%`,
-      amount_off: importo,
-      currency: "eur",
-      duration: "once",
-    });
-  } catch (e) {
-    if ((e as { code?: string }).code !== "resource_already_exists") throw e;
-  }
-  return id;
-}
+export type RichiestaPagamento = {
+  /** Quello che il browser dice di avere nel carrello: si rifà da capo. */
+  voci: unknown;
+  /** Il codice già applicato nel carrello, o vuoto: si ricontrolla. */
+  codice: string;
+  /** Quello che chi compra ha scritto nel modulo: si ricontrolla. */
+  dati: DatiSpedizione;
+};
 
-export type EsitoPagamento = { error?: string };
+export type EsitoPagamento = { url: string } | { error: string; errori?: ErroriSpedizione };
 
 /**
- * Il passaggio a Stripe.
+ * Il passaggio a SumUp.
  *
- * Il server rifà il carrello da zero con i prezzi della tabella e crea una
- * sessione di Checkout con quelle righe, una sola tariffa di spedizione —
- * quella della zona scelta— e solo i paesi di quella zona. Poi manda il
- * visitatore sulla pagina di Stripe. Da quel momento il sito non tocca più
- * niente fino al ritorno: la carta la vede solo Stripe.
+ * Il server non crede a niente di quello che arriva: rifà il carrello con i
+ * prezzi della tabella, ricontrolla il codice, ricontrolla i dati e calcola
+ * la spedizione dal paese dell'indirizzo. Poi salva l'ordine intero come
+ * bozza (`pagamenti`), crea su SumUp un pagamento per il totale e
+ * restituisce l'indirizzo della pagina di SumUp. Da quel momento il sito
+ * non tocca più niente fino al ritorno: la carta la vede solo SumUp.
  *
- * Ogni riga porta nei metadati del suo prodotto lo slug e il formato. È
- * quello che il webhook legge per scrivere l'ordine, invece di dover
- * indovinare la stampa dal nome.
+ * Restituisce l'indirizzo invece di fare `redirect`: il carrello chiama
+ * l'azione a mano —per non perdere quello che si è scritto se qualcosa va
+ * storto— e ci va lui.
  */
-export async function vaiAlPagamento(
-  _previo: EsitoPagamento,
-  formData: FormData,
-): Promise<EsitoPagamento> {
-  if (!stripeConfigurato()) {
+export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagamento> {
+  if (!sumupConfigurato()) {
     return {
       error: `Il pagamento online non è ancora attivo. Scrivimi a ${site.email} e la ordiniamo insieme.`,
     };
   }
 
-  const zona = String(formData.get("zona") ?? "") as Zona;
-  const tariffa = tariffeSpedizione().find((t) => t.zona === zona);
-  if (!tariffa) return { error: "Scegli dove spedire." };
-
-  let richiesta: unknown;
-  try {
-    richiesta = JSON.parse(String(formData.get("voci") ?? "[]"));
-  } catch {
-    return { error: "Il carrello è arrivato male. Ricarica la pagina e riprova." };
+  const crudi = (r?.dati ?? {}) as DatiSpedizione;
+  const errori = validaSpedizione(crudi);
+  if (Object.keys(errori).length > 0) {
+    return { error: "Controlla i dati segnati qui sopra.", errori };
   }
+  const dati = pulisci(crudi);
+  // Validato: il paese è in una delle due zone.
+  const tariffa = tariffaPer(dati.paese)!;
 
-  const voci = await rifai(leggiRichiesta(richiesta));
+  const voci = await rifai(leggiRichiesta(r?.voci));
   if (voci.length === 0) return { error: "Il carrello è vuoto." };
 
   /*
@@ -205,70 +184,67 @@ export async function vaiAlPagamento(
     ci si ferma, invece di far pagare in silenzio il prezzo pieno a chi
     aspettava lo sconto.
   */
-  const scritto = normalizzaCodice(String(formData.get("codice") ?? ""));
+  const scritto = normalizzaCodice(String(r?.codice ?? ""));
   let codice: { codice: string; percentuale: number } | null = null;
   if (scritto) {
-    let r: Ricerca;
+    let c: Ricerca;
     try {
-      r = await cercaCodice(scritto);
+      c = await cercaCodice(scritto);
     } catch {
       return { error: "Non riesco a controllare il codice adesso. Riprova tra un momento." };
     }
-    if (r.stato !== "valido") return { error: `${motivo(r)} Toglilo per continuare.` };
-    codice = { codice: r.codice, percentuale: r.percentuale };
+    if (c.stato !== "valido") return { error: `${motivo(c)} Toglilo per continuare.` };
+    codice = { codice: c.codice, percentuale: c.percentuale };
   }
-  const importoSconto = codice ? scontoCodice(voci, codice.percentuale) : 0;
 
-  // L'indirizzo a cui Stripe riporta. In produzione è il dominio; in
+  const subtotale = voci.reduce((n, v) => n + v.prezzo * v.quantita, 0);
+  const sconto = codice ? scontoCodice(voci, codice.percentuale) : 0;
+  const totale = subtotale - sconto + tariffa.prezzo;
+  const copie = voci.reduce((n, v) => n + v.quantita, 0);
+
+  // Dove SumUp riporta e dove avvisa. In produzione è il dominio; in
   // sviluppo, quello da cui si sta navigando.
   const base = await origine();
 
-  let url: string | null;
   try {
-    const buono =
-      codice && importoSconto > 0
-        ? await buonoStripe(codice.codice, codice.percentuale, importoSconto)
-        : null;
-    const sessione = await stripe().checkout.sessions.create({
-      mode: "payment",
-      locale: "it",
-      line_items: voci.map((v) => ({
-        quantity: v.quantita,
-        price_data: {
-          currency: "eur",
-          unit_amount: v.prezzo,
-          product_data: {
-            name: `${v.title} — ${v.formato}`,
-            images: v.immagine ? [v.immagine.url] : undefined,
-            metadata: { slug: v.slug, formato: v.formato, title: v.title },
-          },
-        },
-      })),
-      shipping_address_collection: {
-        allowed_countries: tariffa.paesi as never,
+    const riferimento = await apriPagamento({
+      nome: dati.nome,
+      email: dati.email,
+      telefono: dati.telefono,
+      indirizzo: {
+        line1: dati.indirizzo,
+        line2: dati.interno || null,
+        city: dati.citta,
+        postal_code: dati.cap,
+        state: dati.provincia || null,
+        country: dati.paese,
       },
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: "fixed_amount",
-            display_name: `Spedizione — ${tariffa.etichetta}`,
-            fixed_amount: { amount: tariffa.prezzo, currency: "eur" },
-          },
-        },
-      ],
-      discounts: buono ? [{ coupon: buono }] : undefined,
-      phone_number_collection: { enabled: true },
-      success_url: `${base}/carrello/grazie?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${base}/carrello`,
-      // Il webhook lo scrive nell'ordine: Stripe dice quanto, non con quale codice.
-      metadata: { zona: tariffa.zona, ...(buono && codice ? { codice: codice.codice } : {}) },
+      righe: voci.map((v) => ({
+        slug: v.slug,
+        title: v.title,
+        formato: v.formato,
+        prezzo: v.prezzo,
+        quantita: v.quantita,
+      })),
+      subtotale,
+      // Il codice si scrive solo se ha tolto qualcosa: uno che non tocca
+      // niente —tutte stampe già in sconto— non è stato usato.
+      sconto,
+      codice: codice && sconto > 0 ? codice.codice : null,
+      spedizione: tariffa.prezzo,
+      totale,
     });
-    url = sessione.url;
+    const checkout = await creaCheckout({
+      riferimento,
+      totale,
+      descrizione: `${site.name} — ${copie === 1 ? "1 stampa" : `${copie} stampe`}`,
+      avviso: `${base}/api/sumup/webhook`,
+      rientro: `${base}/carrello/grazie?r=${riferimento}`,
+    });
+    await legaCheckout(riferimento, checkout.id);
+    return { url: checkout.url };
   } catch (e) {
-    console.error("Stripe: non ho potuto creare la sessione", e);
-    return { error: "Stripe non ha risposto. Riprova tra un momento." };
+    console.error("SumUp: non ho potuto creare il pagamento", e);
+    return { error: "SumUp non ha risposto. Riprova tra un momento." };
   }
-
-  if (!url) return { error: "Stripe non ha restituito la pagina di pagamento. Riprova." };
-  redirect(url);
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import PaginaLegale, { Dato, type SezioneLegale } from "@/components/legale/PaginaLegale";
 import { elencoCorrieri, legale, legaliPronte } from "@/data/legale";
 import { prezzo } from "@/data/shop";
-import { tariffeSpedizione } from "@/lib/stripe";
+import { tariffeSpedizione } from "@/lib/spedizione";
 
 export const metadata: Metadata = {
   title: "Condizioni di vendita",
@@ -84,7 +84,7 @@ export default function CondizioniPage() {
             ))}
           </ul>
           <p>
-            Paghi con carta o con gli altri metodi proposti da Stripe, sulle sue pagine protette. Il
+            Paghi con carta o con gli altri metodi proposti da SumUp, sulle sue pagine protette. Il
             contratto si conclude quando il pagamento va a buon fine: ti arriva subito una mail con
             il riepilogo dell&apos;ordine.
           </p>

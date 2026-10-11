@@ -2,123 +2,29 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import type { RefObject } from "react";
-import {
-  vaiAlPagamento,
-  verificaCarrello,
-  verificaCodice,
-  type EsitoPagamento,
-} from "@/app/(sitio)/carrello/actions";
 import { AZIONE } from "@/components/azione";
 import { ArrowRight, Meno, Plus } from "@/components/Icon";
-import { legaliPronte } from "@/data/legale";
-import { prezzo, prodottoHref, scontoCodice } from "@/data/shop";
-import type { TariffaSpedizione, Zona } from "@/lib/stripe";
-import CodiceSconto from "./CodiceSconto";
-import {
-  cambiaQuantita,
-  codiceRicordato,
-  MAX_QUANTITA,
-  ricordaCodice,
-  sostituisci,
-  togli,
-  totaleCarrello,
-  useCarrello,
-  type CodiceApplicato,
-  type VoceCarrello,
-} from "./store";
+import { prezzo, prodottoHref } from "@/data/shop";
+import { tariffeSpedizione } from "@/lib/spedizione";
+import { Conto } from "./Conti";
+import { cambiaQuantita, MAX_QUANTITA, togli, totaleCarrello, type VoceCarrello } from "./store";
+import { useCarrelloVerificato } from "./useCarrelloVerificato";
 
-const nessuno = () => () => {};
+const [ITALIA, UE] = tariffeSpedizione();
 
 /**
- * Il carrello: le righe a sinistra, i conti e il pagamento a destra.
+ * Il carrello: le righe a sinistra, il subtotale e la strada per la cassa a
+ * destra. Qui si decide cosa e quante copie; chi riceve, dove, e il codice
+ * sconto si scrivono alla cassa (/carrello/cassa), come su qualsiasi pagina
+ * di pagamento.
  *
  * Le righe sono la lista di filetti del sistema, non schede: miniatura,
  * nome, formato, quantità e importo, ognuno al suo posto in ogni riga perché
  * si confrontino scorrendo in verticale. I conti sono la stessa lista di
  * filetti della scheda di un'opera, con le cifre a destra in tabulari.
- *
- * **La zona di spedizione si sceglie qui e non su Stripe.** Vedi
- * `tariffeSpedizione`: così a Stripe arriva una tariffa sola e i paesi di
- * quella zona, e il prezzo della spedizione non può non coincidere con
- * l'indirizzo.
  */
-export default function CarrelloVista({
-  tariffe,
-  inProva,
-}: {
-  tariffe: TariffaSpedizione[];
-  inProva: boolean;
-}) {
-  const voci = useCarrello();
-  // Il carrello vive nel browser: sul server e al primo disegno non si sa cosa
-  // c'è. Finché non si è montato, la pagina non dice «vuoto», che sarebbe
-  // falso per mezzo secondo.
-  const montato = useSyncExternalStore(nessuno, () => true, () => false);
-  const [avviso, setAvviso] = useState<string | null>(null);
-  const [zona, setZona] = useState<Zona>("italia");
-  const [codice, setCodice] = useState<CodiceApplicato | null>(null);
-  // Quello che un lettore di schermo sente quando il codice entra o esce:
-  // la riga compare nei conti, ma comparire non si annuncia da solo.
-  const [annuncio, setAnnuncio] = useState("");
-  // Dopo «Togli» il fuoco torna alla riga «Hai un codice sconto?», non sul
-  // fondo della pagina.
-  const [rifuoca, setRifuoca] = useState(false);
-  // Dopo «Applica» il campo si chiude e sparisce: il fuoco va sulla riga del
-  // codice nei conti, che è dove è andato quello che si è appena scritto.
-  const rigaCodice = useRef<HTMLDivElement>(null);
-  const [esito, paga, pagando] = useActionState<EsitoPagamento, FormData>(vaiAlPagamento, {});
-  const verificato = useRef(false);
-  const id = useId();
-
-  /*
-    Una volta per visita, appena il carrello si legge, le righe si rifanno
-    contro la tabella. Quello che c'è nel browser è una fotografia di quando si
-    è aggiunto: il prezzo può essere cambiato, la stampa può non esserci più.
-  */
-  useEffect(() => {
-    if (!montato || verificato.current || voci.length === 0) return;
-    verificato.current = true;
-    verificaCarrello(voci)
-      .then(({ voci: nuove, tolte, prezziCambiati }) => {
-        sostituisci(nuove);
-        const cose = [
-          tolte > 0 &&
-            (tolte === 1
-              ? "Una stampa non è più disponibile ed è uscita dal carrello."
-              : `${tolte} stampe non sono più disponibili e sono uscite dal carrello.`),
-          prezziCambiati && "Alcuni prezzi sono cambiati da quando li hai aggiunti: qui vedi quelli di adesso.",
-        ].filter(Boolean);
-        if (cose.length > 0) setAvviso(cose.join(" "));
-      })
-      .catch(() => {
-        // Senza rete il carrello resta com'era: il pagamento lo rifà comunque.
-      });
-  }, [montato, voci]);
-
-  /*
-    Il codice ricordato dall'ultima visita si ricontrolla prima di mostrarlo:
-    lei può averlo spento nel frattempo, e uno sconto che si vede nel carrello
-    e sparisce al pagamento è peggio di uno che si dice subito che non c'è.
-  */
-  useEffect(() => {
-    if (!montato) return;
-    const ricordato = codiceRicordato();
-    if (!ricordato) return;
-    verificaCodice(ricordato.codice)
-      .then((e) => {
-        if (e.ok) {
-          setCodice({ codice: e.codice, percentuale: e.percentuale });
-          ricordaCodice({ codice: e.codice, percentuale: e.percentuale });
-        } else {
-          ricordaCodice(null);
-          setAvviso(`Il codice ${ricordato.codice} non vale più ed è stato tolto.`);
-        }
-      })
-      // Senza rete si mostra com'era: il pagamento lo ricontrolla comunque.
-      .catch(() => setCodice(ricordato));
-  }, [montato]);
+export default function CarrelloVista() {
+  const { voci, montato, avviso } = useCarrelloVerificato();
 
   if (!montato) return <div className="min-h-[40vh]" aria-hidden="true" />;
 
@@ -139,33 +45,6 @@ export default function CarrelloVista({
       </div>
     );
   }
-
-  const subtotale = totaleCarrello(voci);
-  const tariffa = tariffe.find((t) => t.zona === zona);
-  const spedizione = tariffa?.prezzo ?? null;
-  const sconto = codice ? scontoCodice(voci, codice.percentuale) : 0;
-  const totale = subtotale - sconto + (spedizione ?? 0);
-  // Quante righe restano fuori dal codice perché già in sconto di stagione.
-  const fuori = voci.filter((v) => v.scontata).length;
-
-  const applica = (c: CodiceApplicato) => {
-    setCodice(c);
-    ricordaCodice(c);
-    setRifuoca(false);
-    requestAnimationFrame(() => rigaCodice.current?.focus());
-    const toglie = scontoCodice(voci, c.percentuale);
-    setAnnuncio(
-      toglie > 0
-        ? `Codice ${c.codice} applicato: meno ${prezzo(toglie)}.`
-        : `Codice ${c.codice} applicato, ma le stampe nel carrello sono già in sconto.`,
-    );
-  };
-  const toglilo = () => {
-    setCodice(null);
-    ricordaCodice(null);
-    setRifuoca(true);
-    setAnnuncio("Codice tolto.");
-  };
 
   return (
     <div className="grid gap-12 md:grid-cols-12 md:gap-16">
@@ -189,187 +68,23 @@ export default function CarrelloVista({
         richiedere di tornare giù.
       */}
       <div className="md:col-span-4 md:col-start-9">
-        <form action={paga} className="md:sticky md:top-40">
-          <input
-            type="hidden"
-            name="voci"
-            value={JSON.stringify(voci.map(({ slug, formato, quantita }) => ({ slug, formato, quantita })))}
-          />
-          <input type="hidden" name="codice" value={codice?.codice ?? ""} />
-
-          <fieldset>
-            <legend className="label">Spedizione</legend>
-            <div className="mt-3 border-t border-line">
-              {tariffe.map((t) => (
-                <label
-                  key={t.zona}
-                  htmlFor={`${id}-${t.zona}`}
-                  data-scelto={t.zona === zona}
-                  className="group flex cursor-pointer items-center justify-between gap-6 border-b border-line py-3 text-ink-soft transition-colors hover:text-ink data-[scelto=true]:text-ink"
-                >
-                  <span className="flex items-center gap-3">
-                    <input
-                      id={`${id}-${t.zona}`}
-                      type="radio"
-                      name="zona"
-                      value={t.zona}
-                      checked={t.zona === zona}
-                      onChange={() => setZona(t.zona)}
-                      className="peer sr-only"
-                    />
-                    <span
-                      aria-hidden="true"
-                      className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-ink-faint transition-colors group-data-[scelto=true]:border-ink peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
-                    >
-                      <span className="block h-1.5 w-1.5 rounded-full bg-accent opacity-0 transition-opacity group-data-[scelto=true]:opacity-100" />
-                    </span>
-                    <span className="text-sm">{t.etichetta}</span>
-                  </span>
-                  <span className="figures text-sm">{prezzo(t.prezzo)}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          {!codice && <CodiceSconto onApplica={applica} focusAllInizio={rifuoca} />}
-          <p role="status" className="sr-only">
-            {annuncio}
-          </p>
-
-          <dl className="mt-8 border-t border-line">
-            <Conto etichetta="Subtotale" valore={prezzo(subtotale)} />
-            {codice && (
-              <RigaCodice ref={rigaCodice} codice={codice} sconto={sconto} fuori={fuori} righe={voci.length} onTogli={toglilo} />
-            )}
-            <Conto
-              etichetta="Spedizione"
-              valore={spedizione === null ? "—" : prezzo(spedizione)}
-            />
-            <div className="flex items-baseline justify-between gap-6 border-b border-line py-3.5">
-              <dt className="label text-ink">Totale</dt>
-              <dd className="figures text-lg font-medium">
-                {prezzo(totale)}
-              </dd>
-            </div>
+        <div className="md:sticky md:top-40">
+          <h2 className="label">Riepilogo</h2>
+          <dl className="mt-3 border-t border-line">
+            <Conto etichetta="Subtotale" valore={prezzo(totaleCarrello(voci))} />
           </dl>
-
-          {esito.error && (
-            <p role="alert" className="mt-6 text-sm leading-relaxed text-accent">
-              {esito.error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            aria-disabled={pagando || undefined}
-            className={`mt-8 w-full justify-center ${AZIONE} aria-disabled:cursor-wait aria-disabled:opacity-60`}
-          >
-            {pagando ? "Un momento…" : "Vai al pagamento"}
-            {!pagando && <ArrowRight size={16} className="shrink-0" />}
-          </button>
-
           <p className="mt-3 text-xs leading-relaxed text-ink-faint">
-            Paghi su Stripe, con carta o con i metodi che propone. L&apos;indirizzo di
-            spedizione lo scrivi lì.
-            {legaliPronte() && (
-              <>
-                {" "}Procedendo accetti le{" "}
-                <Link href="/condizioni-di-vendita" className="link-underline text-ink-soft transition-colors hover:text-ink">
-                  condizioni di vendita
-                </Link>
-                ; hai 14 giorni per{" "}
-                <Link href="/spedizioni-e-resi#resi" className="link-underline text-ink-soft transition-colors hover:text-ink">
-                  cambiare idea
-                </Link>
-                .
-              </>
-            )}
+            Spedizione alla cassa: <span className="figures">{prezzo(ITALIA.prezzo)}</span> in Italia,{" "}
+            <span className="figures">{prezzo(UE.prezzo)}</span> nell&apos;Unione Europea, una volta per
+            ordine. Lì scrivi anche il codice sconto, se ce l&apos;hai.
           </p>
 
-          {/*
-            Solo con le chiavi di prova: chi sta provando il negozio deve sapere
-            che non si addebita niente e con quale carta finta si paga.
-          */}
-          {inProva && (
-            <p className="mt-4 border-t border-line pt-4 text-xs leading-relaxed text-ink-faint">
-              Modalità di prova: non si addebita niente. Usa la carta{" "}
-              <span className="figures text-ink-soft">4242 4242 4242 4242</span>, una data futura
-              e un CVC qualsiasi.
-            </p>
-          )}
-        </form>
+          <Link href="/carrello/cassa" className={`mt-8 w-full justify-center ${AZIONE}`}>
+            Procedi all&apos;acquisto
+            <ArrowRight size={16} className="shrink-0" />
+          </Link>
+        </div>
       </div>
-    </div>
-  );
-}
-
-/**
- * Il codice nei conti: una riga fra Subtotale e Spedizione, perché toglie
- * dalle stampe e non dal resto. Il nome del codice in inchiostro accanto
- * all'etichetta, la cifra in terracotta —è una parola di stato, la sola nei
- * conti— e sotto, piccolo, su cosa vale e come toglierlo.
- *
- * Se tutte le stampe sono già in sconto di stagione il codice resta, ma lo
- * dice: «già in sconto» e niente cifra, invece di un «−0,00 €» che sembra un
- * errore.
- */
-function RigaCodice({
-  ref,
-  codice,
-  sconto,
-  fuori,
-  righe,
-  onTogli,
-}: {
-  ref: RefObject<HTMLDivElement | null>;
-  codice: CodiceApplicato;
-  sconto: number;
-  fuori: number;
-  righe: number;
-  onTogli: () => void;
-}) {
-  const nota =
-    fuori === 0
-      ? `−${codice.percentuale}% sulle stampe`
-      : fuori === righe
-        ? "Le stampe nel carrello sono già in sconto: il codice non si somma"
-        : `−${codice.percentuale}% sulle stampe non già in sconto`;
-
-  return (
-    <div
-      ref={ref}
-      tabIndex={-1}
-      className="codice-entra flex items-start justify-between gap-6 border-b border-line py-3 focus:outline-none"
-    >
-      <dt className="min-w-0">
-        <span className="label">
-          Codice <span className="figures text-ink">{codice.codice}</span>
-        </span>
-        <span className="mt-1.5 flex flex-wrap items-baseline gap-x-2 text-xs leading-relaxed text-ink-faint">
-          <span>{nota}</span>
-          <span aria-hidden="true">·</span>
-          <button
-            type="button"
-            onClick={onTogli}
-            className="area-tocco text-ink-soft transition-colors hover:text-accent"
-          >
-            <span className="link-underline">Togli</span>
-            <span className="sr-only"> il codice {codice.codice}</span>
-          </button>
-        </span>
-      </dt>
-      <dd className={`figures shrink-0 text-sm ${sconto > 0 ? "text-accent" : "text-ink-faint"}`}>
-        {sconto > 0 ? `−${prezzo(sconto)}` : "—"}
-      </dd>
-    </div>
-  );
-}
-
-function Conto({ etichetta, valore }: { etichetta: string; valore: string }) {
-  return (
-    <div className="flex items-baseline justify-between gap-6 border-b border-line py-3">
-      <dt className="label">{etichetta}</dt>
-      <dd className="figures text-sm">{valore}</dd>
     </div>
   );
 }

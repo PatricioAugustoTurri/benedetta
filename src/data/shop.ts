@@ -116,7 +116,7 @@ export function prezzo(centesimi: number): string {
 /**
  * Un prezzo con lo sconto, in centesimi interi: 20 € con il 15% fanno 17 €.
  * L'arrotondamento è al centesimo, e sempre lo stesso ovunque —scheda,
- * carrello, Stripe— perché è questa funzione sola a farlo.
+ * carrello, pagamento— perché è questa funzione sola a farlo.
  */
 export function prezzoScontato(centesimi: number, percentuale: number | null | undefined): number {
   if (!percentuale) return centesimi;

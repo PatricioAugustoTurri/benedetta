@@ -154,7 +154,7 @@ export default function AggiungiAlCarrello({
             </Link>
           </>
         ) : (
-          "Spedizione in Italia e nell’Unione Europea. Paghi con Stripe."
+          "Spedizione in Italia e nell’Unione Europea. Paghi con SumUp."
         )}
       </p>
     </div>

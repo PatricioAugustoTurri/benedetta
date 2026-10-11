@@ -69,6 +69,7 @@ psql -d illustrando -f db/migrations/007-nome-iscritti.sql
 psql -d illustrando -f db/migrations/008-spedizioni-testimonianze.sql
 psql -d illustrando -f db/migrations/009-sconti.sql
 psql -d illustrando -f db/migrations/010-codici.sql
+psql -d illustrando -f db/migrations/011-sumup.sql
 ```
 
 ## La tienda: `prodotti`, `servizi`, `copertine` y `ordini`
@@ -90,10 +91,22 @@ su nombre, su texto y sus imágenes.
 por categoría que la tenga. Se elige en `/admin/shop/copertine`. Sin fila, la
 página usa la primera imagen del servicio o de la primera stampa publicada.
 
-`ordini` la escribe sólo el webhook de Stripe (`/api/stripe/webhook`), una fila
-por pago, con una copia de lo comprado: si mañana cambia un precio, el pedido
-de ayer sigue diciendo lo que se pagó. `stripe_session_id` es único, así un
-evento repetido no duplica el pedido.
+`ordini` la escribe sólo la confirmación de SumUp (`src/lib/pagamento.ts`),
+una fila por pago, con una copia de lo comprado: si mañana cambia un precio, el
+pedido de ayer sigue diciendo lo que se pagó. `pagamento` (el id del pago en
+SumUp) es único: lo confirman dos entradas —el aviso de SumUp en
+`/api/sumup/webhook` y la página `/carrello/grazie`— y gana la primera que
+llega, sin duplicar el pedido ni los mails. `telefono` y `transazione` (el
+código que ella ve en la app de SumUp) llegan con la 011; los pedidos de
+prueba de Stripe no los tienen.
+
+`pagamenti` es el pedido antes de pagarse. Un pago de SumUp es sólo un
+importe, así que nombre, mail, teléfono, dirección, renglones y cuentas se
+guardan acá en `bozza` antes de mandar a la persona a SumUp, con un
+`riferimento` (uuid) que SumUp devuelve en cada lectura del pago. Cuando
+SumUp dice `PAID`, y el importe, la moneda y el comercio coinciden, la
+`bozza` se vuelve una fila de `ordini`. Las filas de más de 7 días se borran
+solas al abrir un pago nuevo.
 
 Cada elemento de `image` es `{ "url", "alt", "width", "height" }`. El ancho y
 el alto los lee el servidor del archivo subido, no se escriben a mano: son lo
@@ -150,7 +163,7 @@ Un descuento tiene nombre, porcentaje, fecha de inicio y de fin (incluidas,
 hora de Italia) y las stampe que entran, en orden. Vale sólo si `attivo` y hoy
 está entre `dal` y `al`. Mientras vale, sale como sección debajo de las
 categorías en `/shop`, y el precio rebajado es el que calcula el servidor para
-la ficha, el carrito y Stripe. Si una stampa está en dos descuentos a la vez,
+la ficha, el carrito y el pago. Si una stampa está en dos descuentos a la vez,
 vale el mayor.
 
 
@@ -165,7 +178,7 @@ Dos tipos en la misma tabla:
   tarjetita igual para todos, lo crea la migración 010. Se manejan desde
   `/admin/shop`, donde también se pueden hacer códigos personales a mano.
 - **Biglietti** (`ordine_id` = el pedido en cuyo paquete va): uno por pedido,
-  lo crea el webhook al registrar el pago (`BEN-` + cuatro signos sin O/0/I/L/1,
+  lo crea la confirmación al registrar el pago (`BEN-` + cuatro signos sin O/0/I/L/1,
   porque se copian a mano). 15%, `monouso`, y `scade` vacío hasta que el pedido
   se marca como enviado: ahí queda en 90 días, si ella no eligió otra fecha.
   Código, porcentaje y fecha se corrigen desde el pedido en `/admin/ordini`.
@@ -176,7 +189,6 @@ para que se vea quién volvió a comprar.
 
 No se suma a los descuentos de temporada: el porcentaje se calcula sólo sobre
 las stampe que no están ya rebajadas, y nunca sobre el envío. El servidor lo
-vuelve a verificar al crear la sesión y se lo pasa a Stripe como un cupón por
-importe fijo (`codice-<CODIGO>-<pct>-<centavos>`, creado la primera vez que
-hace falta), así que la página de pago y el recibo muestran la línea del
-descuento. El pedido guarda `sconto` (centavos) y `codice`.
+vuelve a verificar al pagar y SumUp cobra el total ya descontado: la línea
+del descuento la muestran el carrito y los mails del pedido. El pedido guarda
+`sconto` (centavos) y `codice`.

@@ -194,7 +194,7 @@ export default function CodiceForm({ codice }: { codice?: Codice }) {
             I biglietti degli ordini non sono qui: ogni ordine ha il suo, e si cambia dalla pagina
             Ordini.
           </li>
-          <li>Nella pagina di Stripe e nella ricevuta compare come riga a sé.</li>
+          <li>Nel carrello e nella mail dell&apos;ordine compare come riga a sé.</li>
         </ul>
 
         {codice && (

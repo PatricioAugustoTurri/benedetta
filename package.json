@@ -14,8 +14,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "resend": "^6.30.0",
-    "sharp": "^0.35.4",
-    "stripe": "^23.0.0"
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

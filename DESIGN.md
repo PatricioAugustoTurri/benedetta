@@ -222,7 +222,11 @@ illustrations are the only fully saturated thing on screen.
 - **Warm Paper** (`{colors.paper}`): The page ground everywhere, including the
   scrollbar track and the full-screen mobile menu.
 - **Deep Paper** (`{colors.paper-deep}`): The plate an image sits on while it
-  loads, and the only tonal step in the system.
+  loads, and the only tonal step in the system. One named exception uses it as a
+  ground: the order half of the Cassa, the panel a buyer reads to know what they
+  are paying for. It is the hosted-payment-page convention, translated: a tone
+  step, not a colour, and it stops at the seam. No other page grounds anything on
+  it.
 - **Ink** (`{colors.ink}`): Body text default, titles, the year mark, the selection
   background (with paper as its text colour).
 - **Soft Ink** (`{colors.ink-soft}`): Long-form prose, nav at rest, secondary
@@ -545,10 +549,11 @@ something. Anything that only navigates is a link. A public page has no button.
 - **Multiline:** `field-sizing-content` so the box grows with the text instead of
   scrolling inside itself; `resize-y` stays enabled for browsers without it.
 
-**The One Field Rule.** There is one field drawing in this system, and both forms use
-it verbatim — the contact form and the archive editor declare the same label and
-control strings character for character. A third form does not invent a third
-drawing; it lifts these two into a shared module and uses them.
+**The One Field Rule.** There is one field drawing in this system, and every form
+uses it verbatim — the contact form, the cart's shipping details and the archive
+editor declare the same label and control strings character for character. The
+public ones import them from `src/components/campo.ts`, the admin from its own
+`campo.ts`; a new form imports, it does not redraw.
 
 ### The Control Layer (Operate surfaces)
 Editing sits on top of the published archive rather than beside it: `/admin` renders
@@ -706,11 +711,40 @@ underneath) lands on *cancel*, never on save.
   `role="status"` line that confirms and links to the cart. A print made from a work
   links back to it, and the work page says "Disponibile come stampa".
 - **Cart page:** lines on hairlines (4:5 thumb, title, format · unit price, a 32px
-  −/n/+ stepper, line total, "Togli"); a sticky aside with the shipping zone as the
-  same radio list, then Subtotale/Spedizione/Totale as a Specification List and the
-  full-width primary action. The page renders nothing until mounted, so it never
-  flashes "vuoto" for a cart that lives in localStorage.
-- **Discount code (cart):** between the shipping zone and the totals, one closed
+  −/n/+ stepper, line total, "Togli"); a sticky aside with "Riepilogo" heading the
+  Subtotale as a Specification List, a faint caption with both shipping rates and
+  where the code is written, and the full-width primary action "Procedi
+  all'acquisto", a link to the Cassa drawn as the One Loud Thing. The page renders
+  nothing until mounted, so it never flashes "vuoto" for a cart that lives in
+  localStorage.
+- **Cassa (`/carrello/cassa`):** the checkout, shaped like a hosted payment page
+  because that is the form a buyer already knows, and isolated like one: its own
+  route group with no menu, no sconti ribbon and no footer. Two halves the full
+  height of the screen. Left, the order on Deep Paper (see Colors): the arrow and
+  the wordmark as one link back to the cart, "Paghi a Benedetta Zibetti", the total
+  at headline size in Geist 500 with tabular figures, the prints as small 4:5
+  plates (44px) with title and "A4 · 2 copie da 20 €", then Subtotale, the code
+  line, Spedizione with the country as its caption, and Totale; sticky, and
+  "Pagamento con SumUp" plus the legal links at its foot. Right, on paper, the
+  shipping details: "Contatti" (email, telefono, side by side from 640px, each with
+  a one-line hint so the controls start level) and "Indirizzo di spedizione" (nome
+  e cognome, paese, indirizzo, scala/interno marked "facoltativo" in lowercase
+  caption at the end of its label row, then CAP · Città · Provincia on one row from
+  640px). Each group opens on a hairline with its name in the section-display role,
+  except the first, which opens the column. Every field is the One Field drawing;
+  the two menus are the same line with the system arrow replaced by the 14px
+  chevron, and an unchosen provincia reads "Scegli" in faint ink. The country
+  decides the shipping rate, the CAP rule and whether provincia is asked (Italy
+  only). The form ends in "Paga 58 €" — the amount in the button, so the press
+  knows what it costs — as the One Loud Thing at full width. Both halves hug the
+  seam (max 34–36rem) so on a wide screen they face each other instead of fleeing
+  to the edges. A failed try puts "Controlla i dati segnati in rosso." above the
+  button and focus on the first field in error; correcting the last one clears it.
+  Under 768px the order folds into a strip — wordmark, "Paghi a…", the total, and
+  "Dettagli" with a chevron that unrolls the rest (0fr→1fr, 420ms; `inert` while
+  folded) — and the form follows. An empty cart says "Non c'è niente da pagare." as
+  the page's Caprasimo h1, with a link to the prints.
+- **Discount code (Cassa):** in the order panel, between Subtotale and Spedizione, one closed
   line, "Hai un codice sconto?" with a 14px chevron, that unrolls (0fr→1fr,
   420ms) into the One Field drawing: small-caps label, a single bottom rule
   owned by the row, the code in tabular uppercase, and "Applica" as an

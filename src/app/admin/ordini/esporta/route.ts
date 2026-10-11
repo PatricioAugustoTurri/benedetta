@@ -21,8 +21,8 @@ export async function GET() {
   const cella = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
 
   const intestazione = [
-    "Ordine", "Data", "Stato", "Nome", "Email", "Indirizzo", "CAP", "Città", "Provincia", "Paese",
-    "Stampe", "Subtotale €", "Sconto €", "Codice", "Spedizione €", "Totale €", "Spedito il", "Corriere", "Tracciamento", "Pagamento Stripe",
+    "Ordine", "Data", "Stato", "Nome", "Email", "Telefono", "Indirizzo", "CAP", "Città", "Provincia", "Paese",
+    "Stampe", "Subtotale €", "Sconto €", "Codice", "Spedizione €", "Totale €", "Spedito il", "Corriere", "Tracciamento", "Transazione SumUp", "Pagamento",
   ];
   const righe = ordini.map((o) => [
     o.id,
@@ -30,6 +30,7 @@ export async function GET() {
     o.stato,
     o.nome ?? "",
     o.email,
+    o.telefono ?? "",
     [o.indirizzo.line1, o.indirizzo.line2].filter(Boolean).join(", "),
     o.indirizzo.postal_code ?? "",
     o.indirizzo.city ?? "",
@@ -44,7 +45,8 @@ export async function GET() {
     data(o.spedito),
     o.corriere ?? "",
     o.tracking ?? "",
-    o.stripeSessionId,
+    o.transazione ?? "",
+    o.pagamento,
   ]);
 
   const csv = "﻿" + [intestazione, ...righe].map((r) => r.map(cella).join(";")).join("\r\n");

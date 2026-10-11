@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "@/components/Icon";
 import { getShopCategory, prezzoScontato, prodottoHref } from "@/data/shop";
 import { scontiInCorso } from "@/lib/sconti";
-import { tariffeSpedizione } from "@/lib/stripe";
+import { tariffeSpedizione } from "@/lib/spedizione";
 import { site } from "@/data/site";
 import { mockupComeStampa } from "@/lib/mockup";
 import { getPubblicato } from "@/lib/prodotti";

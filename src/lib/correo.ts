@@ -6,6 +6,7 @@ import { prezzo } from "@/data/shop";
 import type { Codice } from "@/lib/codici";
 import { giornoLungo, oggiInItalia } from "@/lib/oggi";
 import type { Ordine } from "@/lib/prodotti";
+import { nomePaese } from "@/lib/spedizione";
 
 /**
  * La posta che parte dal sito, via Resend.
@@ -253,7 +254,7 @@ ${oggetto ? `<div style="font-family:${FONT};font-size:14px;color:${C.ink};margi
 
 /**
  * L'avviso a lei di un ordine pagato. Porta tutto quello che serve per
- * spedire senza aprire Stripe: cosa, quante copie, a chi e dove.
+ * spedire senza aprire SumUp: cosa, quante copie, a chi e dove.
  */
 export async function avvisaOrdine(o: Ordine): Promise<void> {
   const { error } = await cliente().emails.send({
@@ -287,7 +288,7 @@ function indirizzoInRighe(o: Ordine): string[] {
     a.line1 ?? "",
     a.line2 ?? "",
     [a.postal_code, a.city, a.state].filter(Boolean).join(" "),
-    a.country ?? "",
+    a.country ? nomePaese(a.country) : "",
   ].filter((r) => r.trim().length > 0);
 }
 
@@ -309,7 +310,13 @@ function testoOrdine(o: Ordine, per: "lei" | "cliente"): string {
     "Spedizione a:",
     ...indirizzoInRighe(o),
   ];
-  if (per === "lei") righe.push("", `Email: ${o.email}`, `Stripe: ${o.stripeSessionId}`);
+  if (per === "lei")
+    righe.push(
+      "",
+      `Email: ${o.email}`,
+      ...(o.telefono ? [`Telefono: ${o.telefono}`] : []),
+      `SumUp: ${o.transazione ?? o.pagamento}`,
+    );
   else righe.push("", "Per qualsiasi domanda basta rispondere a questa mail.", "", "Benedetta");
   return righe.join("\n");
 }
@@ -352,6 +359,7 @@ function htmlOrdine(o: Ordine, per: "lei" | "cliente"): string {
 <tr><td style="padding:24px 32px 32px;">
 <div style="font-family:${FONT};font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${C.inkFaint};margin-bottom:10px;">Spedizione a</div>
 <div style="font-family:${FONT};font-size:15px;line-height:1.6;color:${C.ink};">${indirizzoInRighe(o).map(esc).join("<br>")}</div>
+${per === "lei" && o.telefono ? `<div style="margin-top:8px;font-family:${FONT};font-size:14px;color:${C.inkSoft};">Telefono <a href="tel:${esc(o.telefono.replace(/[^\d+]/g, ""))}" style="color:${C.accent};">${esc(o.telefono)}</a></div>` : ""}
 ${per === "cliente" ? `<p style="margin:24px 0 0;font-family:${FONT};font-size:14px;line-height:1.6;color:${C.inkSoft};">Per qualsiasi domanda basta rispondere a questa mail.</p><p style="margin:16px 0 0;font-family:${SERIF};font-size:18px;color:${C.ink};">Benedetta</p>` : ""}
 </td></tr>`,
   );

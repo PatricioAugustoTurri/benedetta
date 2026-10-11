@@ -330,20 +330,24 @@ CREATE TRIGGER copertine_set_updated_at
 -- --------------------------------------------------------------------------
 -- ordini — quello che è stato pagato
 --
--- Una riga per pagamento riuscito, e la scrive solo il webhook di Stripe:
+-- Una riga per pagamento riuscito, e la scrive solo la conferma di SumUp:
 -- nessuno la crea dal sito. Il carrello non c'è qui: vive nel browser di chi
 -- compra finché non paga.
 -- --------------------------------------------------------------------------
 CREATE TABLE ordini (
   id                integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
-  -- La sessione di Checkout da cui viene. UNIQUE perché Stripe può mandare lo
-  -- stesso evento più di una volta, e un ordine ripetuto si spedirebbe due
-  -- volte.
-  stripe_session_id text        NOT NULL UNIQUE,
+  -- Il pagamento SumUp da cui viene. UNIQUE perché lo confermano due
+  -- ingressi —l'avviso di SumUp e la pagina di ringraziamento— e un ordine
+  -- ripetuto si spedirebbe due volte. Vedi la 011.
+  pagamento         text        NOT NULL CONSTRAINT ordini_pagamento_key UNIQUE,
+  -- Il codice della transazione che lei ritrova nell'app di SumUp.
+  transazione       text,
 
   nome              text,
   email             text        NOT NULL,
+  -- Per il corriere.
+  telefono          text CONSTRAINT ordini_telefono_misura CHECK (telefono IS NULL OR length(telefono) <= 24),
 
   -- L'indirizzo di spedizione così come l'ha scritto chi compra:
   -- { "line1", "line2", "city", "postal_code", "state", "country" }.
@@ -386,6 +390,23 @@ CREATE INDEX ordini_codice ON ordini (codice) WHERE codice IS NOT NULL;
 CREATE TRIGGER ordini_set_updated_at
   BEFORE UPDATE ON ordini
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- --------------------------------------------------------------------------
+-- pagamenti — l'ordine prima di essere pagato
+--
+-- Una riga ogni volta che qualcuno parte per SumUp: tutto quello che serve
+-- per scrivere l'ordine quando SumUp dice che è pagato. Il sito butta quelle
+-- di più di sette giorni. Vedi la 011.
+-- --------------------------------------------------------------------------
+CREATE TABLE pagamenti (
+  riferimento uuid        PRIMARY KEY,
+  checkout    text        UNIQUE,
+  bozza       jsonb       NOT NULL,
+  totale      integer     NOT NULL CHECK (totale > 0),
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX pagamenti_created_at ON pagamenti (created_at);
 
 -- --------------------------------------------------------------------------
 -- iscritti — chi riceve la newsletter

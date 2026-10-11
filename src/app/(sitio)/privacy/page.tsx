@@ -55,14 +55,14 @@ export default function PrivacyPage() {
           </p>
           <p>
             <strong>Se compri una stampa:</strong> nome, email, telefono, indirizzo di spedizione e
-            quello che hai ordinato. Il telefono lo chiede la pagina di pagamento e serve solo al
+            quello che hai ordinato, che scrivi nel carrello prima di pagare. Il telefono serve solo al
             corriere, se deve contattarti per la consegna. Servono per spedirti l&apos;ordine e tenerti aggiornato (base giuridica: il
             contratto, art. 6.1.b) e per gli obblighi fiscali e contabili (art. 6.1.c), che impongono
             di conservarli per 10 anni.
           </p>
           <p>
             <strong>I dati della carta</strong> non passano mai da questo sito: il pagamento avviene
-            sulle pagine di Stripe, che li tratta in autonomia.
+            sulle pagine di SumUp, che li tratta in autonomia.
           </p>
           <p>
             <strong>Dati di navigazione:</strong> come ogni sito, il server registra informazioni
@@ -86,7 +86,8 @@ export default function PrivacyPage() {
               <strong>Hostinger</strong> — il server del sito e il database, in Germania.
             </li>
             <li>
-              <strong>Stripe</strong> (Stripe Payments Europe, Irlanda) — i pagamenti.
+              <strong>SumUp</strong> — i pagamenti. Riceve l&apos;importo dell&apos;ordine, non il tuo
+              indirizzo.
             </li>
             <li>
               <strong>Resend</strong> — l&apos;invio delle email (conferme, ordini, newsletter).
@@ -125,10 +126,10 @@ export default function PrivacyPage() {
             forma anonima e aggregata, senza cookie e senza identificarti.
           </p>
           <p>
-            Quando paghi, sei sulle pagine di Stripe, che usa i propri cookie per la sicurezza del
+            Quando paghi, sei sulle pagine di SumUp, che usa i propri cookie per la sicurezza del
             pagamento: trovi i dettagli nella{" "}
-            <a href="https://stripe.com/it/privacy" target="_blank" rel="noopener noreferrer">
-              privacy di Stripe
+            <a href="https://www.sumup.com/it-it/privacy/" target="_blank" rel="noopener noreferrer">
+              privacy di SumUp
             </a>
             .
           </p>

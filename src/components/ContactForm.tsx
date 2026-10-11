@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useId, useRef, useState, useTransition } from "react";
 import { inviaContatto } from "@/app/(sitio)/contatti/actions";
 import { AZIONE } from "@/components/azione";
+import { CONTROL, LABEL } from "@/components/campo";
 import { Copy, Mail } from "@/components/Icon";
 import { legaliPronte } from "@/data/legale";
 import { site } from "@/data/site";
@@ -38,26 +39,12 @@ import { MAX, validaContatto, type Campo as Field, type ErroriContatto as Errors
  *   cosa per cui questo sistema usa la terracotta.
  */
 
-const LABEL = "label block text-ink-faint transition-colors";
-
 /*
-  Il campo intero, senza riquadro. `peer` permette all'etichetta di reagire al
-  fuoco del controllo senza JavaScript. Il filetto è il `border-b` del
-  controllo stesso, quindi misura esattamente quanto misura il campo.
-*/
-const CONTROL =
-  "peer block w-full border-0 border-b border-line bg-transparent py-2.5 text-base text-ink transition-colors placeholder:text-ink-faint focus:border-ink aria-[invalid=true]:border-accent aria-[invalid=true]:focus:border-accent";
-
-/*
-  `text-base` non è una scelta tipografica: sotto i 16px, Safari su iPhone fa
-  zoom quando si mette a fuoco un campo e lascia la pagina spostata. Il corpo
-  del testo del sito misura 16px, quindi coincide senza sforzo, ma se qualcuno
-  lo abbassa, è questo che si rompe.
-
-  Lo stato di errore e quello di fuoco possono darsi insieme, e
-  `aria-[invalid=true]:focus` pesa più di `focus` per specificità, non per
-  ordine: un campo con errore e con il cursore dentro resta un campo con
-  errore.
+  Il campo intero, senza riquadro: le classi vivono in campo.ts, che le
+  divide con i dati di spedizione del carrello. `peer` permette
+  all'etichetta di reagire al fuoco del controllo senza JavaScript. Il
+  filetto è il `border-b` del controllo stesso, quindi misura esattamente
+  quanto misura il campo.
 */
 
 export default function ContactForm({

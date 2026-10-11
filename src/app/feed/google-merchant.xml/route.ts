@@ -2,7 +2,7 @@ import { site } from "@/data/site";
 import { prezzoScontato, prodottoHref } from "@/data/shop";
 import { listPubblicati } from "@/lib/prodotti";
 import { scontiInCorso } from "@/lib/sconti";
-import { tariffeSpedizione } from "@/lib/stripe";
+import { tariffeSpedizione } from "@/lib/spedizione";
 import { immagineFerma } from "@/lib/video";
 
 /**

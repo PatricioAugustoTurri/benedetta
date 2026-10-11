@@ -18,7 +18,7 @@ Tres audiencias confirmadas, todas llegan al mismo sitio:
    o un original.
 
 Editoriales y estudios terminan en un mensaje. Quien compra impresiones ya puede
-comprarlas en el sitio: las stampe tienen carrito y pago con Stripe. Retratos e
+comprarlas en el sitio: las stampe tienen carrito y pago con SumUp. Retratos e
 ilustraciones personalizadas siguen siendo una consulta.
 
 ## Product Purpose
@@ -57,7 +57,7 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
 - **Stack:** Next.js 16 (App Router, Turbopack) + React 19 + Tailwind v4 y
   TypeScript. Rutas públicas: `/` (el archivo), `/opera/<slug>`, `/studio`,
   `/contatti`, `/shop` (con `/shop/<categoria>` y `/shop/stampe/<slug>`),
-  `/carrello` y la newsletter; `/privacy`, `/condizioni-di-vendita` y
+  `/carrello`, `/carrello/cassa` (la caja, sin menú ni pie) y la newsletter; `/privacy`, `/condizioni-di-vendita` y
   `/spedizioni-e-resi` existen pero dan 404 hasta que estén los datos fiscales
   (ver «Para vender de verdad»). Más `/admin`, que es la pantalla de trabajo y
   no se indexa.
@@ -70,12 +70,12 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   con Node y una base, no una carpeta de archivos. Ver `db/README.md`.
 - **Tienda.** Volvió el 2026-10-07 y desde ese día vende. Dos cosas distintas:
   - **Stampe** son productos y se agregan seguido (tabla `prodotti`): formatos con
-    precio, carrito, pago con Stripe, envío a Italia (8 €) y a la UE (15 €), por pedido. Lista base del cliente:
+    precio, carrito, pago con SumUp, envío a Italia (8 €) y a la UE (15 €), por pedido. Lista base del cliente:
     A5 10 €, 20×20 cm 15 €, A4 20 €, A3 30 €, editable por stampa. Sin stock: se imprimen a pedido.
-    Los pedidos los escribe el webhook de Stripe en `ordini` y ella los marca como
+    Los pedidos los escribe la confirmación de SumUp en `ordini` y ella los marca como
     enviados en `/admin/ordini`.
   - **Códigos de descuento** (2026-10-09): se escriben en el carrito antes de
-    Stripe. `BENZIBET98` (15%) es la tarjetita igual para todos. Además, cada
+    pagar. `BENZIBET98` (15%) es la tarjetita igual para todos. Además, cada
     pedido trae su **biglietto**: un código personal que ella escribe a mano en
     una tarjeta del paquete, 15%, un solo uso, vence 90 días después del envío,
     y todo —código, porcentaje, fecha— se corrige desde el pedido antes de
@@ -110,7 +110,15 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   —el logotipo dice Illustrando y el nombre propio aparece en el footer y en About— pero
   nadie lo decidió explícitamente.
 - **Para vender de verdad faltan tres cosas, y ninguna se inventa:**
-  1. **Cuenta de Stripe.** Hoy todo corre con claves de prueba (`sk_test_`).
+  1. **Las claves de SumUp.** El pago pasó de Stripe a SumUp el 2026-10-11
+     porque ella ya cobra con SumUp en los mercados: una sola cuenta. Faltan su
+     clave de API y su código de comercio (`SUMUP_API_KEY`, `SUMUP_MERCHANT_CODE`
+     en Coolify); hasta entonces el carrito dice que el pago no está activo.
+     SumUp sólo recibe el importe: los datos de envío —mail, teléfono, nombre,
+     dirección, CAP, ciudad, provincia, país— y el código de descuento se
+     escriben en la cassa (`/carrello/cassa`), una página aparte con la forma de
+     Stripe Checkout (pedido a la izquierda, datos a la derecha), pedida por el
+     cliente el 2026-10-11.
   2. **El número de partita IVA** en el pie: obligatorio si vende. Tiene partita IVA;
      falta el número.
   3. **Condizioni di vendita, diritto di recesso (14 días, ley UE) y privacy.** Los

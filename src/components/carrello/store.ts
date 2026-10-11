@@ -220,3 +220,37 @@ export function ricordaCodice(c: CodiceApplicato | null) {
     else window.localStorage.removeItem(CHIAVE_CODICE);
   } catch {}
 }
+
+/* ------------------------------------------------------ i dati di spedizione */
+
+/**
+ * Quello che si è scritto nel modulo di spedizione, ricordato finché resta
+ * aperta la scheda: chi parte per SumUp e torna indietro —ha sbagliato
+ * carta, ha cambiato idea su una copia— ritrova l'indirizzo scritto invece
+ * di riscriverlo.
+ *
+ * In sessionStorage e non in localStorage di proposito: un indirizzo e un
+ * telefono non devono restare in un browser, magari di un computer in
+ * comune, per settimane. Chiusa la scheda, spariscono; pagato, pure.
+ */
+const CHIAVE_DATI = "illustrando.spedizione";
+
+export function datiRicordati(): Partial<Record<string, string>> | null {
+  try {
+    const crudo = window.sessionStorage.getItem(CHIAVE_DATI);
+    const d: unknown = crudo ? JSON.parse(crudo) : null;
+    if (typeof d !== "object" || d === null) return null;
+    return Object.fromEntries(
+      Object.entries(d).filter((e): e is [string, string] => typeof e[1] === "string"),
+    );
+  } catch {
+    return null;
+  }
+}
+
+export function ricordaDati(d: Record<string, string> | null) {
+  try {
+    if (d) window.sessionStorage.setItem(CHIAVE_DATI, JSON.stringify(d));
+    else window.sessionStorage.removeItem(CHIAVE_DATI);
+  } catch {}
+}
