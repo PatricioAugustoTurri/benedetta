@@ -24,7 +24,7 @@ import { codiceEsercente, leggiCheckout } from "@/lib/sumup";
 /** L'ordine com'è prima di essere pagato: quello che diventerà la riga di `ordini`. */
 export type Bozza = Omit<
   Ordine,
-  "id" | "pagamento" | "transazione" | "stato" | "creato" | "spedito" | "corriere" | "tracking" | "avvisato"
+  "id" | "pagamento" | "transazione" | "stato" | "creato" | "spedito" | "corriere" | "tracking" | "avvisato" | "rimborsato"
 >;
 
 /** Quanti giorni resta una bozza. Dopo, chi è tornato è tornato, e i dati di chi non ha pagato non servono più. */

@@ -73,7 +73,9 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
     precio, carrito, pago con SumUp, envío a Italia (8 €) y a la UE (15 €), por pedido. Lista base del cliente:
     A5 10 €, 20×20 cm 15 €, A4 20 €, A3 30 €, editable por stampa. Sin stock: se imprimen a pedido.
     Los pedidos los escribe la confirmación de SumUp en `ordini` y ella los marca como
-    enviados en `/admin/ordini`.
+    enviados en `/admin/ordini` (con el transportista obligatorio y un paso de
+    confirmación). Desde el mismo pedido los reembolsa enteros por SumUp, también con
+    confirmación (2026-10-14); un reembolso parcial se hace desde la app de SumUp.
   - **Códigos de descuento** (2026-10-09): se escriben en el carrito antes de
     pagar. `BENZIBET98` (15%) es la tarjetita igual para todos. Además, cada
     pedido trae su **biglietto**: un código personal que ella escribe a mano en

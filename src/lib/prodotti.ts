@@ -265,7 +265,7 @@ export type Ordine = {
   codice: string | null;
   spedizione: number;
   totale: number;
-  stato: "pagato" | "spedito";
+  stato: "pagato" | "spedito" | "rimborsato";
   creato: Date;
   /** Quando è partito, con chi e con che numero: arriva per mail a chi ha comprato. */
   spedito: Date | null;
@@ -273,6 +273,8 @@ export type Ordine = {
   tracking: string | null;
   /** Quando è partita la mail di spedizione al cliente. */
   avvisato: Date | null;
+  /** Quando lei ha restituito i soldi. Se era già spedito, la spedizione resta scritta. */
+  rimborsato: Date | null;
 };
 
 function hydrateOrdine(row: Record<string, unknown>): Ordine {
@@ -291,16 +293,17 @@ function hydrateOrdine(row: Record<string, unknown>): Ordine {
     codice: row.codice ? String(row.codice) : null,
     spedizione: Number(row.spedizione),
     totale: Number(row.totale),
-    stato: row.stato === "spedito" ? "spedito" : "pagato",
+    stato: row.stato === "spedito" || row.stato === "rimborsato" ? row.stato : "pagato",
     creato: new Date(String(row.created_at)),
     spedito: row.spedito_at ? new Date(String(row.spedito_at)) : null,
     corriere: row.corriere ? String(row.corriere) : null,
     tracking: row.tracking ? String(row.tracking) : null,
     avvisato: row.cliente_avvisato_at ? new Date(String(row.cliente_avvisato_at)) : null,
+    rimborsato: row.rimborsato_at ? new Date(String(row.rimborsato_at)) : null,
   };
 }
 
-const COLONNE_ORDINE = `id, pagamento, transazione, nome, email, telefono, codice_fiscale, indirizzo, righe, subtotale, sconto, codice, spedizione, totale, stato, created_at, spedito_at, corriere, tracking, cliente_avvisato_at`;
+const COLONNE_ORDINE = `id, pagamento, transazione, nome, email, telefono, codice_fiscale, indirizzo, righe, subtotale, sconto, codice, spedizione, totale, stato, created_at, spedito_at, corriere, tracking, cliente_avvisato_at, rimborsato_at`;
 
 /**
  * Scrive un ordine pagato. Restituisce null se c'era già: lo stesso
@@ -310,7 +313,7 @@ const COLONNE_ORDINE = `id, pagamento, transazione, nome, email, telefono, codic
  * ordine né partire un secondo avviso.
  */
 export async function registraOrdine(
-  o: Omit<Ordine, "id" | "stato" | "creato" | "spedito" | "corriere" | "tracking" | "avvisato">,
+  o: Omit<Ordine, "id" | "stato" | "creato" | "spedito" | "corriere" | "tracking" | "avvisato" | "rimborsato">,
 ): Promise<Ordine | null> {
   const rows = await query<Record<string, unknown>>(
     `INSERT INTO ordini (pagamento, nome, email, indirizzo, righe, subtotale, spedizione, totale, sconto, codice, telefono, transazione, codice_fiscale)
@@ -353,8 +356,9 @@ export async function getOrdine(id: number): Promise<Ordine | null> {
 
 /**
  * Segna un ordine come spedito, con il corriere e il numero se ci sono.
- * Restituisce l'ordine aggiornato, o null se era già spedito: la mail al
- * cliente parte una volta sola anche se il modulo arriva due volte.
+ * Restituisce l'ordine aggiornato, o null se era già spedito —o
+ * rimborsato—: la mail al cliente parte una volta sola anche se il modulo
+ * arriva due volte.
  */
 export async function segnaSpedito(
   id: number,
@@ -362,7 +366,7 @@ export async function segnaSpedito(
 ): Promise<Ordine | null> {
   const rows = await query<Record<string, unknown>>(
     `UPDATE ordini SET stato = 'spedito', spedito_at = now(), corriere = $2, tracking = $3
-      WHERE id = $1 AND stato <> 'spedito'
+      WHERE id = $1 AND stato = 'pagato'
   RETURNING ${COLONNE_ORDINE}`,
     [id, spedizione.corriere, spedizione.tracking],
   );
@@ -375,7 +379,22 @@ export async function segnaAvvisato(id: number): Promise<void> {
 
 /** Rimette un ordine fra quelli da spedire, per un errore di clic. Corriere e numero restano scritti. */
 export async function rimettiDaSpedire(id: number): Promise<void> {
-  await query(`UPDATE ordini SET stato = 'pagato', spedito_at = NULL WHERE id = $1`, [id]);
+  await query(`UPDATE ordini SET stato = 'pagato', spedito_at = NULL WHERE id = $1 AND stato = 'spedito'`, [id]);
+}
+
+/**
+ * Segna un ordine come rimborsato. La spedizione, se c'era, resta scritta:
+ * un pacco partito e poi rimborsato è una storia diversa da uno mai partito.
+ * Restituisce false se era già rimborsato.
+ */
+export async function segnaRimborsato(id: number): Promise<boolean> {
+  const rows = await query<{ id: number }>(
+    `UPDATE ordini SET stato = 'rimborsato', rimborsato_at = now()
+      WHERE id = $1 AND stato <> 'rimborsato'
+  RETURNING id`,
+    [id],
+  );
+  return rows.length > 0;
 }
 
 /** L'ultimo corriere usato, per proporlo già scritto nel prossimo ordine. */

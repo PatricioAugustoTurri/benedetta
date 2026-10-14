@@ -22,7 +22,7 @@ export async function GET() {
 
   const intestazione = [
     "Ordine", "Data", "Stato", "Nome", "Email", "Telefono", "Codice fiscale", "Indirizzo", "CAP", "Città", "Provincia", "Paese",
-    "Stampe", "Subtotale €", "Sconto €", "Codice", "Spedizione €", "Totale €", "Spedito il", "Corriere", "Tracciamento", "Transazione SumUp", "Pagamento",
+    "Stampe", "Subtotale €", "Sconto €", "Codice", "Spedizione €", "Totale €", "Spedito il", "Corriere", "Tracciamento", "Rimborsato il", "Transazione SumUp", "Pagamento",
   ];
   const righe = ordini.map((o) => [
     o.id,
@@ -46,6 +46,7 @@ export async function GET() {
     data(o.spedito),
     o.corriere ?? "",
     o.tracking ?? "",
+    data(o.rimborsato),
     o.transazione ?? "",
     o.pagamento,
   ]);

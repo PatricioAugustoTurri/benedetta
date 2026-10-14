@@ -371,15 +371,17 @@ CREATE TABLE ordini (
   sconto            integer     NOT NULL DEFAULT 0 CONSTRAINT ordini_sconto_positivo CHECK (sconto >= 0),
   codice            text,
 
-  -- Pagato quando arriva, spedito quando lei lo segna.
+  -- Pagato quando arriva, spedito quando lei lo segna, rimborsato quando
+  -- restituisce i soldi. Vedi la 012.
   stato             text        NOT NULL DEFAULT 'pagato'
-                    CONSTRAINT ordini_stato_valido CHECK (stato IN ('pagato', 'spedito')),
+                    CONSTRAINT ordini_stato_valido CHECK (stato IN ('pagato', 'spedito', 'rimborsato')),
 
   -- La spedizione, che chi ha comprato riceve per mail. Vedi la 008.
   spedito_at        timestamptz,
   corriere          text CONSTRAINT ordini_corriere_misura CHECK (corriere IS NULL OR length(corriere) <= 80),
   tracking          text CONSTRAINT ordini_tracking_misura CHECK (tracking IS NULL OR length(tracking) <= 300),
   cliente_avvisato_at timestamptz,
+  rimborsato_at     timestamptz,
 
   created_at        timestamptz NOT NULL DEFAULT now(),
   updated_at        timestamptz NOT NULL DEFAULT now()

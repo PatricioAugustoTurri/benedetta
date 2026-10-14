@@ -12,8 +12,8 @@
  * questo i dati di chi compra si scrivono nel carrello, e l'ordine intero si
  * salva nella tabella `pagamenti` prima di partire (vedi src/lib/pagamento.ts).
  *
- * Due chiamate, con `fetch` e senza libreria: creare un pagamento e
- * rileggerlo. La chiave segreta non esce mai di qui.
+ * Tre chiamate, con `fetch` e senza libreria: creare un pagamento,
+ * rileggerlo e rimborsarlo. La chiave segreta non esce mai di qui.
  *
  * **Modalità di prova.** Il conto di prova di SumUp (Developer Settings →
  * Sandboxes) ha un suo codice esercente e una sua chiave: passare a quello
@@ -51,6 +51,9 @@ export type CheckoutSumUp = {
   merchant_code: string;
   /** Il codice che lei ritrova nell'app di SumUp, accanto all'incasso. */
   transaction_code?: string;
+  /** L'id della transazione: è quello che serve per rimborsarla, non il codice. */
+  transaction_id?: string;
+  transactions?: { id: string; status?: string }[];
   hosted_checkout_url?: string;
 };
 
@@ -72,6 +75,8 @@ async function chiama<T>(percorso: string, init?: RequestInit): Promise<T> {
     const testo = await r.text().catch(() => "");
     throw new Error(`SumUp ${r.status} su ${percorso}: ${testo.slice(0, 500)}`);
   }
+  // Il rimborso risponde 204, senza corpo.
+  if (r.status === 204) return undefined as T;
   return (await r.json()) as T;
 }
 
@@ -113,4 +118,20 @@ export async function creaCheckout(p: {
 /** Rilegge un pagamento: è l'unica fonte di verità su com'è andato. */
 export async function leggiCheckout(id: string): Promise<CheckoutSumUp> {
   return chiama<CheckoutSumUp>(`/checkouts/${encodeURIComponent(id)}`);
+}
+
+/**
+ * Restituisce per intero quello che è stato pagato con un pagamento: SumUp
+ * rimanda i soldi sulla carta di chi ha comprato. Un rimborso a metà si fa
+ * dall'app di SumUp.
+ *
+ * Si rimborsa una transazione, non un pagamento: l'id si rilegge dal
+ * pagamento, così non serve averlo salvato nell'ordine.
+ */
+export async function rimborsaCheckout(id: string): Promise<void> {
+  const c = await leggiCheckout(id);
+  if (c.status !== "PAID") throw new Error(`Il pagamento ${id} su SumUp è ${c.status}, non PAID.`);
+  const transazione = c.transaction_id ?? c.transactions?.[0]?.id;
+  if (!transazione) throw new Error(`SumUp non dice la transazione del pagamento ${id}.`);
+  await chiama<void>(`/me/refund/${encodeURIComponent(transazione)}`, { method: "POST" });
 }

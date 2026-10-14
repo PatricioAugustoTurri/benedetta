@@ -11,7 +11,8 @@ import {
   normalizzaCodice,
 } from "@/lib/codici";
 import { avvisaSpedizione, correoConfigurado } from "@/lib/correo";
-import { getOrdine, rimettiDaSpedire, segnaAvvisato, segnaSpedito, type Ordine } from "@/lib/prodotti";
+import { getOrdine, rimettiDaSpedire, segnaAvvisato, segnaRimborsato, segnaSpedito, type Ordine } from "@/lib/prodotti";
+import { rimborsaCheckout, sumupConfigurato } from "@/lib/sumup";
 
 export type EsitoSpedizione = { error?: string; fatto?: string };
 
@@ -22,7 +23,8 @@ const pulisci = (v: FormDataEntryValue | null, max: number) => {
 
 /**
  * Segna un ordine come spedito e, se lei lo lascia spuntato, scrive a chi ha
- * comprato con il corriere e il numero per seguire il pacco.
+ * comprato con il corriere e il numero per seguire il pacco. Il corriere è
+ * obbligatorio: è la prima cosa che chiede chi aspetta un pacco.
  *
  * Se la mail non parte, l'ordine resta comunque spedito —il pacco è partito
  * davvero— e il messaggio lo dice, così lei può avvisare a mano.
@@ -35,12 +37,15 @@ export async function spedisciOrdine(
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id)) return { error: "Ordine non valido." };
 
+  const corriere = pulisci(formData.get("corriere"), 80);
+  if (!corriere) return { error: "Scrivi con che corriere è partito." };
+
   const ordine = await segnaSpedito(id, {
-    corriere: pulisci(formData.get("corriere"), 80),
+    corriere,
     tracking: pulisci(formData.get("tracking"), 300),
   });
   revalidatePath("/admin", "layout");
-  if (!ordine) return { error: "Questo ordine era già segnato come spedito." };
+  if (!ordine) return { error: "Questo ordine era già spedito o rimborsato." };
   // Il biglietto comincia a contare da oggi: 90 giorni, se lei non ha scelto.
   await fissaScadenza(id).catch((e) => console.error("Ordini: scadenza del biglietto non fissata.", e));
 
@@ -86,6 +91,48 @@ export async function rimettiDaSpedireAzione(formData: FormData): Promise<void> 
   if (!Number.isInteger(id)) return;
   await rimettiDaSpedire(id);
   revalidatePath("/admin", "layout");
+}
+
+export type EsitoRimborso = {
+  error?: string;
+  /** SumUp non ce l'ha fatta: lei può rimborsare dall'app e poi segnarlo qui. */
+  soloSegna?: boolean;
+};
+
+/**
+ * Restituisce i soldi di un ordine, per intero, con SumUp, e lo mette fra i
+ * rimborsati. Non scrive al cliente: il rimborso gli arriva sulla carta.
+ *
+ * Con `modo=segna` non chiama SumUp: è per quando lei ha già rimborsato
+ * dall'app —un rimborso a metà, un ordine di prova di Stripe— e qui va solo
+ * scritto.
+ */
+export async function rimborsaOrdine(_previo: EsitoRimborso, formData: FormData): Promise<EsitoRimborso> {
+  await requireSession();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return { error: "Ordine non valido." };
+  const ordine = await getOrdine(id);
+  if (!ordine) return { error: "Quest'ordine non c'è più." };
+  if (ordine.stato === "rimborsato") return { error: "Quest'ordine era già rimborsato." };
+
+  if (formData.get("modo") !== "segna") {
+    if (!sumupConfigurato()) {
+      return { error: "SumUp non è collegato, quindi da qui non parte nessun rimborso.", soloSegna: true };
+    }
+    try {
+      await rimborsaCheckout(ordine.pagamento);
+    } catch (e) {
+      console.error(`Ordini: rimborso dell'ordine ${id} non riuscito.`, e);
+      return {
+        error: "SumUp non ha fatto il rimborso e non si è mosso nessun euro. Riprova, o fallo dall'app di SumUp.",
+        soloSegna: true,
+      };
+    }
+  }
+
+  await segnaRimborsato(id);
+  revalidatePath("/admin", "layout");
+  return {};
 }
 
 export type EsitoBiglietto = { error?: string; fatto?: number };

@@ -7,6 +7,7 @@ import { nomePaese } from "@/lib/spedizione";
 import { sumupConfigurato, sumupInProva } from "@/lib/sumup";
 import { pingDb } from "@/lib/works";
 import BigliettoOrdine from "../components/BigliettoOrdine";
+import RimborsaOrdine from "../components/RimborsaOrdine";
 import SpedisciOrdine from "../components/SpedisciOrdine";
 import { riavvisaAzione, rimettiDaSpedireAzione } from "./actions";
 
@@ -24,11 +25,13 @@ const data = (d: Date) =>
 
 /**
  * Gli ordini pagati, dal più recente. Ognuno porta tutto quello che serve
- * per spedirlo —cosa, quante copie, a chi, dove— senza aprire SumUp, e un
- * solo controllo: segnarlo come spedito.
+ * per spedirlo —cosa, quante copie, a chi, dove— senza aprire SumUp, e due
+ * gesti: segnarlo come spedito e, se qualcuno ci ripensa, rimborsarlo.
+ * Tutti e due chiedono un secondo sì prima di partire.
  *
  * Quelli da spedire vanno sopra e con il punto terracotta, perché sono
- * quelli che chiedono qualcosa; gli spediti scendono e si spengono.
+ * quelli che chiedono qualcosa; gli spediti scendono e si spengono, e i
+ * rimborsati vanno in fondo, fuori dai conti di tutti i giorni.
  */
 export default async function OrdiniPage() {
   await richiediAccesso("/admin/ordini");
@@ -50,6 +53,8 @@ export default async function OrdiniPage() {
   const oggi = oggiInItalia();
   const daSpedire = ordini.filter((o) => o.stato === "pagato");
   const spediti = ordini.filter((o) => o.stato === "spedito");
+  const rimborsati = ordini.filter((o) => o.stato === "rimborsato");
+  const sumupAttivo = sumupConfigurato();
 
   return (
     <section className="shell pt-8 pb-16 md:pt-12">
@@ -73,9 +78,27 @@ export default async function OrdiniPage() {
                 corriere={corriere}
                 biglietti={biglietti}
                 oggi={oggi}
+                sumupAttivo={sumupAttivo}
               />
               {spediti.length > 0 && (
-                <Gruppo titolo="Spediti" ordini={spediti} corriere={null} biglietti={biglietti} oggi={oggi} />
+                <Gruppo
+                  titolo="Spediti"
+                  ordini={spediti}
+                  corriere={null}
+                  biglietti={biglietti}
+                  oggi={oggi}
+                  sumupAttivo={sumupAttivo}
+                />
+              )}
+              {rimborsati.length > 0 && (
+                <Gruppo
+                  titolo="Rimborsati"
+                  ordini={rimborsati}
+                  corriere={null}
+                  biglietti={biglietti}
+                  oggi={oggi}
+                  sumupAttivo={sumupAttivo}
+                />
               )}
             </>
           )}
@@ -84,11 +107,11 @@ export default async function OrdiniPage() {
         <div className="md:col-span-3 md:col-start-10">
           <h2 className="label">Pagamenti</h2>
           <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-            {!sumupConfigurato()
+            {!sumupAttivo
               ? "SumUp non è ancora collegato: il carrello funziona, ma il pagamento non parte."
               : sumupInProva()
-                ? "SumUp è in modalità di prova: gli ordini sono finti e non si muove denaro."
-                : "SumUp è attivo. Gli incassi e i rimborsi si gestiscono dall'app di SumUp: ogni ordine dice il suo codice di transazione."}
+                ? "SumUp è in modalità di prova: gli ordini sono finti e non si muove denaro, nemmeno con un rimborso."
+                : "SumUp è attivo. Un rimborso intero parte da qui, dall'ordine; uno a metà si fa dall'app di SumUp, dove ogni ordine si ritrova con il suo codice di transazione."}
           </p>
 
           <h2 className="label mt-10">Contabilità</h2>
@@ -115,6 +138,7 @@ function Gruppo({
   corriere,
   biglietti,
   oggi,
+  sumupAttivo,
 }: {
   titolo: string;
   ordini: Ordine[];
@@ -122,6 +146,7 @@ function Gruppo({
   corriere: string | null;
   biglietti: Map<number, Codice>;
   oggi: string;
+  sumupAttivo: boolean;
 }) {
   return (
     <section className="mt-12">
@@ -133,7 +158,14 @@ function Gruppo({
       ) : (
         <ul className="mt-4 border-t border-line">
           {ordini.map((o) => (
-            <Voce key={o.id} ordine={o} corriere={corriere} biglietto={biglietti.get(o.id) ?? null} oggi={oggi} />
+            <Voce
+              key={o.id}
+              ordine={o}
+              corriere={corriere}
+              biglietto={biglietti.get(o.id) ?? null}
+              oggi={oggi}
+              sumupAttivo={sumupAttivo}
+            />
           ))}
         </ul>
       )}
@@ -146,29 +178,35 @@ function Voce({
   corriere,
   biglietto,
   oggi,
+  sumupAttivo,
 }: {
   ordine: Ordine;
   corriere: string | null;
   biglietto: Codice | null;
   oggi: string;
+  sumupAttivo: boolean;
 }) {
   const a = o.indirizzo;
   const spedito = o.stato === "spedito";
+  const rimborsato = o.stato === "rimborsato";
+  const rimborso = (
+    <RimborsaOrdine id={o.id} importo={prezzo(o.totale)} email={o.email} sumupAttivo={sumupAttivo} />
+  );
 
   return (
-    <li className={`border-b border-line py-6 ${spedito ? "text-ink-soft" : ""}`}>
+    <li className={`border-b border-line py-6 ${spedito || rimborsato ? "text-ink-soft" : ""}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
         <p className="flex items-center gap-2 text-[0.9375rem]">
           <span
             aria-hidden="true"
-            className={`block h-1 w-1 rounded-full ${spedito ? "bg-ink-faint" : "bg-accent"}`}
+            className={`block h-1 w-1 rounded-full ${spedito || rimborsato ? "bg-ink-faint" : "bg-accent"}`}
           />
           <span className="figures">#{o.id}</span>
           <span className="text-ink-faint">·</span>
           {o.nome ?? o.email}
         </p>
         <p className="figures text-sm">
-          {prezzo(o.totale)}
+          <span className={rimborsato ? "line-through decoration-ink-faint" : ""}>{prezzo(o.totale)}</span>
           <span className="ml-3 text-xs text-ink-faint">{data(o.creato)}</span>
         </p>
       </div>
@@ -204,13 +242,18 @@ function Voce({
                 {r}
               </span>
             ))}
-          <a href={`mailto:${o.email}`} className="link-underline mt-1 block break-all text-xs text-ink-soft">
-            {o.email}
-          </a>
-          {o.telefono && (
-            <a href={`tel:${o.telefono.replace(/[^\d+]/g, "")}`} className="link-underline mt-1 block text-xs text-ink-soft">
-              <span className="figures">{o.telefono}</span>
+          {/* `link-underline` è inline-block: il blocco lo fa la riga che lo contiene. */}
+          <span className="mt-1 block">
+            <a href={`mailto:${o.email}`} className="link-underline break-all text-xs text-ink-soft">
+              {o.email}
             </a>
+          </span>
+          {o.telefono && (
+            <span className="mt-1 block">
+              <a href={`tel:${o.telefono.replace(/[^\d+]/g, "")}`} className="link-underline text-xs text-ink-soft">
+                <span className="figures">{o.telefono}</span>
+              </a>
+            </span>
           )}
           {o.codiceFiscale && (
             <span className="mt-1 block text-xs text-ink-soft">
@@ -225,46 +268,59 @@ function Voce({
         </address>
       </div>
 
-      <BigliettoOrdine ordine={o.id} biglietto={biglietto} spedito={spedito} oggi={oggi} />
+      {!rimborsato && <BigliettoOrdine ordine={o.id} biglietto={biglietto} spedito={spedito} oggi={oggi} />}
 
-      {spedito ? (
-        <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-ink-faint">
-          <span>
-            Spedito{o.spedito && ` il ${data(o.spedito)}`}
-            {o.corriere && ` con ${o.corriere}`}
-            {o.tracking && (
-              <>
-                {" · "}
-                {/^https?:\/\//i.test(o.tracking) ? (
-                  <a href={o.tracking} target="_blank" rel="noopener noreferrer" className="link-underline text-ink-soft">
-                    tracciamento
-                  </a>
-                ) : (
-                  <span className="figures text-ink-soft">{o.tracking}</span>
-                )}
-              </>
+      {rimborsato ? (
+        <p className="mt-4 text-xs text-ink-faint">
+          Rimborsato{o.rimborsato && ` il ${data(o.rimborsato)}`}
+          {o.spedito
+            ? ` · era partito il ${data(o.spedito)}${o.corriere ? ` con ${o.corriere}` : ""}`
+            : " · non era ancora partito"}
+        </p>
+      ) : spedito ? (
+        <>
+          <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-ink-faint">
+            <span>
+              Spedito{o.spedito && ` il ${data(o.spedito)}`}
+              {o.corriere && ` con ${o.corriere}`}
+              {o.tracking && (
+                <>
+                  {" · "}
+                  {/^https?:\/\//i.test(o.tracking) ? (
+                    <a href={o.tracking} target="_blank" rel="noopener noreferrer" className="link-underline text-ink-soft">
+                      tracciamento
+                    </a>
+                  ) : (
+                    <span className="figures text-ink-soft">{o.tracking}</span>
+                  )}
+                </>
+              )}
+            </span>
+            {o.avvisato ? (
+              <span>· Cliente avvisato per mail</span>
+            ) : (
+              <form action={riavvisaAzione} className="flex items-baseline gap-2">
+                <input type="hidden" name="id" value={o.id} />
+                <span className="text-accent">· Cliente non avvisato</span>
+                <button type="submit" className="link-underline text-ink transition-colors hover:text-accent">
+                  Avvisalo per mail
+                </button>
+              </form>
             )}
-          </span>
-          {o.avvisato ? (
-            <span>· Cliente avvisato per mail</span>
-          ) : (
-            <form action={riavvisaAzione} className="flex items-baseline gap-2">
+            <form action={rimettiDaSpedireAzione}>
               <input type="hidden" name="id" value={o.id} />
-              <span className="text-accent">· Cliente non avvisato</span>
-              <button type="submit" className="link-underline text-ink transition-colors hover:text-accent">
-                Avvisalo per mail
+              <button type="submit" className="link-underline transition-colors hover:text-ink">
+                Rimetti fra quelli da spedire
               </button>
             </form>
-          )}
-          <form action={rimettiDaSpedireAzione}>
-            <input type="hidden" name="id" value={o.id} />
-            <button type="submit" className="link-underline transition-colors hover:text-ink">
-              Rimetti fra quelli da spedire
-            </button>
-          </form>
-        </div>
+          </div>
+          {rimborso}
+        </>
       ) : (
-        <SpedisciOrdine id={o.id} corriere={corriere} />
+        <>
+          <SpedisciOrdine id={o.id} corriere={corriere} email={o.email} />
+          {rimborso}
+        </>
       )}
     </li>
   );
