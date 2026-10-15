@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { prezzo } from "@/data/shop";
 import { richiediAccesso } from "@/lib/auth";
 import { bigliettiPerOrdine, type Codice } from "@/lib/codici";
@@ -8,6 +9,7 @@ import { sumupConfigurato, sumupInProva } from "@/lib/sumup";
 import { pingDb } from "@/lib/works";
 import BigliettoOrdine from "../components/BigliettoOrdine";
 import RimborsaOrdine from "../components/RimborsaOrdine";
+import Sezione from "../components/Sezione";
 import SpedisciOrdine from "../components/SpedisciOrdine";
 import { riavvisaAzione, rimettiDaSpedireAzione } from "./actions";
 
@@ -56,107 +58,132 @@ export default async function OrdiniPage() {
   const rimborsati = ordini.filter((o) => o.stato === "rimborsato");
   const sumupAttivo = sumupConfigurato();
 
+  const statoSumup = !sumupAttivo ? "spento" : sumupInProva() ? "prova" : "attivo";
+  const gruppo = { corriere: null, biglietti, oggi, sumupAttivo };
+
   return (
-    <section className="shell pt-8 pb-16 md:pt-12">
-      <div className="grid gap-16 md:grid-cols-12">
-        <div className="md:col-span-8">
-          <h1 className="display-lead font-display text-[clamp(1.5rem,3vw,2.125rem)] leading-[1.15]">
-            Ordini
-          </h1>
+    <section className="shell pt-8 pb-24 md:pt-12">
+      {/* Le sezioni parlano da sole; il titolo serve a chi naviga con un
+          lettore di schermo, per sapere in che pagina è. */}
+      <h1 className="sr-only">Ordini</h1>
+      {/*
+        Prima stava solo nella colonna di destra, che era in alto. Con le
+        sezioni il pagamento scende in fondo, e un SumUp spento o in prova è
+        di quelle cose da sapere prima di guardare un ordine, non dopo.
+      */}
+      {statoSumup !== "attivo" && (
+        <p className={`mb-8 nota ${statoSumup === "prova" ? "nota--neutra" : ""}`}>
+          {statoSumup === "spento"
+            ? "SumUp non è ancora collegato: il carrello funziona, ma il pagamento non parte."
+            : "SumUp è in modalità di prova: gli ordini sono finti e non si muove denaro."}
+        </p>
+      )}
 
-          {ordini.length === 0 ? (
-            <p className="prose-measure mt-6 text-ink-soft">
-              Non è ancora arrivato nessun ordine. Quando qualcuno paga una stampa, compare qui
-              e ti arriva una mail.
-            </p>
-          ) : (
+      <div className="space-y-20 md:space-y-28">
+        <Gruppo
+          id="ord-da-spedire"
+          titolo="Da spedire"
+          ordini={daSpedire}
+          vuoto={
+            ordini.length === 0
+              ? "Non è ancora arrivato nessun ordine. Quando qualcuno paga una stampa, compare qui e ti arriva una mail."
+              : "Niente da spedire."
+          }
+          testo={
             <>
-              <Gruppo
-                titolo="Da spedire"
-                ordini={daSpedire}
-                vuoto="Niente da spedire."
-                corriere={corriere}
-                biglietti={biglietti}
-                oggi={oggi}
-                sumupAttivo={sumupAttivo}
-              />
-              {spediti.length > 0 && (
-                <Gruppo
-                  titolo="Spediti"
-                  ordini={spediti}
-                  corriere={null}
-                  biglietti={biglietti}
-                  oggi={oggi}
-                  sumupAttivo={sumupAttivo}
-                />
-              )}
-              {rimborsati.length > 0 && (
-                <Gruppo
-                  titolo="Rimborsati"
-                  ordini={rimborsati}
-                  corriere={null}
-                  biglietti={biglietti}
-                  oggi={oggi}
-                  sumupAttivo={sumupAttivo}
-                />
-              )}
+              <p>Ogni ordine porta cosa, quante copie, a chi e dove, senza aprire SumUp.</p>
+              <p>
+                Il corriere è obbligatorio, il numero per seguirlo no. Prima di segnarlo come
+                spedito ti rilegge tutto e aspetta un secondo sì.
+              </p>
             </>
-          )}
-        </div>
+          }
+          {...gruppo}
+          corriere={corriere}
+        />
+        {spediti.length > 0 && (
+          <Gruppo
+            id="ord-spediti"
+            titolo="Spediti"
+            ordini={spediti}
+            testo={<p>Se uno è partito per sbaglio, torna fra quelli da spedire.</p>}
+            {...gruppo}
+          />
+        )}
+        {rimborsati.length > 0 && (
+          <Gruppo
+            id="ord-rimborsati"
+            titolo="Rimborsati"
+            ordini={rimborsati}
+            testo={<p>Restano qui per i conti, fuori da quelli di tutti i giorni.</p>}
+            {...gruppo}
+          />
+        )}
 
-        <div className="md:col-span-3 md:col-start-10">
-          <h2 className="label">Pagamenti</h2>
-          <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-            {!sumupAttivo
-              ? "SumUp non è ancora collegato: il carrello funziona, ma il pagamento non parte."
-              : sumupInProva()
-                ? "SumUp è in modalità di prova: gli ordini sono finti e non si muove denaro, nemmeno con un rimborso."
-                : "SumUp è attivo. Un rimborso intero parte da qui, dall'ordine; uno a metà si fa dall'app di SumUp, dove ogni ordine si ritrova con il suo codice di transazione."}
-          </p>
-
-          <h2 className="label mt-10">Contabilità</h2>
-          <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-            Tutti gli ordini in un foglio di calcolo, da mandare a chi tiene i conti.
-          </p>
-          <a
-            href="/admin/ordini/esporta"
-            download
-            className="link-underline mt-3 inline-block text-sm text-ink transition-colors hover:text-accent"
-          >
-            Scarica gli ordini (CSV)
-          </a>
-        </div>
+        <Sezione
+          id="ord-pagamenti"
+          titolo="Pagamenti"
+          accanto={statoSumup === "spento" ? "SumUp non collegato" : statoSumup === "prova" ? "SumUp in prova" : "SumUp attivo"}
+          testo={
+            <p>
+              {statoSumup === "spento"
+                ? "Senza SumUp il carrello funziona, ma il pagamento non parte."
+                : statoSumup === "prova"
+                  ? "In prova gli ordini sono finti e non si muove denaro, nemmeno con un rimborso."
+                  : "Un rimborso intero parte da qui, dall'ordine; uno a metà si fa dall'app di SumUp, dove ogni ordine si ritrova con il suo codice di transazione."}
+            </p>
+          }
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-y border-line py-4 lg:-mt-4 lg:border-t-0">
+            <p className="text-sm text-ink-soft">
+              Tutti gli ordini in un foglio di calcolo, da mandare a chi tiene i conti.
+            </p>
+            <a
+              href="/admin/ordini/esporta"
+              download
+              className="link-underline text-sm text-ink transition-colors hover:text-accent"
+            >
+              Scarica gli ordini (CSV)
+            </a>
+          </div>
+        </Sezione>
       </div>
     </section>
   );
 }
 
 function Gruppo({
+  id,
   titolo,
   ordini,
   vuoto,
+  testo,
   corriere,
   biglietti,
   oggi,
   sumupAttivo,
 }: {
+  id: string;
   titolo: string;
   ordini: Ordine[];
   vuoto?: string;
+  testo: ReactNode;
   corriere: string | null;
   biglietti: Map<number, Codice>;
   oggi: string;
   sumupAttivo: boolean;
 }) {
   return (
-    <section className="mt-12">
-      <h2 className="label">
-        {titolo} <span className="figures">· {ordini.length}</span>
-      </h2>
+    <Sezione
+      id={id}
+      titolo={titolo}
+      accanto={ordini.length === 1 ? "1 ordine" : `${ordini.length} ordini`}
+      testo={testo}
+    >
       {ordini.length === 0 ? (
-        <p className="mt-4 text-sm text-ink-faint">{vuoto}</p>
+        <p className="prose-measure text-sm text-ink-faint">{vuoto}</p>
       ) : (
-        <ul className="mt-4 border-t border-line">
+        <ul className="border-t border-line lg:-mt-6 lg:border-t-0">
           {ordini.map((o) => (
             <Voce
               key={o.id}
@@ -169,7 +196,7 @@ function Gruppo({
           ))}
         </ul>
       )}
-    </section>
+    </Sezione>
   );
 }
 

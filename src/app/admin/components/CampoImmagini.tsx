@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, Plus, Trash } from "@/components/Icon";
 import { descartarImagen, pedirPermisoDeSubida } from "../actions";
 import { enMB, MAX_ARCHIVO_MB, MAX_VIDEO_MB, MB } from "@/lib/limites";
+import { miniatura } from "@/lib/miniatura";
 import { fotogramma } from "@/lib/video";
 import type { WorkImage } from "@/lib/works";
 import { CONTROL } from "./campo";
@@ -403,7 +404,9 @@ export default function CampoImmagini({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={
-                      it.tipo === "nueva" ? it.preview : it.video ? fotogramma(it.url) : it.url
+                      it.tipo === "nueva"
+                        ? it.preview
+                        : miniatura(it.video ? fotogramma(it.url) : it.url, 160, 160)
                     }
                     alt=""
                     className={`aspect-square w-20 shrink-0 bg-paper-deep object-cover transition-opacity duration-300 ${

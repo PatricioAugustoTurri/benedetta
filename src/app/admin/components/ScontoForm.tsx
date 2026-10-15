@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useId, useState } from "react";
 import { prezzo, prezzoScontato } from "@/data/shop";
+import { miniatura } from "@/lib/miniatura";
 import type { Sconto } from "@/lib/sconti";
 import type { EstadoFormulario } from "../actions";
 import { cancellaScontoAzione, salvaScontoAzione } from "../shop/actions";
@@ -18,11 +19,7 @@ export type StampaSceglibile = {
   pubblicato: boolean;
 };
 
-function miniatura(url: string): string {
-  return url.includes("res.cloudinary.com")
-    ? url.replace("/upload/", "/upload/c_fill,g_auto,w_240,h_300,q_auto,f_auto/")
-    : url;
-}
+const piccola = (url: string) => miniatura(url, 240, 300);
 
 /**
  * Uno sconto di stagione: il nome, la percentuale, le due date e le stampe.
@@ -216,7 +213,7 @@ export default function ScontoForm({
                       {s.immagine && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={miniatura(s.immagine)}
+                          src={piccola(s.immagine)}
                           alt=""
                           loading="lazy"
                           className={`aspect-[4/5] w-full object-cover transition-opacity ${

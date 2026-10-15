@@ -4,16 +4,13 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import type { ShopCategoria } from "@/data/shop";
 import type { GruppoLibreria, Porta } from "@/lib/copertine";
+import { miniatura } from "@/lib/miniatura";
 import type { WorkImage } from "@/lib/works";
 import type { EstadoFormulario } from "../actions";
 import { guardaCopertine } from "../shop/actions";
 
-/** Una miniatura leggera: Cloudinary la taglia in 4:5 alla misura della griglia. */
-function miniatura(url: string): string {
-  return url.includes("res.cloudinary.com")
-    ? url.replace("/upload/", "/upload/c_fill,g_auto,w_320,h_400,q_auto,f_auto/")
-    : url;
-}
+/** Le caselle di questa pagina, in 4:5: Cloudinary le taglia alla misura della griglia. */
+const piccola = (url: string) => miniatura(url, 320, 400);
 
 /**
  * Le copertine della pagina /shop, scelte fra le immagini già caricate.
@@ -85,7 +82,7 @@ export default function CopertineForm({ porte, libreria }: { porte: Porta[]; lib
                       {mostrata ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={miniatura(mostrata.url)}
+                          src={piccola(mostrata.url)}
                           alt=""
                           className={`aspect-[4/5] w-full object-cover transition-opacity ${scelta ? "" : "opacity-60"}`}
                         />
@@ -162,7 +159,7 @@ export default function CopertineForm({ porte, libreria }: { porte: Porta[]; lib
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={miniatura(img.url)}
+                        src={piccola(img.url)}
                         alt=""
                         loading="lazy"
                         className="aspect-[4/5] w-full object-cover transition-opacity group-hover:opacity-80"
@@ -205,7 +202,7 @@ export default function CopertineForm({ porte, libreria }: { porte: Porta[]; lib
                   >
                     {mostrata ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={miniatura(mostrata.url)} alt="" className="aspect-[4/5] w-full object-cover" />
+                      <img src={piccola(mostrata.url)} alt="" className="aspect-[4/5] w-full object-cover" />
                     ) : (
                       <span className="block aspect-[4/5] w-full" />
                     )}

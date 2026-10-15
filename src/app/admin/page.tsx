@@ -5,6 +5,7 @@ import { listWorks, pingDb } from "@/lib/works";
 import ArchivoOrdenable from "./components/ArchivoOrdenable";
 import LimpiarSueltas from "./components/LimpiarSueltas";
 import NuevaObra from "./components/NuevaObra";
+import Sezione from "./components/Sezione";
 
 /**
  * L'archivio, con le mani dentro.
@@ -57,7 +58,7 @@ export default async function AdminPage() {
   const conCloudinary = cloudinaryConfigurado();
 
   return (
-    <section className="shell pt-8 pb-16 md:pt-12">
+    <section className="shell pt-8 pb-24 md:pt-12">
       {/* La griglia e le sezioni parlano da sole; il titolo serve a chi
           naviga con un lettore di schermo, per sapere in che pagina è. */}
       <h1 className="sr-only">Opere</h1>
@@ -94,26 +95,63 @@ export default async function AdminPage() {
         schermata, è il ritaglio e le proporzioni della cella: il pezzo si vede
         qui come si vedrà pubblicato.
       */}
-      <ArchivoOrdenable obras={obras} hueco={<NuevaObra />} />
+      <div className="space-y-20 md:space-y-28">
+        <Sezione
+          id="adm-archivio"
+          titolo="Archivio"
+          accanto={`${obras.length} ${obras.length === 1 ? "opera" : "opere"}`}
+          testo={
+            <>
+              <p>
+                La home del sito, nello stesso ordine e con lo stesso ritaglio. La prima opera è
+                quella che apre il sito.
+              </p>
+              <p>Un&apos;opera nuova si carica dalla prima casella ed entra in cima.</p>
+            </>
+          }
+        >
+          <ArchivoOrdenable obras={obras} hueco={<NuevaObra />} />
 
-      {/*
-        L'archivio vuoto non dice «non c'è niente»: dice cosa succede quando ci
-        sarà qualcosa. Compare solo quando davvero non c'è opera caricata, e
-        non fa concorrenza alla casella di inserimento, che è già in alto a
-        sinistra.
-      */}
-      {obras.length === 0 && (
-        <p className="prose-measure mt-10 text-sm text-ink-faint">
-          L&apos;archivio è vuoto. Ogni opera che carichi compare qui, e nello stesso
-          ordine e con lo stesso ritaglio, nella{" "}
-          <Link href="/" className="link-underline text-ink-soft hover:text-ink">
-            home del sito
-          </Link>
-          .
-        </p>
-      )}
+          {/*
+            L'archivio vuoto non dice «non c'è niente»: dice cosa succede
+            quando ci sarà qualcosa. Compare solo quando davvero non c'è opera
+            caricata, e non fa concorrenza alla casella di inserimento, che è
+            già in alto a sinistra.
+          */}
+          {obras.length === 0 && (
+            <p className="prose-measure mt-10 text-sm text-ink-faint">
+              L&apos;archivio è vuoto. Ogni opera che carichi compare qui, e nello stesso
+              ordine e con lo stesso ritaglio, nella{" "}
+              <Link href="/" className="link-underline text-ink-soft hover:text-ink">
+                home del sito
+              </Link>
+              .
+            </p>
+          )}
+        </Sezione>
 
-      {conCloudinary && <LimpiarSueltas />}
+        {conCloudinary && (
+          <Sezione
+            id="adm-sciolte"
+            titolo="Immagini sciolte"
+            accanto="Ogni tanto"
+            testo={
+              <>
+                <p>
+                  Le immagini si caricano appena le scegli: se chiudi il modulo senza salvare,
+                  restano nell&apos;account senza appartenere a nessuna opera.
+                </p>
+                <p>
+                  Questo le toglie. Non tocca quelle di meno di un&apos;ora, nel caso tu stia
+                  caricando qualcosa in un&apos;altra scheda.
+                </p>
+              </>
+            }
+          >
+            <LimpiarSueltas />
+          </Sezione>
+        )}
+      </div>
     </section>
   );
 }

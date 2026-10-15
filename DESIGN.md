@@ -283,8 +283,8 @@ and every future call to action stay as they are.
 **The Two-Rank Rule Rule.** Hierarchy among hairlines is carried by colour, not
 weight: every rule on the site is 1px, the year rule is terracotta, everything else
 is `{colors.line}`. A new separator inherits `{colors.line}` unless it opens a year. The single
-exception is the 4px ink rule that opens each section of the admin Shop (see
-Admin Shop); it never reaches a public page.
+exception is the 4px ink rule that opens each section of every admin page (see
+Admin sections); it never reaches a public page.
 
 **The Ground-Is-Constant Rule.** One ground colour, light only. No dark mode, no
 per-page tint, no gradient — a ground that shifts changes how the artwork reads.
@@ -763,6 +763,13 @@ underneath) lands on *cancel*, never on save.
   opens code / sconto / scade il in place, on the same field drawing and the
   admin's small ink commit. A used code is struck through and names, in
   terracotta, the order it came back with.
+- **Admin sections:** every admin page — Opere, Shop, Ordini, Newsletter — is
+  cut into sections by `Sezione` (`src/app/admin/components/Sezione.tsx`): a 4px
+  ink rule across the shell, then from 1024px name, faint count and "how it works"
+  on the left 3 columns and the work on the right 9. The page `h1` is screen-reader
+  only; the admin bar tab already names the page. Opere: Archivio, Immagini
+  sciolte. Ordini: Da spedire, Spediti, Rimborsati, Pagamenti (SumUp off or in test
+  mode also shows a note at the top). Newsletter: Da annunciare, Iscritti, Inviate.
 - **Admin Shop:** tabs Opere | Shop | Ordini in the admin bar (count beside each;
   orders count only those to ship, in accent). Five sections — Copertine, Stampe,
   Su commissione, Sconti, Codici sconto — each opened by a **4px ink rule** across

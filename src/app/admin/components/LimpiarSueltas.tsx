@@ -39,9 +39,9 @@ function Resultado({ r }: { r: Limpieza }) {
 /**
  * Togliere da Cloudinary le immagini che nessuna opera usa.
  *
- * Va in fondo all'archivio, in inchiostro pallido e senza ornamenti: è
- * manutenzione, si usa ogni tanto, e non deve fare concorrenza al caricamento
- * di un'opera.
+ * Va nell'ultima sezione dell'archivio, in inchiostro pallido e senza
+ * ornamenti: è manutenzione, si usa ogni tanto, e non deve fare concorrenza al
+ * caricamento di un'opera. La spiegazione la scrive la sezione, a sinistra.
  *
  * Non si esegue da sola all'apertura dell'admin, anche se potrebbe. Chiedere a
  * Cloudinary cosa c'è conservato è una chiamata di rete, e metterla a ogni
@@ -53,33 +53,24 @@ export default function LimpiarSueltas() {
   const [corriendo, empezar] = useTransition();
 
   return (
-    <div className="mt-16 border-t border-line pt-5">
-      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-        <button
-          type="button"
-          disabled={corriendo}
-          onClick={() => empezar(async () => setResultado(await limpiarSueltas()))}
-          className="link-underline text-xs text-ink-faint transition-colors hover:text-ink disabled:opacity-50"
-        >
-          {corriendo ? "Ricerca in corso…" : "Pulisci le immagini sciolte"}
-        </button>
+    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+      <button
+        type="button"
+        disabled={corriendo}
+        onClick={() => empezar(async () => setResultado(await limpiarSueltas()))}
+        className="link-underline text-sm text-ink-soft transition-colors hover:text-ink disabled:opacity-50"
+      >
+        {corriendo ? "Ricerca in corso…" : "Pulisci le immagini sciolte"}
+      </button>
 
-        {/*
-          Il risultato va sulla stessa riga e con lo stesso corpo: è una
-          risposta, non un annuncio. `aria-live` lo fa arrivare a chi non sta
-          guardando questo angolo dello schermo.
-        */}
-        <span aria-live="polite" className="text-xs text-ink-faint">
-          {resultado && <Resultado r={resultado} />}
-        </span>
-      </div>
-
-      <p className="mt-2 max-w-[52ch] text-xs leading-relaxed text-ink-faint">
-        Le immagini si caricano appena le scegli, quindi se una volta chiudi il modulo senza
-        salvare, restano a occupare l&apos;account senza appartenere a nessuna opera. Questo
-        le toglie. Non tocca quelle di meno di un&apos;ora, nel caso tu stia caricando
-        qualcosa in un&apos;altra scheda.
-      </p>
+      {/*
+        Il risultato va sulla stessa riga e con lo stesso corpo: è una
+        risposta, non un annuncio. `aria-live` lo fa arrivare a chi non sta
+        guardando questo angolo dello schermo.
+      */}
+      <span aria-live="polite" className="text-sm text-ink-faint">
+        {resultado && <Resultado r={resultado} />}
+      </span>
     </div>
   );
 }

@@ -55,17 +55,22 @@ export default function NewsletterInvio({
   return (
     <form action={azione}>
       {esito.error && (
-        <p role="alert" className="mt-5 nota">
+        <p role="alert" className="mb-5 nota">
           {esito.error}
         </p>
       )}
       {esito.fatto && (
-        <p role="status" className="mt-5 nota nota--neutra">
+        <p role="status" className="mb-5 nota nota--neutra">
           {esito.fatto}
         </p>
       )}
 
-      <ul className="mt-5 border-t border-line">
+      {/* Senza un avviso sopra, la lista apre la sezione: il filetto
+          sottile sparisce accanto a quello spesso, come nello Shop. Non con
+          `first:`, perché React mette nel modulo i suoi campi nascosti. */}
+      <ul
+        className={`border-t border-line ${esito.error || esito.fatto ? "" : "lg:-mt-3 lg:border-t-0"}`}
+      >
         {voci.map((v) => {
           const chiave = `${v.tipo}-${v.id}`;
           return (

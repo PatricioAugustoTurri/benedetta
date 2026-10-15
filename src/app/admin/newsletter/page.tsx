@@ -4,9 +4,11 @@ import { site } from "@/data/site";
 import { richiediAccesso } from "@/lib/auth";
 import { correoConfigurado } from "@/lib/correo";
 import { listInvii, listIscritti, listNovita, type Invio, type Iscritto } from "@/lib/newsletter";
+import { miniatura } from "@/lib/miniatura";
 import { immagineFerma } from "@/lib/video";
 import { pingDb } from "@/lib/works";
 import NewsletterInvio, { type VoceDaAnnunciare } from "../components/NewsletterInvio";
+import Sezione from "../components/Sezione";
 import { cancellaIscrittoAzione } from "./actions";
 
 export const metadata = { title: "Newsletter" };
@@ -72,7 +74,7 @@ export default async function NewsletterPage() {
       id: w.id,
       title: w.title,
       riga: `Opera · ${w.year}`,
-      immagine: w.image[0] ? immagineFerma(w.image[0]) : null,
+      immagine: w.image[0] ? miniatura(immagineFerma(w.image[0]), 96, 120) : null,
     })),
     ...novita.stampe.map((p) => {
       const minimo = prezzoMinimo(p.formati);
@@ -81,7 +83,7 @@ export default async function NewsletterPage() {
         id: p.id,
         title: p.title,
         riga: minimo !== null ? `Stampa · da ${prezzo(minimo)}` : "Stampa",
-        immagine: p.image[0] ? immagineFerma(p.image[0]) : null,
+        immagine: p.image[0] ? miniatura(immagineFerma(p.image[0]), 96, 120) : null,
       };
     }),
   ];
@@ -97,139 +99,141 @@ export default async function NewsletterPage() {
           : `Nuove opere e stampe — ${site.name}`;
 
   return (
-    <section className="shell pt-8 pb-16 md:pt-12">
+    <section className="shell pt-8 pb-24 md:pt-12">
+      {/* Le sezioni parlano da sole; il titolo serve a chi naviga con un
+          lettore di schermo, per sapere in che pagina è. */}
+      <h1 className="sr-only">Newsletter</h1>
       {!correoConfigurado() && (
         <p className="mb-8 nota">
           Manca la chiave di Resend: senza, la newsletter non può partire.
         </p>
       )}
 
-      <div className="grid gap-16 md:grid-cols-12">
-        <div className="space-y-16 md:col-span-8">
-          <div>
-            <h1 className="display-lead font-display text-[clamp(1.5rem,3vw,2.125rem)] leading-[1.15]">
-              Newsletter
-            </h1>
-          </div>
-
-          <section aria-labelledby="nl-novita">
-            <div className="flex items-baseline justify-between gap-6">
-              <h2 id="nl-novita" className="display-section font-display text-xl leading-tight">
-                Da annunciare
-              </h2>
-              {voci.length > 0 && (
-                <span className="figures text-xs text-accent">
-                  {voci.length === 1 ? "1 novità" : `${voci.length} novità`}
-                </span>
-              )}
-            </div>
-            {voci.length === 0 ? (
-              <p className="mt-4 border-t border-line pt-4 text-sm leading-relaxed text-ink-faint">
-                Niente di nuovo da annunciare. Quando carichi un&apos;opera o pubblichi una stampa,
-                compare qui.
-              </p>
+      <div className="space-y-20 md:space-y-28">
+        <Sezione
+          id="nl-novita"
+          titolo="Da annunciare"
+          accanto={
+            voci.length === 0 ? (
+              "Niente di nuovo"
             ) : (
-              <NewsletterInvio
-                // Si rifà da capo quando cambia la lista, così le spunte seguono le voci nuove.
-                key={voci.map((v) => `${v.tipo}-${v.id}`).join(",")}
-                voci={voci}
-                iscritti={confermati.length}
-                oggettoProposto={oggettoProposto}
-              />
-            )}
-          </section>
-
-          <section aria-labelledby="nl-iscritti">
-            <div className="flex items-baseline justify-between gap-6">
-              <h2 id="nl-iscritti" className="display-section font-display text-xl leading-tight">
-                Iscritti
-              </h2>
-              <span className="figures text-xs text-ink-faint">
-                {confermati.length}
-                {inAttesa > 0 && ` · ${inAttesa} in attesa di conferma`}
-              </span>
-            </div>
-            {confermati.length === 0 ? (
-              <p className="mt-4 border-t border-line pt-4 text-sm leading-relaxed text-ink-faint">
-                Ancora nessuno. Chi si iscrive dal fondo del sito compare qui dopo aver confermato
-                dalla mail.
+              <span className="text-accent">{voci.length === 1 ? "1 novità" : `${voci.length} novità`}</span>
+            )
+          }
+          testo={
+            <>
+              <p>
+                Ogni opera nuova e ogni stampa che pubblichi compare qui. Non parte niente da
+                solo.
               </p>
-            ) : (
-              <ul className="mt-4 border-t border-line">
-                {confermati.map((i) => (
-                  <li key={i.id} className="flex items-center gap-4 border-b border-line py-2.5">
-                    <span className="min-w-0 flex-1 truncate text-sm text-ink">
-                      {i.nome && <span className="mr-2">{i.nome}</span>}
-                      <span className={i.nome ? "text-ink-faint" : undefined}>{i.email}</span>
-                    </span>
-                    <span className="figures shrink-0 text-xs text-ink-faint">
-                      dal {data(i.confermato ?? i.creato)}
-                    </span>
-                    <form action={cancellaIscrittoAzione}>
-                      <input type="hidden" name="id" value={i.id} />
-                      <button
-                        type="submit"
-                        title="Togli dalla lista"
-                        className="flex h-8 w-8 items-center justify-center text-ink-faint transition-colors hover:text-accent"
-                      >
-                        <span className="sr-only">Togli {i.email} dalla lista</span>
-                        <Trash size={15} />
-                      </button>
-                    </form>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          {invii.length > 0 && (
-            <section aria-labelledby="nl-invii">
-              <h2 id="nl-invii" className="display-section font-display text-xl leading-tight">
-                Inviate
-              </h2>
-              <ul className="mt-4 border-t border-line">
-                {invii.map((v) => (
-                  <li key={v.id} className="border-b border-line py-3">
-                    <div className="flex items-baseline justify-between gap-4">
-                      <span className="min-w-0 truncate text-sm text-ink">{v.oggetto}</span>
-                      <span className="figures shrink-0 text-xs text-ink-faint">{data(v.creato)}</span>
-                    </div>
-                    <p className="figures mt-1 text-xs text-ink-faint">
-                      {v.stato === "errore" ? (
-                        <span className="text-accent">Non partita</span>
-                      ) : v.stato === "in corso" ? (
-                        "In corso"
-                      ) : (
-                        `A ${v.consegnati}${v.consegnati < v.destinatari ? ` su ${v.destinatari}` : ""}`
-                      )}
-                      {" · "}
-                      {v.contenuto.map((c) => c.title).join(", ")}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </section>
+              <p>
+                Quando vuoi, scegli cosa annunciare e la mandi: una mail sola con tutto dentro.
+                Prima puoi mandarti una prova.
+              </p>
+            </>
+          }
+        >
+          {voci.length === 0 ? (
+            <p className="prose-measure text-sm leading-relaxed text-ink-faint">
+              Niente di nuovo da annunciare. Quando carichi un&apos;opera o pubblichi una stampa,
+              compare qui.
+            </p>
+          ) : (
+            <NewsletterInvio
+              // Si rifà da capo quando cambia la lista, così le spunte seguono le voci nuove.
+              key={voci.map((v) => `${v.tipo}-${v.id}`).join(",")}
+              voci={voci}
+              iscritti={confermati.length}
+              oggettoProposto={oggettoProposto}
+            />
           )}
-        </div>
+        </Sezione>
 
-        <div className="md:col-span-3 md:col-start-10">
-          <h2 className="label">Come funziona</h2>
-          <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-soft">
-            <li>
-              Chi si iscrive dal fondo del sito riceve una mail e conferma con un clic. Solo dopo
-              entra nella lista.
-            </li>
-            <li>
-              Ogni opera nuova e ogni stampa che pubblichi compare in «Da annunciare». Non parte
-              niente da solo.
-            </li>
-            <li>
-              Quando vuoi, scegli cosa annunciare e la mandi: una mail sola con tutto dentro.
-              Prima puoi mandarti una prova.
-            </li>
-            <li>In fondo a ogni mail c&apos;è il link per disiscriversi.</li>
-          </ul>
-        </div>
+        <Sezione
+          id="nl-iscritti"
+          titolo="Iscritti"
+          accanto={
+            <>
+              {confermati.length}
+              {inAttesa > 0 && ` · ${inAttesa} in attesa di conferma`}
+            </>
+          }
+          testo={
+            <>
+              <p>
+                Chi si iscrive dal fondo del sito riceve una mail e conferma con un clic. Solo
+                dopo entra nella lista.
+              </p>
+              <p>
+                In fondo a ogni mail c&apos;è il link per disiscriversi; se qualcuno lo chiede per
+                mail, lo togli da qui.
+              </p>
+            </>
+          }
+        >
+          {confermati.length === 0 ? (
+            <p className="prose-measure text-sm leading-relaxed text-ink-faint">
+              Ancora nessuno. Chi si iscrive dal fondo del sito compare qui dopo aver confermato
+              dalla mail.
+            </p>
+          ) : (
+            <ul className="border-t border-line lg:-mt-2.5 lg:border-t-0">
+              {confermati.map((i) => (
+                <li key={i.id} className="flex items-center gap-4 border-b border-line py-2.5">
+                  <span className="min-w-0 flex-1 truncate text-sm text-ink">
+                    {i.nome && <span className="mr-2">{i.nome}</span>}
+                    <span className={i.nome ? "text-ink-faint" : undefined}>{i.email}</span>
+                  </span>
+                  <span className="figures shrink-0 text-xs text-ink-faint">
+                    dal {data(i.confermato ?? i.creato)}
+                  </span>
+                  <form action={cancellaIscrittoAzione}>
+                    <input type="hidden" name="id" value={i.id} />
+                    <button
+                      type="submit"
+                      title="Togli dalla lista"
+                      className="flex h-8 w-8 items-center justify-center text-ink-faint transition-colors hover:text-accent"
+                    >
+                      <span className="sr-only">Togli {i.email} dalla lista</span>
+                      <Trash size={15} />
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Sezione>
+
+        {invii.length > 0 && (
+          <Sezione
+            id="nl-invii"
+            titolo="Inviate"
+            accanto={invii.length === 1 ? "1 mail" : `Le ultime ${invii.length}`}
+            testo={<p>A quanti è arrivata ogni mail, e cosa c&apos;era dentro.</p>}
+          >
+            <ul className="border-t border-line lg:-mt-3 lg:border-t-0">
+              {invii.map((v) => (
+                <li key={v.id} className="border-b border-line py-3">
+                  <div className="flex items-baseline justify-between gap-4">
+                    <span className="min-w-0 truncate text-sm text-ink">{v.oggetto}</span>
+                    <span className="figures shrink-0 text-xs text-ink-faint">{data(v.creato)}</span>
+                  </div>
+                  <p className="figures mt-1 text-xs text-ink-faint">
+                    {v.stato === "errore" ? (
+                      <span className="text-accent">Non partita</span>
+                    ) : v.stato === "in corso" ? (
+                      "In corso"
+                    ) : (
+                      `A ${v.consegnati}${v.consegnati < v.destinatari ? ` su ${v.destinatari}` : ""}`
+                    )}
+                    {" · "}
+                    {v.contenuto.map((c) => c.title).join(", ")}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </Sezione>
+        )}
       </div>
     </section>
   );

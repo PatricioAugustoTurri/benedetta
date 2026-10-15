@@ -99,6 +99,9 @@ export default function Works({ works }: { works: Work[] }) {
           const portada = item.image[0];
           if (!portada) return null;
 
+          // La prima fila parte subito ma senza `preload`: la copertina in
+          // alto è l'immagine grande della pagina, e tre preload in più le
+          // rubavano banda proprio mentre si apre.
           const eager = i < 3;
 
           return (
@@ -147,8 +150,7 @@ export default function Works({ works }: { works: Work[] }) {
                       width={portada.width}
                       height={portada.height}
                       sizes="(max-width: 1024px) 50vw, 33vw"
-                      priority={eager}
-                      loading={eager ? undefined : "lazy"}
+                      loading={eager ? "eager" : "lazy"}
                       className="aspect-[4/5] w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
                     />
                   )}

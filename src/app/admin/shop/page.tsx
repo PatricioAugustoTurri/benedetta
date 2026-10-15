@@ -6,22 +6,21 @@ import { cloudinaryConfigurado } from "@/lib/cloudinary";
 import { contaBiglietti, listCodici, type Codice } from "@/lib/codici";
 import { giornoLungo, oggiInItalia } from "@/lib/oggi";
 import { listPorte, type Porta } from "@/lib/copertine";
+import { miniatura } from "@/lib/miniatura";
 import { listSconti, statoSconto, type Sconto } from "@/lib/sconti";
 import { listProdotti } from "@/lib/prodotti";
 import { listServizi, type Servizio } from "@/lib/servizi";
 import { contarPezzi, immagineFerma } from "@/lib/video";
 import { pingDb } from "@/lib/works";
+import Sezione from "../components/Sezione";
 import StampeOrdenabili from "../components/StampeOrdenabili";
 
 export const metadata = { title: "Shop" };
 
 /**
  * Lo Shop, con le mani dentro. Cinque parti che si comportano in modo
- * diverso, e ognuna si apre con un filetto spesso d'inchiostro: è il solo
- * posto del sistema dove una riga pesa più di un pixel, e pesa perché qui si
- * lavora su cinque cose diverse nella stessa pagina e bisogna sapere, a colpo
- * d'occhio e scorrendo, dove ne finisce una e ne comincia un'altra. I filetti
- * sottili restano dentro le sezioni, a separare le righe.
+ * diverso, e ognuna si apre con il filetto spesso di `Sezione`, come in tutte
+ * le pagine dell'admin.
  *
  * Ogni sezione ha a sinistra il suo nome e come funziona —prima stava tutto in
  * una colonna a parte, lontano dalla cosa che spiegava— e a destra la cosa:
@@ -204,47 +203,6 @@ export default async function AdminShopPage() {
 }
 
 /**
- * Una parte dello Shop. Il filetto spesso la apre su tutta la larghezza; sotto,
- * da 1024px, il nome e la spiegazione a sinistra e la cosa a destra, così la
- * spiegazione sta accanto a quello che spiega. Sul telefono uno sotto l'altro.
- */
-function Sezione({
-  id,
-  titolo,
-  accanto,
-  testo,
-  azione,
-  children,
-}: {
-  id: string;
-  titolo: string;
-  /** Una riga breve sotto il nome: quante sono, o come si comportano. */
-  accanto: ReactNode;
-  testo: ReactNode;
-  azione?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <section
-      aria-labelledby={id}
-      className="grid gap-6 border-t-4 border-ink pt-6 md:pt-8 lg:grid-cols-12 lg:gap-8"
-    >
-      <header className="lg:col-span-3">
-        <h2 id={id} className="display-section font-display text-xl leading-tight">
-          {titolo}
-        </h2>
-        <p className="figures mt-1 text-xs text-ink-faint">{accanto}</p>
-        <div className="mt-4 max-w-[38ch] space-y-2 text-[0.8125rem] leading-relaxed text-ink-soft">
-          {testo}
-        </div>
-        {azione && <div className="mt-4">{azione}</div>}
-      </header>
-      <div className="min-w-0 lg:col-span-9">{children}</div>
-    </section>
-  );
-}
-
-/**
  * La casella tratteggiata dell'archivio, distesa in una riga: lo stesso segno
  * per «qui ne entra un'altra». Quando la lista è vuota è la prima cosa della
  * sezione e non ha niente da cui staccarsi.
@@ -374,7 +332,7 @@ function AnteprimaPorta({ porta: { categoria: c, immagine, scelta } }: { porta: 
           {immagine ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={immagineFerma(immagine)}
+              src={miniatura(immagineFerma(immagine), 320, 400)}
               alt=""
               className="aspect-[4/5] w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
             />
@@ -409,7 +367,7 @@ function RigaServizio({ servizio: s }: { servizio: Servizio }) {
         <span className="block w-14 shrink-0 bg-paper-deep">
           {portada ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={immagineFerma(portada)} alt="" className="aspect-[4/5] w-full object-cover" />
+            <img src={miniatura(immagineFerma(portada), 112, 140)} alt="" className="aspect-[4/5] w-full object-cover" />
           ) : (
             <span className="block aspect-[4/5] w-full" />
           )}
