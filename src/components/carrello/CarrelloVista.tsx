@@ -97,7 +97,7 @@ export default function CarrelloVista() {
  * piccolo della pagina e sul telefono si toccano col pollice.
  */
 function Riga({ voce: v }: { voce: VoceCarrello }) {
-  const href = prodottoHref({ categoria: "stampe", slug: v.slug });
+  const href = prodottoHref({ categoria: v.categoria ?? "stampe", slug: v.slug });
 
   return (
     <li className="flex gap-4 border-b border-line py-5 sm:gap-5">

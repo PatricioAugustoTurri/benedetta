@@ -3,8 +3,9 @@ import { query, transaction } from "@/lib/db";
 import type { WorkImage } from "@/lib/works";
 
 /**
- * Una stampa dello Shop: una riga della tabella `prodotti`. Ritratti e
- * illustrazioni non sono prodotti ma servizi: vedi `src/lib/servizi.ts`.
+ * Un prodotto dello Shop —una stampa, un calendario—: una riga della tabella
+ * `prodotti`. Ritratti e illustrazioni non sono prodotti ma servizi: vedi
+ * `src/lib/servizi.ts`.
  *
  * Le immagini hanno la stessa forma di quelle delle opere —stesso Cloudinary,
  * stesso modulo di caricamento— e per questo il tipo è lo stesso.
@@ -102,17 +103,18 @@ export async function stampeDellOpera(operaSlug: string): Promise<Prodotto[]> {
 }
 
 /**
- * Le stampe pubblicate con questi slug, per il carrello e il pagamento.
+ * I prodotti pubblicati con questi slug, per il carrello e il pagamento:
+ * stampe e tutto quello che sta nelle altre categorie che si comprano.
  *
  * Il carrello vive nel browser e quello che dice si può riscrivere a mano:
- * prezzo, titolo, persino che un prodotto sia una stampa. Per questo chi
- * calcola un totale passa sempre di qui e prende tutto dalla tabella.
+ * prezzo, titolo, persino che un prodotto esista. Per questo chi calcola un
+ * totale passa sempre di qui e prende tutto dalla tabella.
  */
-export async function stampePerSlug(slugs: string[]): Promise<Prodotto[]> {
+export async function prodottiPerSlug(slugs: string[]): Promise<Prodotto[]> {
   if (slugs.length === 0) return [];
   const rows = await query<Record<string, unknown>>(
     `SELECT ${COLONNE} FROM prodotti
-      WHERE pubblicato AND categoria = 'stampe' AND slug = ANY($1::text[])`,
+      WHERE pubblicato AND slug = ANY($1::text[])`,
     [slugs],
   );
   return rows.map(hydrate);

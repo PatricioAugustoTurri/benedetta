@@ -1,7 +1,12 @@
-export type ShopCategoria = "illustrazioni-personalizzate" | "ritratti-illustrati" | "stampe";
+/**
+ * Lo slug di una categoria. Era un elenco chiuso di tre; da quando lei le crea
+ * da /admin/shop (2026-11-01) è un testo, e quello che esiste lo dice la
+ * tabella `categorie`. Vedi `src/lib/categorie.ts`.
+ */
+export type ShopCategoria = string;
 
 /** I due lavori su commissione: ognuno è un servizio solo, non una lista. */
-export type ServizioSlug = Exclude<ShopCategoria, "stampe">;
+export type ServizioSlug = "illustrazioni-personalizzate" | "ritratti-illustrati";
 
 export type ShopCategory = {
   slug: ShopCategoria;
@@ -9,14 +14,19 @@ export type ShopCategory = {
   /**
    * Se in questa categoria si compra o si chiede.
    *
-   * È la differenza che separa tutto il resto. **Stampe** è una lista di
-   * prodotti che cresce: formati, prezzo, carrello (tabella `prodotti`).
-   * **Illustrazioni Personalizzate** e **Ritratti Illustrati** sono due
-   * servizi, uno ciascuno e sempre lo stesso: una pagina che si legge e porta
-   * al modulo di contatto (tabella `servizi`). Non si aggiungono, si
-   * aggiornano.
+   * È la differenza che separa tutto il resto. **Stampe**, e ogni categoria
+   * che lei crea, è una lista di prodotti che cresce: formati, prezzo,
+   * carrello (tabella `prodotti`). **Illustrazioni Personalizzate** e
+   * **Ritratti Illustrati** sono due servizi, uno ciascuno e sempre lo
+   * stesso: una pagina che si legge e porta al modulo di contatto (tabella
+   * `servizi`). Non si aggiungono, si aggiornano.
    */
   vendita: boolean;
+  /**
+   * Se esce nel menu, nel footer e fra le porte di /shop. Una categoria nuova
+   * nasce nascosta, come una stampa nasce bozza.
+   */
+  visibile: boolean;
   /**
    * Una riga sul materiale o sul formato, se lei la scrive. Mai prezzo,
    * tiratura né disponibilità. Senza, la categoria esce col solo nome.
@@ -25,28 +35,20 @@ export type ShopCategory = {
 };
 
 /**
- * Le categorie del negozio, come le ha date la cliente (2026-10-07).
+ * Le tre categorie di sempre, come le ha date la cliente (2026-10-07).
  *
- * Le prime due sono i due lavori che nomina la sua bio —«illustrazioni
- * personalizzate e ritratti»—: si commissionano, non si comprano, e ognuna è
- * una pagina sola che lei aggiorna da /admin/shop. La terza è l'unico
- * prodotto, e le stampe si aggiungono di continuo. Le categorie restano nel
- * codice perché il database le controlla con un CHECK e cambiarle è una
- * migrazione.
+ * Non sono più la lista dello Shop: quella è la tabella `categorie`, che lei
+ * allunga da /admin/shop. Restano qui come riserva, per il tempo fra il
+ * deploy e la migrazione 013, perché il menu non resti vuoto.
  *
  * Nessuna ha la riga di nota: quelle di prima erano inventate, e PRODUCT.md è
- * esplicito sul fatto che quello che manca si chiede e non si inventa. Se lei
- * manda una riga per categoria, entra in `note` e si disegna da sola.
+ * esplicito sul fatto che quello che manca si chiede e non si inventa.
  */
-export const shopCategories: ShopCategory[] = [
-  { slug: "illustrazioni-personalizzate", label: "Illustrazioni Personalizzate", vendita: false },
-  { slug: "ritratti-illustrati", label: "Ritratti Illustrati", vendita: false },
-  { slug: "stampe", label: "Stampe", vendita: true },
+export const CATEGORIE_BASE: ShopCategory[] = [
+  { slug: "illustrazioni-personalizzate", label: "Illustrazioni Personalizzate", vendita: false, visibile: true },
+  { slug: "ritratti-illustrati", label: "Ritratti Illustrati", vendita: false, visibile: true },
+  { slug: "stampe", label: "Stampe", vendita: true, visibile: true },
 ];
-
-export function getShopCategory(slug: string): ShopCategory | null {
-  return shopCategories.find((c) => c.slug === slug) ?? null;
-}
 
 export function esServizio(slug: string): slug is ServizioSlug {
   return slug === "illustrazioni-personalizzate" || slug === "ritratti-illustrati";
@@ -65,7 +67,7 @@ export function shopHref(category: ShopCategory): string {
   return `/shop/${category.slug}`;
 }
 
-/** La pagina di una stampa. La categoria va nell'indirizzo perché si legga dove si è. */
+/** La pagina di un prodotto. La categoria va nell'indirizzo perché si legga dove si è. */
 export function prodottoHref(p: { categoria: ShopCategoria; slug: string }): string {
   return `/shop/${p.categoria}/${p.slug}`;
 }

@@ -2,8 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { esServizio, shopCategories, type Formato } from "@/data/shop";
+import { esServizio, type Formato } from "@/data/shop";
 import { requireSession } from "@/lib/auth";
+import {
+  aggiornaCategoria,
+  cancellaCategoria,
+  categoriaFissa,
+  creaCategoria,
+  getCategoria,
+  listCategorie,
+  spostaCategoria,
+} from "@/lib/categorie";
 import { listLibreria, setCopertina } from "@/lib/copertine";
 import { aggiungiTestimonianza, cancellaTestimonianza } from "@/lib/testimonianze";
 import { cancellaCodice, erroreCodice, normalizzaCodice, salvaCodice } from "@/lib/codici";
@@ -75,18 +84,32 @@ export async function guardaProdotto(
   const descripcion = String(formData.get("description") ?? "").trim();
   const pubblicato = formData.get("pubblicato") === "on";
 
-  if (title.length === 0) return { error: "La stampa ha bisogno di un titolo." };
-  if (slug.length === 0) return { error: "Manca l’indirizzo della stampa." };
+  // La categoria la sceglie il modulo, ma la conferma la tabella: dev'essere
+  // una che si compra, non un servizio né una che non c'è più.
+  const categoria = await getCategoria(String(formData.get("categoria") ?? "stampe"));
+  if (!categoria || !categoria.vendita) return { error: "Questa categoria non esiste più. Scegline un’altra." };
+  const stampa = categoria.slug === "stampe";
+
+  if (title.length === 0) return { error: stampa ? "La stampa ha bisogno di un titolo." : "Manca il titolo." };
+  if (slug.length === 0) return { error: stampa ? "Manca l’indirizzo della stampa." : "Manca l’indirizzo." };
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
     return { error: "L’indirizzo ammette solo minuscole, numeri e trattini: «ritratto-di-famiglia»." };
   }
 
   const formati = leggiFormati(String(formData.get("formati") ?? "[]"));
   if (typeof formati === "string") return { error: formati };
-  if (formati.length === 0) return { error: "Una stampa ha bisogno di almeno un formato con il suo prezzo." };
+  if (formati.length === 0) {
+    return {
+      error: stampa
+        ? "Una stampa ha bisogno di almeno un formato con il suo prezzo."
+        : "Serve almeno un formato con il suo prezzo: senza, non si può comprare.",
+    };
+  }
 
+  // «Dall'opera» è delle stampe: è quello che fa dire alla pagina dell'opera
+  // «Disponibile come stampa».
   let operaSlug: string | null = null;
-  const opera = String(formData.get("opera") ?? "").trim();
+  const opera = stampa ? String(formData.get("opera") ?? "").trim() : "";
   if (opera.length > 0) {
     if (!(await getWork(opera))) return { error: "L’opera scelta non esiste più. Scegline un’altra." };
     operaSlug = opera;
@@ -99,7 +122,11 @@ export async function guardaProdotto(
     return { error: e instanceof ErrorDeImagenes ? e.message : "Le immagini non si sono capite." };
   }
   if (imagenes.length === 0) {
-    return { error: "La stampa ha bisogno di almeno un’immagine: è quella che esce nello Shop." };
+    return {
+      error: stampa
+        ? "La stampa ha bisogno di almeno un’immagine: è quella che esce nello Shop."
+        : "Serve almeno un’immagine: è quella che esce nello Shop.",
+    };
   }
 
   let mockup: WorkImage | null;
@@ -113,7 +140,7 @@ export async function guardaProdotto(
   if (mockup && esVideo(mockup)) return { error: "Il mockup deve essere un’immagine, non un video." };
 
   const entrada = {
-    categoria: "stampe" as const,
+    categoria: categoria.slug,
     slug,
     title,
     description: descripcion.length > 0 ? descripcion : null,
@@ -136,9 +163,9 @@ export async function guardaProdotto(
 
     const mensaje = e instanceof Error ? e.message : "";
     if (mensaje.includes("prodotti_slug_key")) {
-      return { error: `C’è già una stampa su «${slug}». Cambiale l’indirizzo.` };
+      return { error: `C’è già un prodotto su «${slug}», in questa o in un’altra categoria. Cambia l’indirizzo.` };
     }
-    return { error: "Il database ha rifiutato la stampa. Controlla i campi." };
+    return { error: "Il database ha rifiutato il salvataggio. Controlla i campi." };
   }
 
   if (anterior) {
@@ -227,8 +254,8 @@ export async function guardaCopertine(
     ),
   );
 
-  const nuove: { categoria: (typeof shopCategories)[number]["slug"]; immagine: WorkImage | null }[] = [];
-  for (const c of shopCategories) {
+  const nuove: { categoria: string; immagine: WorkImage | null }[] = [];
+  for (const c of await listCategorie()) {
     const url = String(formData.get(`copertina-${c.slug}`) ?? "").trim();
     if (!url) {
       nuove.push({ categoria: c.slug, immagine: null });
@@ -395,21 +422,25 @@ export async function cancellaProdotto(formData: FormData): Promise<void> {
 }
 
 /**
- * L'ordine delle stampe, come lo lascia la griglia dell'admin. Stessa forma di
- * `reordenarArchivo`, e per la stessa ragione: la griglia è la stessa e i suoi
- * guasti pure.
+ * L'ordine dei prodotti di una categoria, come lo lascia la griglia
+ * dell'admin. Stessa forma di `reordenarArchivo`, e per la stessa ragione: la
+ * griglia è la stessa e i suoi guasti pure.
  */
 export async function riordinaStampe(
+  categoria: string,
   orden: number[],
 ): Promise<{ ok: true } | { ok: false; error: string; salida: Salida }> {
   await requireSession();
+  if (typeof categoria !== "string" || categoria.length === 0) {
+    return { ok: false, error: "L’ordine è arrivato male.", salida: "reintentar" };
+  }
   if (!Array.isArray(orden) || orden.some((id) => !Number.isInteger(id))) {
     return { ok: false, error: "L’ordine è arrivato male.", salida: "reintentar" };
   }
 
   let guardado: boolean;
   try {
-    guardado = await riordinaProdotti("stampe", orden);
+    guardado = await riordinaProdotti(categoria, orden);
   } catch {
     return { ok: false, error: "Il database non ha accettato l’ordine.", salida: "reintentar" };
   }
@@ -417,7 +448,7 @@ export async function riordinaStampe(
     return {
       ok: false,
       error:
-        "Le stampe sono cambiate da quando hai aperto questa schermata, quindi quest’ordine non è stato salvato. " +
+        "La griglia è cambiata da quando hai aperto questa schermata, quindi quest’ordine non è stato salvato. " +
         "Ricarica e risistemalo su quello che c’è adesso.",
       salida: "recargar",
     };
@@ -425,6 +456,107 @@ export async function riordinaStampe(
 
   rivalida();
   return { ok: true };
+}
+
+/* ------------------------------------------------------------ categorie */
+
+/** Da nome a indirizzo: «Calendario 2027» → «calendario-2027». */
+function aIndirizzo(nome: string): string {
+  return nome
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Crea una categoria. Nasce come Stampe —prodotti con formati, prezzo e
+ * carrello—, in fondo al menu e nascosta: si accende quando ha qualcosa da
+ * mostrare.
+ */
+export async function creaCategoriaAzione(
+  _previo: EstadoFormulario,
+  formData: FormData,
+): Promise<EstadoFormulario> {
+  await requireSession();
+  const label = String(formData.get("label") ?? "").replace(/\s+/g, " ").trim();
+  const scritto = String(formData.get("slug") ?? "").trim();
+  const slug = scritto || aIndirizzo(label);
+
+  if (!label) return { error: "La categoria ha bisogno di un nome: «Calendario 2027»." };
+  if (label.length > 60) return { error: "Il nome è troppo lungo: al massimo 60 caratteri." };
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
+    return { error: "L’indirizzo ammette solo minuscole, numeri e trattini: «calendario-2027»." };
+  }
+  // /admin/shop/categorie/nuova è la pagina che crea: una categoria con quel
+  // nome non si potrebbe più aprire.
+  if (slug === "nuova") return { error: "«nuova» è già usato dall’admin. Scegli un altro indirizzo." };
+
+  try {
+    await creaCategoria({ slug, label });
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("categorie_pkey")) {
+      return { error: `C’è già una categoria su «${slug}». Cambia l’indirizzo.` };
+    }
+    console.error("Categorie: creazione fallita.", e);
+    return { error: "Il database ha rifiutato la categoria. Riprova." };
+  }
+
+  rivalida();
+  redirect(`/admin/shop/categorie/${slug}`);
+}
+
+/** Cambia il nome di una categoria e se si vede nel sito. */
+export async function salvaCategoriaAzione(
+  _previo: EstadoFormulario,
+  formData: FormData,
+): Promise<EstadoFormulario> {
+  await requireSession();
+  const slug = String(formData.get("slug") ?? "");
+  const label = String(formData.get("label") ?? "").replace(/\s+/g, " ").trim();
+  const visibile = formData.get("visibile") === "on";
+
+  if (!(await getCategoria(slug))) return { error: "Questa categoria non esiste più." };
+  if (!label) return { error: "La categoria ha bisogno di un nome." };
+  if (label.length > 60) return { error: "Il nome è troppo lungo: al massimo 60 caratteri." };
+
+  try {
+    await aggiornaCategoria(slug, { label, visibile });
+  } catch (e) {
+    console.error("Categorie: salvataggio fallito.", e);
+    return { error: "Il database ha rifiutato le modifiche. Riprova." };
+  }
+
+  rivalida();
+  redirect("/admin/shop");
+}
+
+/** Una categoria un posto più su o più giù nel menu. */
+export async function spostaCategoriaAzione(formData: FormData): Promise<void> {
+  await requireSession();
+  const slug = String(formData.get("slug") ?? "");
+  const verso = formData.get("verso") === "giu" ? "giu" : "su";
+  await spostaCategoria(slug, verso);
+  rivalida();
+}
+
+/**
+ * Cancella una categoria, solo se è vuota e non è una di quelle fisse. Se
+ * qualcosa è cambiato nel frattempo —un prodotto entrato da un'altra
+ * scheda— non cancella e torna alla sua pagina, che lo dice.
+ */
+export async function cancellaCategoriaAzione(formData: FormData): Promise<void> {
+  await requireSession();
+  const slug = String(formData.get("slug") ?? "");
+  if (categoriaFissa(slug)) return;
+  const fatto = await cancellaCategoria(slug);
+  if (!fatto) {
+    revalidatePath(`/admin/shop/categorie/${slug}`);
+    return;
+  }
+  rivalida();
+  redirect("/admin/shop");
 }
 
 /*

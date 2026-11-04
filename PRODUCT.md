@@ -82,6 +82,13 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
     una tarjeta del paquete, 15%, un solo uso, vence 90 días después del envío,
     y todo —código, porcentaje, fecha— se corrige desde el pedido antes de
     mandarlo. Ningún código se suma a los sconti de temporada ni toca el envío.
+  - **Categorías** (2026-11-01): salen de la tabla `categorie` y ella las crea
+    desde `/admin/shop`. Una nueva funciona como Stampe —productos con formatos,
+    precio y carrito—, nace **oculta** y al final del menú, y se enciende cuando
+    tiene algo publicado. Sólo se borra vacía; Stampe y los dos servicios no se
+    borran. La primera fue **Calendario 2027**, que entra oculta con la
+    migración 013. «Stampata su ordinazione» sólo lo dicen las stampe: de los
+    calendarios no se sabe todavía cómo se imprimen.
   - **Illustrazioni Personalizzate** y **Ritratti Illustrati** no son productos: son
     dos servicios, uno cada uno y siempre los mismos (tabla `servizi`, dos filas
     fijas). Una página que se lee —de qué se trata, cómo funciona, ejemplos— y lleva a
@@ -127,7 +134,8 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   3. **Condizioni di vendita, diritto di recesso (14 días, ley UE) y privacy.** Los
      textos tienen que venir de ella o de su contador.
 - **Notas por categoría.** Si quiere una línea de material o formato bajo cada
-  categoría, entra en `note` en `src/data/shop.ts`. No inventarla.
+  categoría, el componente ya la dibuja (`note` en `ShopCategory`), pero la
+  tabla `categorie` todavía no tiene la columna. No inventarla.
 
 ## Brand Commitments
 

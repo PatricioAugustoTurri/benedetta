@@ -70,11 +70,21 @@ psql -d illustrando -f db/migrations/008-spedizioni-testimonianze.sql
 psql -d illustrando -f db/migrations/009-sconti.sql
 psql -d illustrando -f db/migrations/010-codici.sql
 psql -d illustrando -f db/migrations/011-sumup.sql
+psql -d illustrando -f db/migrations/012-rimborsi.sql
+psql -d illustrando -f db/migrations/013-categorie.sql
 ```
 
 ## La tienda: `prodotti`, `servizi`, `copertine` y `ordini`
 
-`prodotti` son las stampe, y sólo stampe (`categoria = 'stampe'`). `formati`
+`categorie` son las partes de la tienda, y desde la 013 las crea ella en
+`/admin/shop`: `slug` (va en la URL y no se cambia), `label`, `tipo` y
+`visibile`. Las dos de `tipo = 'servizio'` son fijas; las demás son de
+`tipo = 'prodotti'`, como Stampe. Una nueva nace oculta y sale en el menú
+cuando ella la enciende. Sólo se borra una categoría vacía, y nunca Stampe ni
+los dos servicios.
+
+`prodotti` es lo que se compra: las stampe y lo que se cargue en otra
+categoría de productos (`categoria` apunta a `categorie.slug`). `formati`
 (`[{ "formato": "A4", "prezzo": 1500 }]`, precios en centavos enteros) no puede
 quedar vacío. `pubblicato` arranca en falso: una stampa nueva es una bozza.
 `opera_slug` apunta a `works.slug` y sigue a la obra si se renombra.

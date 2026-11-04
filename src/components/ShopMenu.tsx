@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown } from "@/components/Icon";
-import { shopCategories, shopHref } from "@/data/shop";
+import { shopHref, type ShopCategory } from "@/data/shop";
 
 /**
  * "Shop" nella barra: un'etichetta che fa due cose.
@@ -39,7 +39,7 @@ import { shopCategories, shopHref } from "@/data/shop";
  * dall'albero di accessibilità, perché non si possa tabulare su categorie
  * invisibili.
  */
-export default function ShopMenu() {
+export default function ShopMenu({ categorie }: { categorie: ShopCategory[] }) {
   const pathname = usePathname();
   const onShop = pathname.startsWith("/shop");
   const [open, setOpen] = useState(false);
@@ -209,7 +209,7 @@ export default function ShopMenu() {
           <div className="min-h-0 overflow-hidden">
             <div className="px-5 pb-5 pt-2">
               <ul aria-label="Categorie">
-                {shopCategories.map((c, i) => (
+                {categorie.map((c, i) => (
                   <li key={c.slug}>
                     <Link
                       href={shopHref(c)}

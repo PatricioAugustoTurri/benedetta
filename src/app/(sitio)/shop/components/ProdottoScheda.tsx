@@ -48,6 +48,7 @@ export default function ProdottoScheda({
         <AggiungiAlCarrello
           sconto={sconto?.percentuale}
           slug={prodotto.slug}
+          categoria={prodotto.categoria}
           title={prodotto.title}
           formati={prodotto.formati}
           immagine={
@@ -66,21 +67,38 @@ export default function ProdottoScheda({
           Le domande che vengono subito dopo il prezzo —che carta, quando
           arriva, se si può restituire— hanno una pagina sola. Qui la strada,
           in piccolo, sotto l'azione.
+
+          «Stampata su ordinazione» vale per le stampe, ed è quello che ha
+          detto lei. Per un calendario o per quello che verrà non si sa: fuori
+          dalle stampe resta solo il link, e solo quando la pagina c'è.
         */}
-        <p className="mt-6 text-xs leading-relaxed text-ink-faint">
-          Stampata su ordinazione
-          {legaliPronte() && (
-            <>
-              {" · "}
+        {prodotto.categoria === "stampe" ? (
+          <p className="mt-6 text-xs leading-relaxed text-ink-faint">
+            Stampata su ordinazione
+            {legaliPronte() && (
+              <>
+                {" · "}
+                <Link
+                  href="/spedizioni-e-resi"
+                  className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink"
+                >
+                  carta, misure e resi
+                </Link>
+              </>
+            )}
+          </p>
+        ) : (
+          legaliPronte() && (
+            <p className="mt-6 text-xs leading-relaxed text-ink-faint">
               <Link
                 href="/spedizioni-e-resi"
                 className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink"
               >
-                carta, misure e resi
+                Spedizioni e resi
               </Link>
-            </>
-          )}
-        </p>
+            </p>
+          )
+        )}
 
         {/*
           Il filo che riporta all'archivio: la stampa è la copia, l'opera è

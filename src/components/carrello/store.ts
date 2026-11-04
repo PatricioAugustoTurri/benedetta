@@ -14,6 +14,11 @@ import { useSyncExternalStore } from "react";
  */
 export type VoceCarrello = {
   slug: string;
+  /**
+   * Per il link alla sua pagina: /shop/<categoria>/<slug>. Le righe salvate
+   * prima che esistessero altre categorie non l'hanno, ed erano stampe.
+   */
+  categoria?: string;
   formato: string;
   quantita: number;
   title: string;

@@ -32,12 +32,14 @@ import { aggiungi, MAX_QUANTITA, type VoceCarrello } from "./store";
  */
 export default function AggiungiAlCarrello({
   slug,
+  categoria,
   title,
   formati,
   immagine,
   sconto,
 }: {
   slug: string;
+  categoria: string;
   title: string;
   formati: Formato[];
   immagine?: VoceCarrello["immagine"];
@@ -123,6 +125,7 @@ export default function AggiungiAlCarrello({
           if (!formato) return;
           const entrata = aggiungi({
             slug,
+            categoria,
             title,
             formato: formato.formato,
             // Nel carrello va il prezzo scontato; il server lo ricalcola

@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "@/components/Icon";
-import { getShopCategory, prezzoScontato, prodottoHref } from "@/data/shop";
+import { prezzoScontato, prodottoHref } from "@/data/shop";
+import { getCategoria } from "@/lib/categorie";
 import { scontiInCorso } from "@/lib/sconti";
 import { tariffeSpedizione } from "@/lib/spedizione";
 import { site } from "@/data/site";
 import { mockupComeStampa } from "@/lib/mockup";
-import { getPubblicato } from "@/lib/prodotti";
+import { getPubblicato, listPubblicati } from "@/lib/prodotti";
 import { immagineFerma } from "@/lib/video";
 import { getWork } from "@/lib/works";
 import Visore from "../../../opera/components/Visore";
@@ -27,8 +28,8 @@ export const dynamic = "force-dynamic";
   solo e Google non ne indicizza due.
 */
 async function cerca(categoria: string, slug: string) {
-  const c = getShopCategory(categoria);
-  // Solo le stampe hanno pagine sotto la categoria: un servizio è una pagina sola.
+  const c = await getCategoria(categoria);
+  // Solo le categorie che si comprano hanno pagine sotto: un servizio è una pagina sola.
   const p = c?.vendita ? await getPubblicato(slug) : null;
   if (!c || !p || p.categoria !== c.slug) return null;
   return { c, p };
@@ -43,13 +44,18 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   // «Stampa» nel titolo: una stampa fatta da un'opera ha lo stesso nome della
   // pagina dell'opera, e due risultati uguali in Google non dicono quale sia
-  // quella che si compra.
+  // quella che si compra. Nelle altre categorie va il nome della categoria,
+  // se il titolo non lo dice già: «Calendario 2027» non diventa «Calendario
+  // 2027 — Calendario 2027».
+  const tipo = c.slug === "stampe" ? "Stampa" : c.label;
+  const titolo = p.title.toLowerCase().includes(tipo.toLowerCase()) ? p.title : `${p.title} — ${tipo}`;
   return {
-    title: `${p.title} — Stampa`,
+    title: titolo,
     description: p.description ?? c.label,
     alternates: { canonical: prodottoHref(p) },
+    robots: c.visibile ? undefined : { index: false, follow: false },
     openGraph: {
-      title: `${p.title} — Stampa · ${site.name}`,
+      title: `${titolo} · ${site.name}`,
       description: p.description ?? c.label,
       images: portada
         ? [{ url: immagineFerma(portada), width: portada.width, height: portada.height, alt: portada.alt }]
@@ -73,12 +79,18 @@ export default async function ProdottoPage({ params }: Params) {
   if (!trovato) notFound();
   const { c, p } = trovato;
 
-  const [opera, sconti] = await Promise.all([
+  const [opera, sconti, fratelli] = await Promise.all([
     p.operaSlug ? getWork(p.operaSlug) : null,
     scontiInCorso().catch(() => new Map()),
+    listPubblicati(c.slug),
   ]);
   const sconto = sconti.get(p.id) ?? null;
   const portada = p.image[0];
+
+  // Se è l'unico della sua categoria, la pagina della categoria rimanda qui:
+  // tornare indietro porta allo Shop, non a un giro su se stessi.
+  const indietro =
+    fratelli.length > 1 ? { href: `/shop/${c.slug}`, label: c.label } : { href: "/shop", label: "Shop" };
 
   /*
     Con il mockup le immagini diventano un carosello: prima quelle della
@@ -109,7 +121,9 @@ export default async function ProdottoPage({ params }: Params) {
     "@context": "https://schema.org",
     "@type": "Product",
     name: p.title,
-    description: p.description ?? `Stampa di un'illustrazione di ${site.name}.`,
+    description:
+      p.description ??
+      (c.slug === "stampe" ? `Stampa di un'illustrazione di ${site.name}.` : `${c.label} di ${site.name}.`),
     image: portada ? immagineFerma(portada) : undefined,
     brand: { "@type": "Brand", name: site.name },
     sku: p.slug,
@@ -146,14 +160,14 @@ export default async function ProdottoPage({ params }: Params) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dati) }} />
 
       <Link
-        href={`/shop/${c.slug}`}
+        href={indietro.href}
         className="area-tocco group inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
       >
         <ArrowLeft
           size={16}
           className="shrink-0 transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:-translate-x-0.5"
         />
-        <span className="link-underline">{c.label}</span>
+        <span className="link-underline">{indietro.label}</span>
       </Link>
 
       <Visore titolo={p.title} immagini={immagini}>

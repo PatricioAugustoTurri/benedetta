@@ -5,7 +5,8 @@ import NewsletterForm from "@/components/NewsletterForm";
 import Reveal from "@/components/Reveal";
 import { legale, legaliPronte } from "@/data/legale";
 import { footerNav, site } from "@/data/site";
-import { shopCategories, shopHref } from "@/data/shop";
+import { shopHref } from "@/data/shop";
+import { listCategorieVisibili } from "@/lib/categorie";
 import { posts } from "@/data/instagram";
 
 /**
@@ -40,7 +41,8 @@ import { posts } from "@/data/instagram";
  * newsletter, che è un modulo; il resto del footer di ogni pagina si serve
  * come HTML.
  */
-export default function Footer() {
+export default async function Footer() {
+  const categorie = await listCategorieVisibili();
   const year = new Date().getFullYear();
 
   return (
@@ -229,7 +231,7 @@ export default function Footer() {
           <div className="md:col-span-2 md:col-start-7">
             <h2 className="label">Shop</h2>
             <ul className="mt-4 space-y-2.5 text-sm">
-              {shopCategories.map((c) => (
+              {categorie.map((c) => (
                 <li key={c.slug}>
                   <Link
                     href={shopHref(c)}

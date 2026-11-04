@@ -7,7 +7,7 @@ export const metadata = { title: "Copertine dello Shop" };
 
 export default async function CopertinePage() {
   await richiediAccesso("/admin/shop/copertine");
-  const [porte, libreria] = await Promise.all([listPorte(), listLibreria()]);
+  const [porte, libreria] = await Promise.all([listPorte({ ancheNascoste: true }), listLibreria()]);
 
   return (
     <section className="shell pt-8 md:pt-12">

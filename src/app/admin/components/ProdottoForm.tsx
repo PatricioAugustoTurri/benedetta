@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useId, useMemo, useState } from "react";
 import { Plus, Trash } from "@/components/Icon";
-import { FORMATI_BASE, prezzo, type Formato } from "@/data/shop";
+import { FORMATI_BASE, prezzo, type Formato, type ShopCategory } from "@/data/shop";
 import { MAX_ARCHIVO_MB, MAX_VIDEO_MB } from "@/lib/limites";
 import type { Prodotto } from "@/lib/prodotti";
 import type { EstadoFormulario } from "../actions";
@@ -37,18 +37,26 @@ function aCentesimi(euro: string): number {
 }
 
 /**
- * Il modulo di una stampa: titolo, testo, immagini, il listino dei formati e
- * l'opera da cui esce. Ritratti e illustrazioni non passano di qui: sono due
- * servizi fissi e si modificano con ServizioForm.
+ * Il modulo di un prodotto: titolo, testo, immagini, il listino dei formati e,
+ * per le stampe, l'opera da cui esce. Ritratti e illustrazioni non passano di
+ * qui: sono due servizi fissi e si modificano con ServizioForm.
  *
- * Il listino parte da quello di base (A5 10 €, 20×20 cm 15 €, A4 20 €,
- * A3 30 €) e si cambia per questa stampa sola.
+ * Una stampa nuova parte dal listino di base (A5 10 €, 20×20 cm 15 €, A4
+ * 20 €, A3 30 €), che si cambia per quella stampa sola. Nelle altre categorie
+ * —un calendario— quei prezzi non vogliono dire niente: si parte da una riga
+ * vuota.
  */
 export default function ProdottoForm({
   prodotto,
+  categoria: iniziale,
+  categorie,
   opere,
 }: {
   prodotto?: Prodotto;
+  /** Dove entra un prodotto nuovo, o dove sta quello che si modifica. */
+  categoria: ShopCategory;
+  /** Le categorie che si comprano, per spostarlo da una all'altra. */
+  categorie: ShopCategory[];
   /** Le opere dell'archivio, per collegare una stampa al suo originale. */
   opere: { slug: string; title: string }[];
 }) {
@@ -60,8 +68,16 @@ export default function ProdottoForm({
   const [direccion, setDireccion] = useState(prodotto?.slug ?? "");
   const [direccionTocada, setDireccionTocada] = useState(Boolean(prodotto));
 
+  const [slugCategoria, setSlugCategoria] = useState(iniziale.slug);
+  const categoria = categorie.find((c) => c.slug === slugCategoria) ?? iniziale;
+  const stampa = categoria.slug === "stampe";
+
   const [righe, setRighe] = useState<RigaFormato[]>(() =>
-    (prodotto && prodotto.formati.length > 0 ? prodotto.formati : FORMATI_BASE).map(aRiga),
+    prodotto && prodotto.formati.length > 0
+      ? prodotto.formati.map(aRiga)
+      : iniziale.slug === "stampe"
+        ? FORMATI_BASE.map(aRiga)
+        : [{ key: "f-0", formato: "", euro: "" }],
   );
 
   const [statoImmagini, setStatoImmagini] = useState<StatoImmagini>({
@@ -92,11 +108,13 @@ export default function ProdottoForm({
     <form action={enviar} className="grid gap-12 md:grid-cols-12 md:gap-16">
       {prodotto && <input type="hidden" name="id" value={prodotto.id} />}
       <input type="hidden" name="formati" value={formatiJson} />
+      {categorie.length < 2 && <input type="hidden" name="categoria" value={categoria.slug} />}
 
       <div className="md:col-span-7">
         <h1 className="display-lead font-display text-[clamp(1.5rem,3vw,2.125rem)] leading-[1.15]">
-          {prodotto ? prodotto.title : "Nuova stampa"}
+          {prodotto ? prodotto.title : stampa ? "Nuova stampa" : "Nuovo prodotto"}
         </h1>
+        {!prodotto && !stampa && <p className="mt-2 text-sm text-ink-faint">In {categoria.label}</p>}
 
         {(falladas > 0 || pesadas > 0) && (
           <p
@@ -143,8 +161,9 @@ export default function ProdottoForm({
               Indirizzo
             </label>
             <p className="mt-1.5 text-xs leading-relaxed text-ink-faint">
-              Quello che va dopo /shop/stampe/. Minuscole, numeri e trattini. Se la stampa è
-              già stata condivisa, non cambiarlo.
+              Quello che va dopo /shop/{categoria.slug}/. Minuscole, numeri e trattini. Se{" "}
+              {stampa ? "la stampa è già stata condivisa" : "il link è già stato condiviso"}, non
+              cambiarlo.
             </p>
             <input
               id={`${idBase}-slug`}
@@ -160,6 +179,33 @@ export default function ProdottoForm({
               className={`${CONTROL} mt-2 text-sm tracking-[0.01em]`}
             />
           </div>
+
+          {categorie.length > 1 && (
+            <div className="group/campo">
+              <label htmlFor={`${idBase}-categoria`} className={`${LABEL} group-has-[:focus]/campo:text-ink`}>
+                Categoria
+              </label>
+              {prodotto && (
+                <p className="mt-1.5 text-xs leading-relaxed text-ink-faint">
+                  Cambiarla cambia anche l&apos;indirizzo della pagina, ed entra in cima alla nuova.
+                </p>
+              )}
+              <select
+                id={`${idBase}-categoria`}
+                name="categoria"
+                value={slugCategoria}
+                onChange={(e) => setSlugCategoria(e.target.value)}
+                className={`${CONTROL} mt-2 cursor-pointer`}
+              >
+                {categorie.map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.label}
+                    {c.visibile ? "" : " (nascosta)"}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="group/campo">
             <label
@@ -185,7 +231,9 @@ export default function ProdottoForm({
         <div className="mt-12 border-t border-line pt-8">
           <h2 className="label text-ink">Formati e prezzi</h2>
           <p className="mt-1.5 max-w-[46ch] text-xs leading-relaxed text-ink-faint">
-            Parte dal listino di base. Quello che cambi qui vale solo per questa stampa.
+            {stampa
+              ? "Parte dal listino di base. Quello che cambi qui vale solo per questa stampa."
+              : "Uno per riga, con il suo prezzo: «A4», «Da tavolo», «Da muro 30 × 40 cm». Ne basta uno."}
           </p>
 
           <ul className="mt-5 border-t border-line">
@@ -195,7 +243,7 @@ export default function ProdottoForm({
                   value={r.formato}
                   onChange={(e) => cambia(r.key, { formato: e.target.value })}
                   aria-label={`Nome del formato ${i + 1}`}
-                  placeholder="A4"
+                  placeholder={stampa ? "A4" : "Da muro"}
                   className={`${CONTROL} min-w-0 flex-1 border-transparent py-1.5 text-sm`}
                 />
                 <span className="flex items-baseline gap-1.5">
@@ -233,39 +281,43 @@ export default function ProdottoForm({
               <Plus size={15} />
               <span className="link-underline">Aggiungi un formato</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setRighe(FORMATI_BASE.map(aRiga))}
-              className="text-xs text-ink-faint transition-colors hover:text-ink"
-            >
-              <span className="link-underline">
-                Torna al listino di base ({FORMATI_BASE.map((f) => `${f.formato} ${prezzo(f.prezzo)}`).join(" · ")})
-              </span>
-            </button>
+            {stampa && (
+              <button
+                type="button"
+                onClick={() => setRighe(FORMATI_BASE.map(aRiga))}
+                className="text-xs text-ink-faint transition-colors hover:text-ink"
+              >
+                <span className="link-underline">
+                  Torna al listino di base ({FORMATI_BASE.map((f) => `${f.formato} ${prezzo(f.prezzo)}`).join(" · ")})
+                </span>
+              </button>
+            )}
           </div>
 
-          <div className="group/campo mt-10">
-            <label htmlFor={`${idBase}-opera`} className={`${LABEL} group-has-[:focus]/campo:text-ink`}>
-              Dall&apos;opera
-            </label>
-            <p className="mt-1.5 text-xs leading-relaxed text-ink-faint">
-              Se la stampa riproduce un&apos;opera dell&apos;archivio, la pagina dell&apos;opera
-              dirà «Disponibile come stampa».
-            </p>
-            <select
-              id={`${idBase}-opera`}
-              name="opera"
-              defaultValue={prodotto?.operaSlug ?? ""}
-              className={`${CONTROL} mt-2 cursor-pointer`}
-            >
-              <option value="">Nessuna</option>
-              {opere.map((o) => (
-                <option key={o.slug} value={o.slug}>
-                  {o.title}
-                </option>
-              ))}
-            </select>
-          </div>
+          {stampa && (
+            <div className="group/campo mt-10">
+              <label htmlFor={`${idBase}-opera`} className={`${LABEL} group-has-[:focus]/campo:text-ink`}>
+                Dall&apos;opera
+              </label>
+              <p className="mt-1.5 text-xs leading-relaxed text-ink-faint">
+                Se la stampa riproduce un&apos;opera dell&apos;archivio, la pagina dell&apos;opera
+                dirà «Disponibile come stampa».
+              </p>
+              <select
+                id={`${idBase}-opera`}
+                name="opera"
+                defaultValue={prodotto?.operaSlug ?? ""}
+                className={`${CONTROL} mt-2 cursor-pointer`}
+              >
+                <option value="">Nessuna</option>
+                {opere.map((o) => (
+                  <option key={o.slug} value={o.slug}>
+                    {o.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* ------------------------------------------------------- immagini */}
@@ -288,9 +340,10 @@ export default function ProdottoForm({
           onStato={setStatoMockup}
           nota={
             <>
-              La stampa appesa in una stanza. Nella griglia dello Shop prende il posto della
-              copertina quando il mouse si ferma sulla stampa per un secondo. Verticale 4:5,
-              come la copertina. Può mancare: allora la copertina resta ferma.
+              {stampa
+                ? "La stampa appesa in una stanza. Nella griglia dello Shop prende il posto della copertina quando il mouse si ferma sulla stampa per un secondo."
+                : "L’oggetto vero, in una stanza o in mano. Nella griglia dello Shop prende il posto della copertina quando il mouse si ferma sopra per un secondo."}{" "}
+              Verticale 4:5, come la copertina. Può mancare: allora la copertina resta ferma.
             </>
           }
         />
@@ -327,7 +380,9 @@ export default function ProdottoForm({
                 ? "Caricamento in corso…"
                 : prodotto
                   ? "Salva le modifiche"
-                  : "Salva la stampa"}
+                  : stampa
+                    ? "Salva la stampa"
+                    : "Salva"}
           </button>
           <Link
             href="/admin/shop"
@@ -341,11 +396,14 @@ export default function ProdottoForm({
       <div className="md:col-span-3 md:col-start-9">
         <h2 className="label">Dove uscirà</h2>
         <ul className="mt-4 space-y-2.5 text-sm text-ink-soft">
-          <li>Nello Shop, nella sezione Stampe.</li>
+          <li>
+            Nello Shop, nella sezione {categoria.label}
+            {categoria.visibile ? "." : ", che è ancora nascosta: nel sito esce quando la accendi."}
+          </li>
           <li>
             Nella sua pagina:{" "}
             <span className="break-all text-xs tracking-[0.01em] text-ink">
-              /shop/stampe/{direccion || "…"}
+              /shop/{categoria.slug}/{direccion || "…"}
             </span>
           </li>
           <li>Con il carrello e il pagamento su SumUp.</li>

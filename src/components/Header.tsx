@@ -7,7 +7,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronDown } from "@/components/Icon";
 import ShopMenu from "@/components/ShopMenu";
 import CarrelloIcona from "@/components/carrello/CarrelloIcona";
-import { shopCategories, shopHref } from "@/data/shop";
+import { shopHref, type ShopCategory } from "@/data/shop";
 import { nav, site } from "@/data/site";
 
 /*
@@ -39,7 +39,7 @@ const SUBITEM_DRAWER =
 */
 const stagger = (open: boolean, n: number) => (open ? `${140 + n * 70}ms` : "0ms");
 
-export default function Header() {
+export default function Header({ categorie }: { categorie: ShopCategory[] }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   // Shop nel pannello, aperto o chiuso. Vive qui e non dentro la riga perché
@@ -197,7 +197,7 @@ export default function Header() {
                 posto: vedi più sotto.
               */
               item.href === "/shop" ? (
-                <ShopMenu key={item.href} />
+                <ShopMenu key={item.href} categorie={categorie} />
               ) : (
                 <Link
                   key={item.href}
@@ -353,7 +353,7 @@ export default function Header() {
                     className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-[380ms] ease-[var(--ease-out-soft)] data-[open=true]:grid-rows-[1fr]"
                   >
                     <ul aria-label="Categorie" className="min-h-0 overflow-hidden">
-                      {shopCategories.map((c) => (
+                      {categorie.map((c) => (
                         <li key={c.slug}>
                           <Link
                             href={shopHref(c)}

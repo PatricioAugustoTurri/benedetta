@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { richiediAccesso } from "@/lib/auth";
+import { listCategorie } from "@/lib/categorie";
 import { getProdottoById } from "@/lib/prodotti";
 import { listWorks } from "@/lib/works";
 import ProdottoForm from "../../components/ProdottoForm";
@@ -19,13 +20,21 @@ export default async function ModificaProdottoPage({ params }: Params) {
   const numero = Number(id);
   if (!Number.isInteger(numero)) notFound();
 
-  const [prodotto, opere] = await Promise.all([getProdottoById(numero), listWorks()]);
+  const [prodotto, opere, tutte] = await Promise.all([getProdottoById(numero), listWorks(), listCategorie()]);
   if (!prodotto) notFound();
+  const categorie = tutte.filter((c) => c.vendita);
+  const categoria = categorie.find((c) => c.slug === prodotto.categoria);
+  if (!categoria) notFound();
 
   return (
     <section className="shell pt-8 pb-16 md:pt-12">
       <IndietroAlloShop />
-      <ProdottoForm prodotto={prodotto} opere={opere.map((o) => ({ slug: o.slug, title: o.title }))} />
+      <ProdottoForm
+        prodotto={prodotto}
+        categoria={categoria}
+        categorie={categorie}
+        opere={opere.map((o) => ({ slug: o.slug, title: o.title }))}
+      />
     </section>
   );
 }

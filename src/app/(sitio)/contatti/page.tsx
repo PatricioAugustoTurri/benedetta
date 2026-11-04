@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ContactForm from "@/components/ContactForm";
-import { getShopCategory, shopSubject } from "@/data/shop";
+import { shopSubject } from "@/data/shop";
+import { getCategoria } from "@/lib/categorie";
 import { getServizio } from "@/lib/servizi";
 import { getWork } from "@/lib/works";
 import Reveal from "@/components/Reveal";
@@ -38,8 +39,7 @@ export const metadata: Metadata = {
  *
  * `?shop=<slug>` è lo stesso gesto per le categorie del negozio, con la
  * stessa regola: viaggia lo slug, e l'oggetto lo scrive il server a partire
- * da `src/data/shop.ts`. Non tocca il database, perché le categorie vivono
- * nel codice.
+ * dalla tabella `categorie`.
  *
  * Senza il parametro il database non si tocca. La pagina si serve su
  * richiesta perché guarda `searchParams`, ma chi entra dal menu non paga una
@@ -55,7 +55,7 @@ export default async function ContattiPage({
   // «Chiedi info» su un servizio: l'oggetto è il nome del servizio, preso
   // dalla tabella e non dall'indirizzo.
   const lavoro = !obra && servizio ? await getServizio(servizio) : null;
-  const categoria = !obra && !lavoro && shop ? getShopCategory(shop) : null;
+  const categoria = !obra && !lavoro && shop ? await getCategoria(shop) : null;
   const asunto =
     obra?.title ?? lavoro?.title ?? (categoria ? shopSubject(categoria) : undefined);
 

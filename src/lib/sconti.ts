@@ -1,3 +1,4 @@
+import { listCategorieVisibili } from "@/lib/categorie";
 import { query, transaction } from "@/lib/db";
 import { oggiInItalia } from "@/lib/oggi";
 import { listPubblicati, type Prodotto } from "@/lib/prodotti";
@@ -115,7 +116,11 @@ export async function scontiInCorsoConStampe(): Promise<ScontoInCorso[]> {
   const oggi = oggiInItalia();
   const tutti = (await listSconti()).filter((s) => statoSconto(s, oggi) === "in corso");
   if (tutti.length === 0) return [];
-  const pubblicate = new Map((await listPubblicati("stampe")).map((p) => [p.id, p]));
+  // Tutto quello che si compra, non solo le stampe; ma non quello di una
+  // categoria ancora nascosta, che il sito non deve mostrare da nessuna parte.
+  const [pubblicati, visibili] = await Promise.all([listPubblicati(), listCategorieVisibili()]);
+  const aperte = new Set(visibili.map((c) => c.slug));
+  const pubblicate = new Map(pubblicati.filter((p) => aperte.has(p.categoria)).map((p) => [p.id, p]));
   return tutti
     .map((s) => ({ ...s, prodotti: s.stampe.map((id) => pubblicate.get(id)).filter((p): p is Prodotto => !!p) }))
     .filter((s) => s.prodotti.length > 0)

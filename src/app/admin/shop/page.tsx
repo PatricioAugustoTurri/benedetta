@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Pencil, Plus } from "@/components/Icon";
+import { ArrowUp, Pencil, Plus } from "@/components/Icon";
 import { richiediAccesso } from "@/lib/auth";
+import { listCategorieAdmin, type CategoriaAdmin } from "@/lib/categorie";
 import { cloudinaryConfigurado } from "@/lib/cloudinary";
 import { contaBiglietti, listCodici, type Codice } from "@/lib/codici";
 import { giornoLungo, oggiInItalia } from "@/lib/oggi";
@@ -14,6 +15,7 @@ import { contarPezzi, immagineFerma } from "@/lib/video";
 import { pingDb } from "@/lib/works";
 import Sezione from "../components/Sezione";
 import StampeOrdenabili from "../components/StampeOrdenabili";
+import { spostaCategoriaAzione } from "./actions";
 
 export const metadata = { title: "Shop" };
 
@@ -26,9 +28,12 @@ export const metadata = { title: "Shop" };
  * una colonna a parte, lontano dalla cosa che spiegava— e a destra la cosa:
  *
  * - **Copertine**: le porte della pagina /shop, viste come escono.
- * - **Sconti** e **Codici sconto**: righe che si aprono per modificarle.
+ * - **Categorie**: le parti dello Shop, nell'ordine del menu. Qui nascono
+ *   quelle nuove.
+ * - **Stampe**, e una sezione uguale per ogni categoria che si compra: la
+ *   griglia della sua pagina, che si ordina trascinando.
  * - **Su commissione**: i due servizi, sempre quelli. Niente «nuovo».
- * - **Stampe**: la griglia di /shop/stampe, che si ordina trascinando.
+ * - **Sconti** e **Codici sconto**: righe che si aprono per modificarle.
  */
 export default async function AdminShopPage() {
   await richiediAccesso("/admin/shop");
@@ -42,13 +47,13 @@ export default async function AdminShopPage() {
     );
   }
 
-  const [porte, servizi, prodotti] = await Promise.all([
-    listPorte(),
+  const [porte, servizi, prodotti, categorie] = await Promise.all([
+    listPorte({ ancheNascoste: true }),
     listServizi(),
     listProdotti(),
+    listCategorieAdmin(),
   ]);
-  const stampe = prodotti.filter((p) => p.categoria === "stampe");
-  const bozze = stampe.filter((p) => !p.pubblicato).length;
+  const inVendita = categorie.filter((c) => c.vendita);
   const [sconti, codici, biglietti] = await Promise.all([listSconti(), listCodici(), contaBiglietti()]);
   const oggi = oggiInItalia();
   const conCloudinary = cloudinaryConfigurado();
@@ -85,7 +90,7 @@ export default async function AdminShopPage() {
             </>
           }
         >
-          <ul className="grid grid-cols-3 gap-3 md:gap-4">
+          <ul className="grid grid-cols-3 gap-3 md:grid-cols-4 md:gap-4">
             {porte.map((p) => (
               <AnteprimaPorta key={p.categoria.slug} porta={p} />
             ))}
@@ -93,26 +98,75 @@ export default async function AdminShopPage() {
         </Sezione>
 
         <Sezione
-          id="adm-stampe"
-          titolo="Stampe"
-          accanto={
-            <>
-              {stampe.length} {stampe.length === 1 ? "stampa" : "stampe"}
-              {bozze > 0 && ` · ${bozze} ${bozze === 1 ? "bozza" : "bozze"}`}
-            </>
-          }
+          id="adm-categorie"
+          titolo="Categorie"
+          accanto={`${categorie.length} nello Shop`}
           testo={
             <>
-              <p>Hanno formati e prezzi e vanno nel carrello.</p>
+              <p>L&apos;ordine è quello del menu, del footer e delle porte dello Shop.</p>
               <p>
-                Una stampa nuova entra in cima e nasce come bozza: sbiadita qui, assente nel
-                sito finché non la pubblichi.
+                Una categoria nuova funziona come Stampe —formati, prezzi, carrello— e nasce
+                nascosta: la accendi quando ha qualcosa dentro.
               </p>
             </>
           }
         >
-          <StampeOrdenabili stampe={stampe} />
+          <ul className="border-t border-line lg:-mt-4 lg:border-t-0">
+            {categorie.map((c, i) => (
+              <RigaCategoria key={c.slug} categoria={c} primo={i === 0} ultimo={i === categorie.length - 1} />
+            ))}
+          </ul>
+          <Aggiungi href="/admin/shop/categorie/nuova">Nuova categoria</Aggiungi>
         </Sezione>
+
+        {inVendita.map((c) => {
+          const dentro = prodotti.filter((p) => p.categoria === c.slug);
+          const bozze = dentro.filter((p) => !p.pubblicato).length;
+          const stampe = c.slug === "stampe";
+          return (
+            <Sezione
+              key={c.slug}
+              id={stampe ? "adm-stampe" : `adm-cat-${c.slug}`}
+              titolo={c.label}
+              accanto={
+                <>
+                  {stampe
+                    ? `${dentro.length} ${dentro.length === 1 ? "stampa" : "stampe"}`
+                    : `${dentro.length} ${dentro.length === 1 ? "prodotto" : "prodotti"}`}
+                  {bozze > 0 && ` · ${bozze} ${bozze === 1 ? "bozza" : "bozze"}`}
+                </>
+              }
+              testo={
+                <>
+                  <p>
+                    {stampe
+                      ? "Hanno formati e prezzi e vanno nel carrello."
+                      : "Come le stampe: formati e prezzi, e vanno nel carrello."}
+                  </p>
+                  <p>
+                    {stampe
+                      ? "Una stampa nuova entra in cima e nasce come bozza: sbiadita qui, assente nel sito finché non la pubblichi."
+                      : "Un prodotto nuovo entra in cima e nasce come bozza: sbiadito qui, assente nel sito finché non lo pubblichi."}
+                  </p>
+                  {!c.visibile && (
+                    <p className="text-accent">
+                      La categoria è nascosta: niente di qui esce nel sito.{" "}
+                      <Link
+                        href={`/admin/shop/categorie/${c.slug}`}
+                        className="link-underline transition-colors hover:text-ink"
+                      >
+                        Accendila
+                      </Link>{" "}
+                      quando è pronta.
+                    </p>
+                  )}
+                </>
+              }
+            >
+              <StampeOrdenabili stampe={dentro} categoria={c.slug} />
+            </Sezione>
+          );
+        })}
 
         <Sezione
           id="adm-servizi"
@@ -218,6 +272,94 @@ function Aggiungi({ href, primo = false, children }: { href: string; primo?: boo
       <Plus size={16} />
       <span className="label">{children}</span>
     </Link>
+  );
+}
+
+/**
+ * Una categoria nella lista: il nome, se si vede nel sito, cosa ha dentro, e
+ * le due frecce per spostarla nel menu. Il punto è terracotta quando è nel
+ * menu, come quello degli sconti in corso: è quello che il sito mostra adesso.
+ *
+ * Le frecce sono due moduli e non un trascinamento: le categorie sono poche,
+ * si leggono in colonna, e un posto su o giù è tutto quello che serve.
+ */
+function RigaCategoria({
+  categoria: c,
+  primo,
+  ultimo,
+}: {
+  categoria: CategoriaAdmin;
+  primo: boolean;
+  ultimo: boolean;
+}) {
+  const contenuto = !c.vendita
+    ? "Su commissione · una pagina sola"
+    : c.prodotti === 0
+      ? "Ancora vuota"
+      : `${c.prodotti} ${c.slug === "stampe" ? (c.prodotti === 1 ? "stampa" : "stampe") : c.prodotti === 1 ? "prodotto" : "prodotti"}${
+          c.bozze > 0 ? ` · ${c.bozze} ${c.bozze === 1 ? "bozza" : "bozze"}` : ""
+        }`;
+
+  return (
+    <li className="flex items-center gap-2 border-b border-line">
+      <Link href={`/admin/shop/categorie/${c.slug}`} className="group flex min-w-0 flex-1 items-center gap-4 py-4">
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="link-underline text-[0.9375rem] text-ink transition-colors group-hover:text-accent">
+              {c.label}
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-ink-faint">
+              <span
+                aria-hidden="true"
+                className={`block h-1 w-1 rounded-full ${c.visibile ? "bg-accent" : "bg-ink-faint"}`}
+              />
+              {c.visibile ? "Nel menu" : "Nascosta"}
+            </span>
+          </span>
+          <span className="figures mt-1 block text-xs text-ink-faint">
+            /shop/{c.slug} · {contenuto}
+          </span>
+        </span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center text-ink-soft transition-colors group-hover:text-ink">
+          <Pencil size={16} />
+        </span>
+      </Link>
+
+      <span className="flex shrink-0 items-center">
+        <Sposta slug={c.slug} verso="su" label={c.label} disabilitato={primo} />
+        <Sposta slug={c.slug} verso="giu" label={c.label} disabilitato={ultimo} />
+      </span>
+    </li>
+  );
+}
+
+function Sposta({
+  slug,
+  verso,
+  label,
+  disabilitato,
+}: {
+  slug: string;
+  verso: "su" | "giu";
+  label: string;
+  disabilitato: boolean;
+}) {
+  return (
+    <form action={spostaCategoriaAzione}>
+      <input type="hidden" name="slug" value={slug} />
+      <input type="hidden" name="verso" value={verso} />
+      <button
+        type="submit"
+        disabled={disabilitato}
+        title={verso === "su" ? "Più su nel menu" : "Più giù nel menu"}
+        className="flex h-8 w-8 items-center justify-center text-ink-soft transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-25"
+      >
+        <span className="sr-only">
+          Sposta {label} {verso === "su" ? "più su" : "più giù"}
+        </span>
+        <ArrowUp size={15} className={verso === "giu" ? "rotate-180" : undefined} />
+      </button>
+    </form>
   );
 }
 
@@ -345,6 +487,7 @@ function AnteprimaPorta({ porta: { categoria: c, immagine, scelta } }: { porta: 
         </span>
         <span className="mt-0.5 block text-xs text-ink-faint">
           {scelta ? "Scelta da te" : immagine ? "Di riserva" : "Nessuna immagine"}
+          {!c.visibile && " · nascosta"}
         </span>
       </Link>
     </li>

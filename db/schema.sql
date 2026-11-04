@@ -151,7 +151,50 @@ CREATE TRIGGER works_set_updated_at
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- --------------------------------------------------------------------------
--- prodotti — le stampe dello Shop
+-- categorie — le parti dello Shop
+--
+-- Le crea lei da /admin/shop. Le due di servizio sono fisse e hanno la loro
+-- riga in `servizi`; tutte le altre sono come Stampe: prodotti con formati,
+-- prezzo e carrello. Vedi la migrazione 013.
+-- --------------------------------------------------------------------------
+CREATE TABLE categorie (
+  -- /shop/<slug>. Non si cambia dopo: un link condiviso resta quello.
+  slug        text        PRIMARY KEY
+              CONSTRAINT categorie_slug_formato CHECK (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
+
+  -- Il nome nel menu, nel footer e sulla porta di /shop.
+  label       text        NOT NULL
+              CONSTRAINT categorie_label_misura CHECK (length(trim(label)) BETWEEN 1 AND 60),
+
+  -- 'servizio': una pagina sola che porta al modulo. 'prodotti': una lista che si compra.
+  tipo        text        NOT NULL DEFAULT 'prodotti'
+              CONSTRAINT categorie_tipo_valido CHECK (tipo IN ('servizio', 'prodotti')),
+
+  -- Nasce nascosta, come una stampa nasce bozza.
+  visibile    boolean     NOT NULL DEFAULT false,
+
+  -- L'ordine del menu, del footer e delle porte.
+  position    integer     NOT NULL,
+
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE categorie
+  ADD CONSTRAINT categorie_position_unica UNIQUE (position) DEFERRABLE INITIALLY DEFERRED;
+
+CREATE TRIGGER categorie_set_updated_at
+  BEFORE UPDATE ON categorie
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+INSERT INTO categorie (slug, label, tipo, visibile, position) VALUES
+  ('illustrazioni-personalizzate', 'Illustrazioni Personalizzate', 'servizio', true, 1),
+  ('ritratti-illustrati', 'Ritratti Illustrati', 'servizio', true, 2),
+  ('stampe', 'Stampe', 'prodotti', true, 3),
+  ('calendario-2027', 'Calendario 2027', 'prodotti', false, 4);
+
+-- --------------------------------------------------------------------------
+-- prodotti — quello che si compra nello Shop
 --
 -- Una riga per stampa, e si aggiungono di continuo. Ritratti e illustrazioni
 -- su commissione non stanno qui: sono due servizi fissi, in `servizi`.
@@ -159,11 +202,11 @@ CREATE TRIGGER works_set_updated_at
 CREATE TABLE prodotti (
   id          integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
-  -- Sempre 'stampe'. La colonna resta perché è nell'indirizzo
-  -- (/shop/stampe/<slug>) e nell'ordine; ritratti e illustrazioni non sono
-  -- prodotti ma servizi, e vivono in `servizi` (vedi sotto).
+  -- Una categoria di tipo 'prodotti': Stampe, o una di quelle che lei crea.
+  -- È nell'indirizzo (/shop/<categoria>/<slug>) e nell'ordine; ritratti e
+  -- illustrazioni non sono prodotti ma servizi, e vivono in `servizi`.
   categoria   text        NOT NULL DEFAULT 'stampe'
-              CONSTRAINT prodotti_categoria_valida CHECK (categoria = 'stampe'),
+              CONSTRAINT prodotti_categoria_fkey REFERENCES categorie (slug) ON UPDATE CASCADE,
 
   -- /shop/<categoria>/<slug>. Unico in tutto il negozio e non per categoria:
   -- è anche quello che viaggia in /contatti?prodotto=<slug>, e lì la
@@ -309,9 +352,7 @@ INSERT INTO servizi (slug, title) VALUES
 -- --------------------------------------------------------------------------
 CREATE TABLE copertine (
   categoria   text        PRIMARY KEY
-              CONSTRAINT copertine_categoria_valida CHECK (
-                categoria IN ('illustrazioni-personalizzate', 'ritratti-illustrati', 'stampe')
-              ),
+              CONSTRAINT copertine_categoria_fkey REFERENCES categorie (slug) ON UPDATE CASCADE ON DELETE CASCADE,
 
   -- Un elemento come quelli di works.image.
   immagine    jsonb       NOT NULL

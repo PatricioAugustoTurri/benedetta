@@ -1,9 +1,5 @@
-import {
-  esServizio,
-  shopCategories,
-  type ShopCategoria,
-  type ShopCategory,
-} from "@/data/shop";
+import { esServizio, type ShopCategoria, type ShopCategory } from "@/data/shop";
+import { listCategorie } from "@/lib/categorie";
 import { query } from "@/lib/db";
 import { listProdotti, listPubblicati } from "@/lib/prodotti";
 import { listServizi } from "@/lib/servizi";
@@ -50,11 +46,16 @@ export type GruppoLibreria = { titolo: string; immagini: (WorkImage & { fonte: s
 
 /**
  * Tutte le immagini già caricate che possono fare da copertina, a gruppi:
- * i due servizi, le stampe (con i loro mockup) e le opere. Solo immagini:
+ * i due servizi, i prodotti di ogni categoria (con i loro mockup) e le opere. Solo immagini:
  * una copertina non può essere un video. Ogni immagine compare una volta sola.
  */
 export async function listLibreria(): Promise<GruppoLibreria[]> {
-  const [servizi, stampe, opere] = await Promise.all([listServizi(), listProdotti(), listWorks()]);
+  const [servizi, prodotti, opere, categorie] = await Promise.all([
+    listServizi(),
+    listProdotti(),
+    listWorks(),
+    listCategorie(),
+  ]);
   const viste = new Set<string>();
   const prendi = (imgs: (WorkImage | null | undefined)[], fonte: string) =>
     imgs
@@ -66,10 +67,15 @@ export async function listLibreria(): Promise<GruppoLibreria[]> {
 
   return [
     ...servizi.map((s) => ({ titolo: s.title, immagini: prendi(s.image, s.title) })),
-    {
-      titolo: "Stampe",
-      immagini: stampe.flatMap((p) => prendi([...p.image, p.mockup], p.title)),
-    },
+    // Un gruppo per categoria di prodotti: Stampe, e quelle che lei crea.
+    ...categorie
+      .filter((c) => c.vendita)
+      .map((c) => ({
+        titolo: c.label,
+        immagini: prodotti
+          .filter((p) => p.categoria === c.slug)
+          .flatMap((p) => prendi([...p.image, p.mockup], p.title)),
+      })),
     { titolo: "Opere", immagini: opere.flatMap((w) => prendi(w.image, w.title)) },
   ].filter((g) => g.immagini.length > 0);
 }
@@ -86,29 +92,32 @@ export type Porta = {
 };
 
 /**
- * Le porte della pagina /shop, nell'ordine delle categorie.
+ * Le porte della pagina /shop, nell'ordine delle categorie. Il sito chiede
+ * solo le visibili; l'admin anche le nascoste, perché lei possa sceglierne la
+ * copertina prima di accenderle.
  *
- * Senza copertina scelta si usa la prima immagine del servizio, o della prima
- * stampa pubblicata: la porta non resta mai vuota per una scelta non ancora
- * fatta.
+ * Senza copertina scelta si usa la prima immagine del servizio, o del primo
+ * prodotto pubblicato della categoria: la porta non resta mai vuota per una
+ * scelta non ancora fatta.
  */
-export async function listPorte(): Promise<Porta[]> {
-  const [copertine, servizi, stampe, libreria] = await Promise.all([
+export async function listPorte({ ancheNascoste = false } = {}): Promise<Porta[]> {
+  const [copertine, servizi, pubblicati, libreria, categorie] = await Promise.all([
     listCopertine(),
     listServizi(),
-    listPubblicati("stampe"),
+    listPubblicati(),
     listLibreria(),
+    listCategorie(),
   ]);
   // Una copertina vale finché la sua immagine esiste ancora nel sito: se si
   // cancella la stampa o l'opera da cui veniva, torna quella di riserva.
   const esistenti = new Set(libreria.flatMap((g) => g.immagini.map((i) => i.url)));
 
-  return shopCategories.map((c) => {
+  return categorie.filter((c) => ancheNascoste || c.visibile).map((c) => {
     const salvata = copertine[c.slug];
     const scelta = salvata && esistenti.has(salvata.url) ? salvata : null;
     const riserva = esServizio(c.slug)
       ? (servizi.find((s) => s.slug === c.slug)?.image[0] ?? null)
-      : (stampe[0]?.image[0] ?? null);
+      : (pubblicati.find((p) => p.categoria === c.slug)?.image[0] ?? null);
     return {
       categoria: c,
       immagine: scelta ?? riserva,

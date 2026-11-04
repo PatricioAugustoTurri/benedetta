@@ -760,6 +760,8 @@ export default function GrigliaOrdenabile<T extends Pieza>({
           else manijas.current.delete(obra.id);
         }}
         title="Sposta"
+        // Per chi avvolge la griglia: GrigliaPlegable si apre quando si afferra.
+        data-maniglia
         /*
           Lo stato di "sollevata" deve viaggiare come booleano e non solo come
           un nome diverso: cambiare il testo a un controllo che ha già il fuoco

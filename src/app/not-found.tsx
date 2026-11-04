@@ -3,6 +3,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ArrowLeft } from "@/components/Icon";
+import { listCategorieVisibili } from "@/lib/categorie";
 
 /**
  * Il 404 di tutto il sito.
@@ -17,10 +18,11 @@ import { ArrowLeft } from "@/components/Icon";
 // capiva quale fosse quella sbagliata.
 export const metadata: Metadata = { title: "Pagina non trovata" };
 
-export default function NotFound() {
+export default async function NotFound() {
+  const categorie = await listCategorieVisibili();
   return (
     <>
-      <Header />
+      <Header categorie={categorie} />
       <main className="flex-1">
         <section className="shell flex min-h-[60vh] flex-col justify-center py-24">
           <h1 className="display-h1 max-w-2xl text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance">

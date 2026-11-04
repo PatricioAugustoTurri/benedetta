@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { shopCategories, prodottoHref } from "@/data/shop";
+import { prodottoHref } from "@/data/shop";
+import { listCategorieVisibili } from "@/lib/categorie";
 import { listPubblicati } from "@/lib/prodotti";
 import { listSlugs } from "@/lib/works";
 import { legaliPronte } from "@/data/legale";
@@ -21,7 +22,14 @@ import { site } from "@/data/site";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Si las tablas del Shop todavía no existen en esta base —la migración 002
   // va después del deploy—, el sitemap sale igual, sin las stampe.
-  const [slugs, prodotti] = await Promise.all([listSlugs(), listPubblicati().catch(() => [])]);
+  const [slugs, tutti, categorie] = await Promise.all([
+    listSlugs(),
+    listPubblicati().catch(() => []),
+    listCategorieVisibili(),
+  ]);
+  // I prodotti di una categoria ancora nascosta restano fuori con lei.
+  const visibili = new Set(categorie.map((c) => c.slug));
+  const prodotti = tutti.filter((p) => visibili.has(p.categoria));
 
   const pagine: MetadataRoute.Sitemap = [
     { url: site.url, changeFrequency: "weekly", priority: 1 },
@@ -46,8 +54,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Le categorie e i prodotti pubblicati. Le bozze non escono: listPubblicati
   // non le restituisce.
+  // Una categoria con un prodotto solo rimanda a quel prodotto: in sitemap
+  // va il prodotto, non un indirizzo che fa un redirect.
+  const quanti = new Map<string, number>();
+  for (const p of prodotti) quanti.set(p.categoria, (quanti.get(p.categoria) ?? 0) + 1);
+
   const shop: MetadataRoute.Sitemap = [
-    ...shopCategories.map((c) => ({
+    ...categorie.filter((c) => quanti.get(c.slug) !== 1).map((c) => ({
       url: `${site.url}/shop/${c.slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.5,

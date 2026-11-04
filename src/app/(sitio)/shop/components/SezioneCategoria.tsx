@@ -6,8 +6,9 @@ import type { Prodotto } from "@/lib/prodotti";
 import GrigliaProdotti from "./GrigliaProdotti";
 
 /**
- * Le stampe: il nome della sezione, la riga di nota se c'è, e la griglia.
- * Oggi è l'unica categoria con una lista; i due servizi hanno una pagina sola.
+ * Una categoria che si compra —le stampe, un calendario—: il nome della
+ * sezione, la riga di nota se c'è, e la griglia. I due servizi non passano
+ * di qui: hanno una pagina sola.
  *
  * Il nome va in display e non in maiuscoletto: qui non apre una lista
  * qualunque, apre una parte del negozio, e chi scorre la pagina deve sapere
@@ -75,7 +76,9 @@ export default function SezioneCategoria({
             <GrigliaProdotti prodotti={prodotti} eager={eager} />
           ) : (
             <p className="prose-measure text-sm leading-relaxed text-ink-faint">
-              Non ci sono ancora stampe in vendita.{" "}
+              {categoria.slug === "stampe"
+                ? "Non ci sono ancora stampe in vendita."
+                : "Non c’è ancora niente in vendita qui."}{" "}
               <Link
                 href={`/contatti?shop=${categoria.slug}`}
                 className="link-underline text-ink-soft transition-colors hover:text-ink"

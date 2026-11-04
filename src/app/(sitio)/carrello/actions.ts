@@ -6,7 +6,7 @@ import { site } from "@/data/site";
 import { prezzoScontato, scontoCodice } from "@/data/shop";
 import { cercaCodice, normalizzaCodice, type Ricerca } from "@/lib/codici";
 import { giornoLungo } from "@/lib/oggi";
-import { stampePerSlug } from "@/lib/prodotti";
+import { prodottiPerSlug } from "@/lib/prodotti";
 import { scontiInCorso } from "@/lib/sconti";
 import { apriPagamento, legaCheckout } from "@/lib/pagamento";
 import { pulisci, tariffaPer, validaSpedizione, type DatiSpedizione, type ErroriSpedizione } from "@/lib/spedizione";
@@ -44,11 +44,22 @@ function leggiRichiesta(crudo: unknown): Richiesta[] {
 /**
  * Le righe del carrello, rifatte contro la tabella: titolo, prezzo e
  * copertina sono quelli di adesso, non quelli di quando si è aggiunto. Una
- * stampa che non c'è più —tolta, tornata bozza, senza quel formato— esce.
+ * riga che non c'è più —tolta, tornata bozza, senza quel formato— esce.
  */
+/**
+ * La riga che SumUp mostra accanto all'incasso: «3 stampe» se sono tutte
+ * stampe, come sempre; «3 articoli» quando c'è dentro anche un calendario o
+ * altro, perché un calendario non è una stampa.
+ */
+function descriviCopie(voci: VoceCarrello[], copie: number): string {
+  const tutteStampe = voci.every((v) => (v.categoria ?? "stampe") === "stampe");
+  if (tutteStampe) return copie === 1 ? "1 stampa" : `${copie} stampe`;
+  return copie === 1 ? "1 articolo" : `${copie} articoli`;
+}
+
 async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
-  const [stampe, sconti] = await Promise.all([
-    stampePerSlug([...new Set(richiesta.map((r) => r.slug))]),
+  const [prodotti, sconti] = await Promise.all([
+    prodottiPerSlug([...new Set(richiesta.map((r) => r.slug))]),
     // Lo sconto si applica qui, e solo qui: è la stessa funzione che prepara
     // il carrello e il pagamento, quindi il prezzo scontato che si vede è
     // quello che SumUp addebita.
@@ -56,12 +67,13 @@ async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
   ]);
   const voci: VoceCarrello[] = [];
   for (const r of richiesta) {
-    const p = stampe.find((s) => s.slug === r.slug);
+    const p = prodotti.find((s) => s.slug === r.slug);
     const f = p?.formati.find((x) => x.formato === r.formato);
     if (!p || !f) continue;
     const portada = p.image[0];
     voci.push({
       slug: p.slug,
+      categoria: p.categoria,
       formato: f.formato,
       quantita: r.quantita,
       title: p.title,
@@ -238,7 +250,7 @@ export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagame
     const checkout = await creaCheckout({
       riferimento,
       totale,
-      descrizione: `${site.name} — ${copie === 1 ? "1 stampa" : `${copie} stampe`}`,
+      descrizione: `${site.name} — ${descriviCopie(voci, copie)}`,
       avviso: `${base}/api/sumup/webhook`,
       rientro: `${base}/carrello/grazie?r=${riferimento}`,
     });

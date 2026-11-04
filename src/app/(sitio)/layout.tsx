@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Statistiche from "@/components/Statistiche";
 import StructuredData from "@/components/StructuredData";
+import { listCategorieVisibili } from "@/lib/categorie";
 
 /**
  * Il sito pubblico: tutto quello che vede un visitatore.
@@ -21,7 +22,8 @@ import StructuredData from "@/components/StructuredData";
 */
 export const revalidate = 300;
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
+export default async function SiteLayout({ children }: { children: React.ReactNode }) {
+  const categorie = await listCategorieVisibili();
   return (
     <>
       <StructuredData />
@@ -35,7 +37,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       {/* Sopra il menu, e non dentro: quando si scende la cinta se ne va e il
           menu resta attaccato in cima come sempre. */}
       <CintaSconti />
-      <Header />
+      <Header categorie={categorie} />
       {/*
         Il sito non si sposta di lato. Qui niente si legge in orizzontale,
         quindi uno sbordo orizzontale non è mai contenuto: è l'avanzo di

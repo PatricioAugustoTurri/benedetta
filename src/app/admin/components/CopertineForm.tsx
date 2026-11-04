@@ -60,7 +60,7 @@ export default function CopertineForm({ porte, libreria }: { porte: Porta[]; lib
           )}
 
           {/* Le porte, come escono nella pagina /shop. */}
-          <ul className="mt-8 grid grid-cols-3 gap-3 md:gap-5">
+          <ul className="mt-8 grid grid-cols-3 gap-3 md:grid-cols-4 md:gap-5">
             {porte.map((p) => {
               const cat = p.categoria.slug;
               const scelta = sceltaDi(cat);
@@ -100,6 +100,7 @@ export default function CopertineForm({ porte, libreria }: { porte: Porta[]; lib
                   </button>
                   <span className="mt-0.5 flex flex-wrap items-baseline gap-x-2 text-xs text-ink-faint">
                     {scelta ? "Scelta da te" : "Di riserva"}
+                    {!p.categoria.visibile && <span>· nascosta</span>}
                     {scelta && (
                       <button
                         type="button"
