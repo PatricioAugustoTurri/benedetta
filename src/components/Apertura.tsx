@@ -2,16 +2,21 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { dipingi } from "./pennello";
 
 /**
- * L'apertura della home: un'illustrazione a piena pagina che si posa, resta
- * un momento e si alza come un telo sopra l'archivio.
+ * L'apertura della home: un'illustrazione a piena pagina che si dipinge a
+ * pennellate sul suo fondo, resta un momento e si alza come un telo sopra
+ * l'archivio.
  *
  * Tre fasi, scritte in `data-fase` e disegnate in globals.css:
  *   attesa  → arriva dal server: solo il fondo prugna dell'opera, l'immagine
  *             ancora invisibile. Niente parte finché l'immagine non è pronta,
  *             così non si vede mai un'opera che si carica a strisce.
- *   scena   → l'immagine compare e si assesta.
+ *   scena   → il pennello la stende sul fondo prugna (vedi `pennello.ts`),
+ *             cominciando dalla stella e dal viso; quando ha finito, il
+ *             colore «si chiude»: l'immagine vera sale sopra le pennellate e
+ *             copre le righe rimaste scoperte.
  *   uscita  → il telo sale e scopre la pagina; a fine corsa il nodo si toglie.
  *
  * Qualsiasi gesto —clic, tasto, rotella, tocco— porta subito all'uscita:
@@ -22,8 +27,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // stesso colore, così prima che l'immagine arrivi c'è già il suo spazio.
 const FONDO = "#533938";
 
-// Quanto resta l'opera prima di alzarsi, contato da quando compare.
-const SOSTA_MS = 1700;
+// Quanto dura la pittura, dalla prima all'ultima pennellata.
+const PITTURA_MS = 1600;
+// Quanto resta l'opera finita prima di alzarsi.
+const SOSTA_MS = 1100;
+// Con il movimento ridotto non si dipinge: compare e resta.
+const SOSTA_RIDOTTA_MS = 1700;
 // Se l'immagine non è pronta in questo tempo, il telo si alza lo stesso.
 const ATTESA_MAX_MS = 2500;
 
@@ -39,7 +48,11 @@ type Fase = "attesa" | "scena" | "uscita" | "finita";
 
 export default function Apertura() {
   const [fase, setFase] = useState<Fase>(() => (giaVista ? "finita" : "attesa"));
+  // «no» con il movimento ridotto: allora l'immagine compare e basta.
+  const [pennello, setPennello] = useState<"si" | "no">("si");
+  const [dipinta, setDipinta] = useState(false);
   const img = useRef<HTMLImageElement>(null);
+  const tela = useRef<HTMLCanvasElement>(null);
 
   const esci = useCallback(() => {
     setFase((f) => (f === "attesa" || f === "scena" ? "uscita" : f));
@@ -64,10 +77,35 @@ export default function Apertura() {
     return () => window.clearTimeout(t);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // In scena: si dipinge, e a pittura finita si conta la sosta.
   useEffect(() => {
     if (fase !== "scena") return;
-    const t = window.setTimeout(esci, SOSTA_MS);
-    return () => window.clearTimeout(t);
+    const ridotto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const el = img.current;
+    const canvas = tela.current;
+    if (ridotto || !el || !canvas) {
+      setPennello("no");
+      const t = window.setTimeout(esci, SOSTA_RIDOTTA_MS);
+      return () => window.clearTimeout(t);
+    }
+
+    // La stessa inquadratura dell'immagine in CSS: in verticale si sposta a
+    // sinistra per tenere dentro la mano con la stella.
+    const verticale = window.matchMedia("(max-aspect-ratio: 1/1)").matches;
+    let sosta = 0;
+    const ferma = dipingi(canvas, el, {
+      durata: PITTURA_MS,
+      posX: verticale ? 0.3 : 0.5,
+      posY: 0.3,
+      fine: () => {
+        setDipinta(true);
+        sosta = window.setTimeout(esci, SOSTA_MS);
+      },
+    });
+    return () => {
+      ferma();
+      window.clearTimeout(sosta);
+    };
   }, [fase, esci]);
 
   // Mentre l'opera è in scena la pagina sotto non scorre; qualsiasi gesto
@@ -88,7 +126,13 @@ export default function Apertura() {
   if (fase === "finita") return null;
 
   return (
-    <div className="apertura" data-fase={fase} aria-hidden="true">
+    <div
+      className="apertura"
+      data-fase={fase}
+      data-pennello={pennello}
+      data-dipinta={dipinta ? "si" : undefined}
+      aria-hidden="true"
+    >
       {/* Senza JavaScript non c'è niente che la faccia partire: si toglie. */}
       <noscript>
         <style>{".apertura{display:none}"}</style>
@@ -101,6 +145,7 @@ export default function Apertura() {
         }}
       >
         <div className="apertura__opera">
+          <canvas ref={tela} className="apertura__tela" />
           <Image
             ref={img}
             src="/instagram/3.jpg"

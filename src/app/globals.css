@@ -626,14 +626,18 @@ code {
 /* ---------------------------------------------------------------
    L'apertura della home — la muove <Apertura/>.
 
-   Un gesto solo: l'opera si posa, resta, e si alza come un telo
-   sopra l'archivio. Il bordo che sale porta il filetto terracotta,
+   Un gesto solo: l'opera si dipinge, resta, e si alza come un telo
+   sopra l'archivio. La pittura la fa un canvas (components/pennello.ts):
+   il pennello porta l'immagine stessa e la scopre a pennellate sul fondo
+   prugna, che è il colore del suo fondo. Finite le pennellate, l'immagine
+   vera sale sopra e chiude le righe rimaste scoperte. Il bordo che sale porta il filetto terracotta,
    lo stesso che apre ogni sezione: l'apertura finisce disegnando la
    prima riga del sistema, non un effetto a parte.
 
    Niente sfocatura, per la stessa ragione per cui è stata tolta
    dall'entrata della griglia: un'illustrazione sfocata per mezzo
-   secondo sembra fatta male. Si assesta per scala, da 1.08 a 1.
+   secondo sembra fatta male. E niente scala: un quadro che si sta
+   dipingendo non si muove.
 
    Il telo si ritaglia con `clip-path`, che taglia anche il clic: la
    parte di pagina già scoperta si può toccare mentre il resto sale.
@@ -666,12 +670,18 @@ code {
   inset: 0;
 }
 
+.apertura__tela {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .apertura__immagine {
   object-fit: cover;
   /* Il quadrato tagliato in orizzontale tiene la stella e il viso. */
   object-position: 50% 30%;
   opacity: 0;
-  scale: 1.08;
 }
 
 /*
@@ -699,15 +709,22 @@ code {
   background: var(--color-accent);
 }
 
-/* In scena: compare in meno di un secondo, si assesta in due e mezzo. */
 .apertura[data-fase="scena"] .apertura__telo {
   animation: none;
 }
 
-.apertura:is([data-fase="scena"], [data-fase="uscita"]) .apertura__immagine {
-  animation:
-    apertura-luce 850ms var(--ease-out-soft) forwards,
-    apertura-posa 2400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/*
+  A pittura finita il colore si chiude: l'immagine sale sopra le pennellate
+  in poco più di mezzo secondo, abbastanza piano da sembrare il colore che
+  si asciuga e non una foto che si sostituisce al disegno.
+*/
+.apertura[data-dipinta] .apertura__immagine {
+  animation: apertura-luce 650ms var(--ease-out-soft) forwards;
+}
+
+/* Senza pennello —movimento ridotto— l'immagine compare e basta. */
+.apertura[data-pennello="no"]:is([data-fase="scena"], [data-fase="uscita"]) .apertura__immagine {
+  animation: apertura-luce 850ms var(--ease-out-soft) forwards;
 }
 
 /*
@@ -731,12 +748,6 @@ code {
 @keyframes apertura-luce {
   to {
     opacity: 1;
-  }
-}
-
-@keyframes apertura-posa {
-  to {
-    scale: 1;
   }
 }
 
@@ -784,10 +795,6 @@ code {
 */
 @layer base {
   @media (prefers-reduced-motion: reduce) {
-    .apertura__immagine {
-      scale: 1;
-    }
-
     .apertura:is([data-fase="scena"], [data-fase="uscita"]) .apertura__immagine {
       animation: apertura-luce 450ms ease-out forwards !important;
     }
