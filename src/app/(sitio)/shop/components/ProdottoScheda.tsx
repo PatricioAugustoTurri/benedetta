@@ -51,6 +51,7 @@ export default function ProdottoScheda({
           categoria={prodotto.categoria}
           title={prodotto.title}
           formati={prodotto.formati}
+          colori={prodotto.colori}
           immagine={
             portada
               ? {

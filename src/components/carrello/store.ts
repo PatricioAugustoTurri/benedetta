@@ -20,6 +20,11 @@ export type VoceCarrello = {
    */
   categoria?: string;
   formato: string;
+  /**
+   * Il colore scelto, se il prodotto ne ha: la copertina del calendario. La
+   * stessa cosa in due colori sono due righe, come in due formati.
+   */
+  colore?: string;
   quantita: number;
   title: string;
   /** Centesimi, per copia. */
@@ -76,6 +81,7 @@ function valida(v: unknown): v is VoceCarrello {
   return (
     typeof r.slug === "string" &&
     typeof r.formato === "string" &&
+    (r.colore === undefined || typeof r.colore === "string") &&
     typeof r.title === "string" &&
     Number.isInteger(r.quantita) &&
     (r.quantita as number) > 0 &&
@@ -134,8 +140,11 @@ export function totaleCarrello(voci: VoceCarrello[]): number {
   return voci.reduce((n, v) => n + v.prezzo * v.quantita, 0);
 }
 
-const stessa = (v: VoceCarrello, slug: string, formato: string) =>
-  v.slug === slug && v.formato === formato;
+/** Quello che fa di due righe la stessa riga: prodotto, formato e colore. */
+export type Chiave = Pick<VoceCarrello, "slug" | "formato" | "colore">;
+
+const stessa = (v: VoceCarrello, k: Chiave) =>
+  v.slug === k.slug && v.formato === k.formato && (v.colore ?? "") === (k.colore ?? "");
 
 /**
  * Aggiunge una copia. Se la stampa in quel formato c'è già, ne aumenta la
@@ -144,12 +153,12 @@ const stessa = (v: VoceCarrello, slug: string, formato: string) =>
  */
 export function aggiungi(voce: Omit<VoceCarrello, "quantita">): boolean {
   const lista = leggi();
-  const presente = lista.find((v) => stessa(v, voce.slug, voce.formato));
+  const presente = lista.find((v) => stessa(v, voce));
   if (presente && presente.quantita >= MAX_QUANTITA) return false;
   scrivi(
     presente
       ? lista.map((v) =>
-          stessa(v, voce.slug, voce.formato)
+          stessa(v, voce)
             ? { ...v, ...voce, quantita: Math.min(v.quantita + 1, MAX_QUANTITA) }
             : v,
         )
@@ -173,13 +182,13 @@ export type DettaglioAggiunto = { nuova: boolean };
  * 1 non toglie la stampa: per quello c'è «Togli», che è un gesto deciso e non
  * un clic di troppo sul meno.
  */
-export function cambiaQuantita(slug: string, formato: string, quantita: number) {
+export function cambiaQuantita(k: Chiave, quantita: number) {
   const giusta = Math.min(Math.max(quantita, 1), MAX_QUANTITA);
-  scrivi(leggi().map((v) => (stessa(v, slug, formato) ? { ...v, quantita: giusta } : v)));
+  scrivi(leggi().map((v) => (stessa(v, k) ? { ...v, quantita: giusta } : v)));
 }
 
-export function togli(slug: string, formato: string) {
-  scrivi(leggi().filter((v) => !stessa(v, slug, formato)));
+export function togli(k: Chiave) {
+  scrivi(leggi().filter((v) => !stessa(v, k)));
 }
 
 /** Sostituisce tutto: lo usa il carrello quando il server ha riconfermato le righe. */

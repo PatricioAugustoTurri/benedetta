@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { site } from "@/data/site";
 import type { DatiContatto } from "@/lib/contacto";
 import { annuncioNovita } from "@/data/newsletter";
-import { prezzo } from "@/data/shop";
+import { prezzo, variante } from "@/data/shop";
 import type { Codice } from "@/lib/codici";
 import { giornoLungo, oggiInItalia } from "@/lib/oggi";
 import type { Ordine } from "@/lib/prodotti";
@@ -299,7 +299,7 @@ function testoOrdine(o: Ordine, per: "lei" | "cliente"): string {
       : `Ciao${o.nome ? ` ${o.nome}` : ""},\n\ngrazie! Il tuo ordine #${o.id} è arrivato e il pagamento è andato a buon fine.`,
     "",
     ...o.righe.map(
-      (r) => `${r.quantita} × ${r.title} — ${r.formato}  ${prezzo(r.prezzo * r.quantita)}`,
+      (r) => `${r.quantita} × ${r.title} — ${variante(r)}  ${prezzo(r.prezzo * r.quantita)}`,
     ),
     "",
     `Subtotale:   ${prezzo(o.subtotale)}`,
@@ -327,7 +327,7 @@ function htmlOrdine(o: Ordine, per: "lei" | "cliente"): string {
     .map((r) =>
       riga(
         `${r.quantita} ×`,
-        `${esc(r.title)} <span style="color:${C.inkFaint};">— ${esc(r.formato)}</span><span style="float:right;">${esc(prezzo(r.prezzo * r.quantita))}</span>`,
+        `${esc(r.title)} <span style="color:${C.inkFaint};">— ${esc(variante(r))}</span><span style="float:right;">${esc(prezzo(r.prezzo * r.quantita))}</span>`,
       ),
     )
     .join("");
@@ -707,7 +707,7 @@ export async function avvisaSpedizione(o: Ordine, biglietto: Codice | null = nul
 
   const voci = o.righe
     .map((r) =>
-      riga(`${r.quantita} ×`, `${esc(r.title)} <span style="color:${C.inkFaint};">— ${esc(r.formato)}</span>`),
+      riga(`${r.quantita} ×`, `${esc(r.title)} <span style="color:${C.inkFaint};">— ${esc(variante(r))}</span>`),
     )
     .join("");
 
@@ -760,7 +760,7 @@ ${firma()}
       `la tua stampa è partita oggi${o.corriere ? ` con ${o.corriere}` : ""}: l’ho stampata e imballata io, e adesso è in viaggio verso di te.`,
       "",
       ...(o.tracking ? [`Numero di spedizione${o.corriere ? ` (${o.corriere})` : ""}: ${o.tracking}`, ""] : []),
-      ...o.righe.map((r) => `${r.quantita} × ${r.title} — ${r.formato}`),
+      ...o.righe.map((r) => `${r.quantita} × ${r.title} — ${variante(r)}`),
       "",
       "Arriva a:",
       ...indirizzoInRighe(o),

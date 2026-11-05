@@ -99,6 +99,52 @@ export const FORMATI_BASE: Formato[] = [
   { formato: "A3", prezzo: 3000 },
 ];
 
+/* -------------------------------------------------------------- colori */
+
+/**
+ * Un colore in cui si sceglie il prodotto: la copertina del calendario.
+ *
+ * Non cambia il prezzo —quello resta del formato— e per questo è una scelta
+ * a parte e non un formato in più: «A4 verde» e «A4 rosso» costano uguale, e
+ * chi sceglie deve vedere due domande, non dieci righe di listino.
+ */
+export type Colore = {
+  /** Come si chiama, in italiano: «Verde». È quello che resta nell'ordine. */
+  nome: string;
+  /** Il campione che si vede nella scheda, in esadecimale: «#5c7a4a». */
+  tinta: string;
+};
+
+/**
+ * I cinque colori della copertina del Calendario 2027, come li ha dati la
+ * cliente (2026-11-05): verde, rosso, celeste, viola, giallo.
+ *
+ * Le tinte sono una proposta, non quelle della stampa: lei le corregge dal
+ * modulo del prodotto perché il campione somigli alla copertina vera.
+ */
+export const COLORI_CALENDARIO: Colore[] = [
+  { nome: "Verde", tinta: "#5e7d4f" },
+  { nome: "Rosso", tinta: "#b5402f" },
+  { nome: "Celeste", tinta: "#8ec3dc" },
+  { nome: "Viola", tinta: "#7b5d9c" },
+  { nome: "Giallo", tinta: "#e4b93e" },
+];
+
+/**
+ * Quello che si è scelto, in una riga: «Da muro A4 · Copertina: verde».
+ * Lo usano carrello, cassa, mail e ordini, così si legge uguale ovunque.
+ */
+export function variante(v: { formato: string; colore?: string | null }): string {
+  // «Copertina: giallo» e non «Copertina giallo»: copertina è femminile e il
+  // nome del colore no, quindi l'etichetta con i due punti regge con tutti.
+  return v.colore ? `${v.formato} · Copertina: ${v.colore.toLowerCase()}` : v.formato;
+}
+
+/** Per le `key` di React e per confrontare righe del carrello: «slug|formato|colore». */
+export function chiaveVoce(k: { slug: string; formato: string; colore?: string | null }): string {
+  return `${k.slug}|${k.formato}|${k.colore ?? ""}`;
+}
+
 const euro = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" });
 const euroTondo = new Intl.NumberFormat("it-IT", {
   style: "currency",

@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useActionState, useId, useMemo, useState } from "react";
 import { Plus, Trash } from "@/components/Icon";
-import { FORMATI_BASE, prezzo, type Formato, type ShopCategory } from "@/data/shop";
+import {
+  COLORI_CALENDARIO,
+  FORMATI_BASE,
+  prezzo,
+  type Colore,
+  type Formato,
+  type ShopCategory,
+} from "@/data/shop";
 import { MAX_ARCHIVO_MB, MAX_VIDEO_MB } from "@/lib/limites";
 import type { Prodotto } from "@/lib/prodotti";
 import type { EstadoFormulario } from "../actions";
@@ -29,6 +36,11 @@ const aRiga = (f: Formato, i: number): RigaFormato => ({
   formato: f.formato,
   euro: (f.prezzo / 100).toLocaleString("it-IT", { maximumFractionDigits: 2 }),
 });
+
+/** Una riga dei colori nel modulo. */
+type RigaColore = Colore & { key: string };
+
+const aRigaColore = (c: Colore, i: number): RigaColore => ({ key: `c-${i}-${c.nome}`, ...c });
 
 /** «15,50» → 1550. Quello che non è un numero diventa 0, e il server lo rifiuta con un messaggio. */
 function aCentesimi(euro: string): number {
@@ -80,6 +92,18 @@ export default function ProdottoForm({
         : [{ key: "f-0", formato: "", euro: "" }],
   );
 
+  const [colori, setColori] = useState<RigaColore[]>(() =>
+    // Un calendario nuovo arriva con i cinque colori già scritti, come una
+    // stampa nuova arriva con il listino di base.
+    (prodotto ? prodotto.colori : iniziale.slug === "calendario-2027" ? COLORI_CALENDARIO : []).map(aRigaColore),
+  );
+  const coloriJson = useMemo(
+    () => JSON.stringify(colori.map(({ nome, tinta }) => ({ nome, tinta }))),
+    [colori],
+  );
+  const cambiaColore = (key: string, cambio: Partial<RigaColore>) =>
+    setColori((cs) => cs.map((c) => (c.key === key ? { ...c, ...cambio } : c)));
+
   const [statoImmagini, setStatoImmagini] = useState<StatoImmagini>({
     subiendo: false,
     falladas: 0,
@@ -108,6 +132,7 @@ export default function ProdottoForm({
     <form action={enviar} className="grid gap-12 md:grid-cols-12 md:gap-16">
       {prodotto && <input type="hidden" name="id" value={prodotto.id} />}
       <input type="hidden" name="formati" value={formatiJson} />
+      <input type="hidden" name="colori" value={coloriJson} />
       {categorie.length < 2 && <input type="hidden" name="categoria" value={categoria.slug} />}
 
       <div className="md:col-span-7">
@@ -319,6 +344,87 @@ export default function ProdottoForm({
             </div>
           )}
         </div>
+
+        {/* -------------------------------------------------------- colori */}
+        {/*
+          Le stampe non si scelgono in colori: la sezione esce solo fuori da
+          Stampe, o se una stampa ne ha già —per poterli togliere—.
+        */}
+        {(!stampa || colori.length > 0) && (
+          <div className="mt-12 border-t border-line pt-8">
+            <h2 className="label text-ink">Colori della copertina</h2>
+            <p className="mt-1.5 max-w-[46ch] text-xs leading-relaxed text-ink-faint">
+              Se ci sono, chi compra sceglie il colore oltre al formato. Non cambiano il prezzo.
+              Tocca il cerchio per avvicinare la tinta a quella vera: è il campione che si vede
+              nella scheda.
+            </p>
+
+            {colori.length > 0 && (
+              <ul className="mt-5 border-t border-line">
+                {colori.map((c, i) => (
+                  <li key={c.key} className="flex items-center gap-4 border-b border-line py-2.5">
+                    <label
+                      title="Cambia la tinta"
+                      className="relative block h-7 w-7 shrink-0 cursor-pointer rounded-full shadow-[inset_0_0_0_1px_rgb(28_26_22/0.14)] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent"
+                      style={{ backgroundColor: c.tinta }}
+                    >
+                      <span className="sr-only">Tinta di {c.nome || `colore ${i + 1}`}</span>
+                      <input
+                        type="color"
+                        value={c.tinta}
+                        onChange={(e) => cambiaColore(c.key, { tinta: e.target.value })}
+                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                      />
+                    </label>
+                    <input
+                      value={c.nome}
+                      onChange={(e) => cambiaColore(c.key, { nome: e.target.value })}
+                      aria-label={`Nome del colore ${i + 1}`}
+                      placeholder="Verde"
+                      className={`${CONTROL} min-w-0 flex-1 border-transparent py-1.5 text-sm`}
+                    />
+                    <span className="figures hidden text-xs uppercase tracking-[0.04em] text-ink-faint sm:inline">
+                      {c.tinta}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setColori((cs) => cs.filter((x) => x.key !== c.key))}
+                      title="Togli"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center text-ink-faint transition-colors hover:text-accent"
+                    >
+                      <span className="sr-only">Togli il colore {c.nome}</span>
+                      <Trash size={15} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setColori((cs) => [...cs, { key: `c-${Date.now()}`, nome: "", tinta: "#8a8178" }])
+                }
+                className="inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
+              >
+                <Plus size={15} />
+                <span className="link-underline">Aggiungi un colore</span>
+              </button>
+              {colori.length === 0 && (
+                <button
+                  type="button"
+                  onClick={() => setColori(COLORI_CALENDARIO.map(aRigaColore))}
+                  className="text-xs text-ink-faint transition-colors hover:text-ink"
+                >
+                  <span className="link-underline">
+                    Usa i cinque del calendario ({COLORI_CALENDARIO.map((c) => c.nome).join(", ")})
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ------------------------------------------------------- immagini */}
         <CampoImmagini

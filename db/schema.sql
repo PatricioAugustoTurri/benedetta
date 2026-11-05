@@ -258,6 +258,22 @@ CREATE TABLE prodotti (
                 ELSE true END
               ),
 
+  -- I colori in cui si sceglie, in ordine: [{ "nome": "Verde", "tinta": "#5e7d4f" }].
+  -- La copertina del calendario. Non cambiano il prezzo, quindi non sono
+  -- formati; vuoto, chi compra non sceglie niente. Vedi la migrazione 014.
+  colori      jsonb       NOT NULL DEFAULT '[]'::jsonb
+              CONSTRAINT prodotti_colori_es_arreglo CHECK (jsonb_typeof(colori) = 'array')
+              CONSTRAINT prodotti_colori_validi CHECK (
+                CASE WHEN jsonb_typeof(colori) = 'array' THEN
+                  jsonb_array_length(
+                    jsonb_path_query_array(
+                      colori,
+                      '$[*] ? (@.nome.type() == "string" && @.tinta.type() == "string" && @.tinta like_regex "^#[0-9a-f]{6}$")'
+                    )
+                  ) = jsonb_array_length(colori)
+                ELSE true END
+              ),
+
   -- Da quale opera dell'archivio esce la stampa, se esce da una. La pagina
   -- dell'opera allora dice «Disponibile come stampa», e la stampa rimanda
   -- all'originale. ON UPDATE CASCADE perché lei può rinominare l'opera; ON

@@ -7,7 +7,7 @@ import { vaiAlPagamento, verificaCodice } from "@/app/(sitio)/carrello/actions";
 import { AZIONE } from "@/components/azione";
 import { ArrowLeft, ArrowRight, ChevronDown } from "@/components/Icon";
 import { legaliPronte } from "@/data/legale";
-import { prezzo, scontoCodice } from "@/data/shop";
+import { chiaveVoce, prezzo, scontoCodice, variante } from "@/data/shop";
 import { site } from "@/data/site";
 import {
   DATI_VUOTI,
@@ -225,7 +225,7 @@ export default function CassaVista({ inProva }: { inProva: boolean }) {
       let esito: Awaited<ReturnType<typeof vaiAlPagamento>>;
       try {
         esito = await vaiAlPagamento({
-          voci: voci.map(({ slug, formato, quantita }) => ({ slug, formato, quantita })),
+          voci: voci.map(({ slug, formato, colore, quantita }) => ({ slug, formato, colore, quantita })),
           codice: codice?.codice ?? "",
           dati,
         });
@@ -300,7 +300,7 @@ export default function CassaVista({ inProva }: { inProva: boolean }) {
 
               <ul className="mt-8 md:mt-10">
                 {voci.map((v) => (
-                  <Stampa key={`${v.slug}|${v.formato}`} voce={v} />
+                  <Stampa key={chiaveVoce(v)} voce={v} />
                 ))}
               </ul>
 
@@ -461,7 +461,7 @@ function Stampa({ voce: v }: { voce: VoceCarrello }) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm text-ink">{v.title}</p>
         <p className="mt-0.5 text-xs text-ink-faint">
-          {v.formato}
+          {variante(v)}
           <span aria-hidden="true"> · </span>
           {v.quantita === 1 ? "1 copia" : `${v.quantita} copie da ${prezzo(v.prezzo)}`}
         </p>

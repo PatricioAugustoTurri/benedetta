@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { prezzo } from "@/data/shop";
+import { prezzo, variante } from "@/data/shop";
 import { richiediAccesso } from "@/lib/auth";
 import { bigliettiPerOrdine, type Codice } from "@/lib/codici";
 import { oggiInItalia } from "@/lib/oggi";
@@ -244,7 +244,7 @@ function Voce({
             <li key={i} className="flex items-baseline justify-between gap-4">
               <span>
                 <span className="figures text-ink-faint">{r.quantita} ×</span> {r.title}{" "}
-                <span className="text-ink-faint">— {r.formato}</span>
+                <span className="text-ink-faint">— {variante(r)}</span>
               </span>
               <span className="figures shrink-0 text-ink-soft">{prezzo(r.prezzo * r.quantita)}</span>
             </li>

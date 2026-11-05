@@ -89,6 +89,12 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
     borran. La primera fue **Calendario 2027**, que entra oculta con la
     migración 013. «Stampata su ordinazione» sólo lo dicen las stampe: de los
     calendarios no se sabe todavía cómo se imprimen.
+  - **Colores** (2026-11-05): un producto puede elegirse en colores además del
+    formato (columna `prodotti.colori`, migración 014). Es la portada del
+    Calendario 2027: verde, rosso, celeste, viola, giallo. El color no cambia
+    el precio, va en la línea del carrito y del pedido («Da muro A4 · Copertina:
+    verde») y se ve en mails, `/admin/ordini` y la exportación. Las tintas de
+    los círculos son una propuesta: ella las corrige desde el producto.
   - **Illustrazioni Personalizzate** y **Ritratti Illustrati** no son productos: son
     dos servicios, uno cada uno y siempre los mismos (tabla `servizi`, dos filas
     fijas). Una página que se lee —de qué se trata, cómo funciona, ejemplos— y lleva a

@@ -1,4 +1,5 @@
 import { isAuthenticated } from "@/lib/auth";
+import { variante } from "@/data/shop";
 import { listOrdini } from "@/lib/prodotti";
 
 /**
@@ -37,7 +38,7 @@ export async function GET() {
     o.indirizzo.city ?? "",
     o.indirizzo.state ?? "",
     o.indirizzo.country ?? "",
-    o.righe.map((r) => `${r.quantita} × ${r.title} (${r.formato})`).join(" | "),
+    o.righe.map((r) => `${r.quantita} × ${r.title} (${variante(r)})`).join(" | "),
     euro(o.subtotale),
     euro(o.sconto),
     o.codice ?? "",

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { esServizio, type Formato } from "@/data/shop";
+import { esServizio, type Colore, type Formato } from "@/data/shop";
 import { requireSession } from "@/lib/auth";
 import {
   aggiornaCategoria,
@@ -70,6 +70,36 @@ function leggiFormati(crudo: string): Formato[] | string {
   return formati;
 }
 
+/**
+ * I colori come li manda il modulo: nome e tinta. Vuoto vale: vuol dire che
+ * chi compra non sceglie un colore. Anche qui il CHECK del database c'è già,
+ * e anche qui si dice in parole cosa correggere.
+ */
+function leggiColori(crudo: string): Colore[] | string {
+  let lista: unknown;
+  try {
+    lista = JSON.parse(crudo);
+  } catch {
+    return "I colori non si sono capiti.";
+  }
+  if (!Array.isArray(lista)) return "I colori sono arrivati male.";
+
+  const visti = new Set<string>();
+  const colori: Colore[] = [];
+  for (const [i, c] of lista.entries()) {
+    const n = i + 1;
+    const nome = typeof c?.nome === "string" ? c.nome.trim() : "";
+    const tinta = typeof c?.tinta === "string" ? c.tinta.trim().toLowerCase() : "";
+    if (nome.length === 0) return `Al colore ${n} manca il nome: «Verde», «Celeste».`;
+    if (nome.length > 30) return `Il nome del colore ${n} è troppo lungo.`;
+    if (visti.has(nome.toLowerCase())) return `Il colore «${nome}» c’è due volte.`;
+    if (!/^#[0-9a-f]{6}$/.test(tinta)) return `La tinta di «${nome}» non si è capita. Sceglila di nuovo.`;
+    visti.add(nome.toLowerCase());
+    colori.push({ nome, tinta });
+  }
+  return colori;
+}
+
 export async function guardaProdotto(
   _previo: EstadoFormulario,
   formData: FormData,
@@ -105,6 +135,9 @@ export async function guardaProdotto(
         : "Serve almeno un formato con il suo prezzo: senza, non si può comprare.",
     };
   }
+
+  const colori = leggiColori(String(formData.get("colori") ?? "[]"));
+  if (typeof colori === "string") return { error: colori };
 
   // «Dall'opera» è delle stampe: è quello che fa dire alla pagina dell'opera
   // «Disponibile come stampa».
@@ -146,6 +179,7 @@ export async function guardaProdotto(
     description: descripcion.length > 0 ? descripcion : null,
     image: imagenes,
     formati,
+    colori,
     operaSlug,
     mockup,
     pubblicato,

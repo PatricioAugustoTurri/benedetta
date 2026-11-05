@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AZIONE } from "@/components/azione";
 import { ArrowRight, Meno, Plus } from "@/components/Icon";
-import { prezzo, prodottoHref } from "@/data/shop";
+import { chiaveVoce, prezzo, prodottoHref, variante } from "@/data/shop";
 import { tariffeSpedizione } from "@/lib/spedizione";
 import { Conto } from "./Conti";
 import { cambiaQuantita, MAX_QUANTITA, togli, totaleCarrello, type VoceCarrello } from "./store";
@@ -57,7 +57,7 @@ export default function CarrelloVista() {
 
         <ul className="border-t border-line">
           {voci.map((v) => (
-            <Riga key={`${v.slug}|${v.formato}`} voce={v} />
+            <Riga key={chiaveVoce(v)} voce={v} />
           ))}
         </ul>
       </div>
@@ -124,7 +124,7 @@ function Riga({ voce: v }: { voce: VoceCarrello }) {
               {v.title}
             </Link>
             <p className="mt-1 text-sm text-ink-soft">
-              {v.formato}
+              {variante(v)}
               <span aria-hidden="true"> · </span>
               <span className="figures">{prezzo(v.prezzo)}</span>
             </p>
@@ -133,10 +133,10 @@ function Riga({ voce: v }: { voce: VoceCarrello }) {
         </div>
 
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center" role="group" aria-label={`Copie di ${v.title}, ${v.formato}`}>
+          <div className="flex items-center" role="group" aria-label={`Copie di ${v.title}, ${variante(v)}`}>
             <button
               type="button"
-              onClick={() => cambiaQuantita(v.slug, v.formato, v.quantita - 1)}
+              onClick={() => cambiaQuantita(v, v.quantita - 1)}
               disabled={v.quantita <= 1}
               className="flex h-8 w-8 items-center justify-center border border-line text-ink-soft transition-colors hover:border-ink-faint hover:text-ink disabled:opacity-40"
             >
@@ -151,7 +151,7 @@ function Riga({ voce: v }: { voce: VoceCarrello }) {
             </output>
             <button
               type="button"
-              onClick={() => cambiaQuantita(v.slug, v.formato, v.quantita + 1)}
+              onClick={() => cambiaQuantita(v, v.quantita + 1)}
               disabled={v.quantita >= MAX_QUANTITA}
               className="flex h-8 w-8 items-center justify-center border border-line text-ink-soft transition-colors hover:border-ink-faint hover:text-ink disabled:opacity-40"
             >
@@ -162,7 +162,7 @@ function Riga({ voce: v }: { voce: VoceCarrello }) {
 
           <button
             type="button"
-            onClick={() => togli(v.slug, v.formato)}
+            onClick={() => togli(v)}
             className="text-xs text-ink-faint transition-colors hover:text-accent"
           >
             <span className="link-underline">Togli</span>

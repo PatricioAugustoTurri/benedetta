@@ -3,7 +3,7 @@
 import { origine } from "@/lib/origine";
 import type { VoceCarrello } from "@/components/carrello/store";
 import { site } from "@/data/site";
-import { prezzoScontato, scontoCodice } from "@/data/shop";
+import { chiaveVoce, prezzoScontato, scontoCodice } from "@/data/shop";
 import { cercaCodice, normalizzaCodice, type Ricerca } from "@/lib/codici";
 import { giornoLungo } from "@/lib/oggi";
 import { prodottiPerSlug } from "@/lib/prodotti";
@@ -18,7 +18,7 @@ const MAX_QUANTITA = 10;
 const MAX_RIGHE = 30;
 
 /** Quello che il browser dice di avere nel carrello. Solo questo si legge: il resto si ricalcola. */
-type Richiesta = { slug: string; formato: string; quantita: number };
+type Richiesta = { slug: string; formato: string; colore?: string; quantita: number };
 
 /*
   Il carrello arriva dal browser, quindi da qualsiasi parte: si controlla la
@@ -35,16 +35,24 @@ function leggiRichiesta(crudo: unknown): Richiesta[] {
         r !== null &&
         typeof (r as Richiesta).slug === "string" &&
         typeof (r as Richiesta).formato === "string" &&
+        ((r as Richiesta).colore === undefined || typeof (r as Richiesta).colore === "string") &&
         Number.isInteger((r as Richiesta).quantita) &&
         (r as Richiesta).quantita > 0,
     )
-    .map((r) => ({ ...r, quantita: Math.min(r.quantita, MAX_QUANTITA) }));
+    .map((r) => ({
+      slug: r.slug,
+      formato: r.formato,
+      colore: r.colore,
+      quantita: Math.min(r.quantita, MAX_QUANTITA),
+    }));
 }
 
 /**
  * Le righe del carrello, rifatte contro la tabella: titolo, prezzo e
  * copertina sono quelli di adesso, non quelli di quando si è aggiunto. Una
- * riga che non c'è più —tolta, tornata bozza, senza quel formato— esce.
+ * riga che non c'è più —tolta, tornata bozza, senza quel formato o quel
+ * colore— esce. Anche una senza colore di un prodotto che si sceglie in
+ * colori: non si indovina per chi compra quale copertina voleva.
  */
 /**
  * La riga che SumUp mostra accanto all'incasso: «3 stampe» se sono tutte
@@ -70,11 +78,14 @@ async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
     const p = prodotti.find((s) => s.slug === r.slug);
     const f = p?.formati.find((x) => x.formato === r.formato);
     if (!p || !f) continue;
+    const colore = p.colori.length > 0 ? p.colori.find((c) => c.nome === r.colore) : null;
+    if (colore === undefined) continue;
     const portada = p.image[0];
     voci.push({
       slug: p.slug,
       categoria: p.categoria,
       formato: f.formato,
+      ...(colore ? { colore: colore.nome } : {}),
       quantita: r.quantita,
       title: p.title,
       prezzo: prezzoScontato(f.prezzo, sconti.get(p.id)?.percentuale),
@@ -100,13 +111,13 @@ export async function verificaCarrello(
   const lette = leggiRichiesta(richiesta);
   const voci = await rifai(lette);
   const prima = new Map(
-    (richiesta as Partial<VoceCarrello>[]).map((r) => [`${r.slug}|${r.formato}`, r.prezzo]),
+    (richiesta as VoceCarrello[]).map((r) => [chiaveVoce(r), r.prezzo]),
   );
   return {
     voci,
     tolte: lette.length - voci.length,
     prezziCambiati: voci.some((v) => {
-      const p = prima.get(`${v.slug}|${v.formato}`);
+      const p = prima.get(chiaveVoce(v));
       return typeof p === "number" && p !== v.prezzo;
     }),
   };
@@ -236,6 +247,7 @@ export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagame
         slug: v.slug,
         title: v.title,
         formato: v.formato,
+        ...(v.colore ? { colore: v.colore } : {}),
         prezzo: v.prezzo,
         quantita: v.quantita,
       })),
