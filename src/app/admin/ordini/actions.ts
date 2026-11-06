@@ -10,8 +10,17 @@ import {
   fissaScadenza,
   normalizzaCodice,
 } from "@/lib/codici";
-import { avvisaSpedizione, correoConfigurado } from "@/lib/correo";
-import { getOrdine, rimettiDaSpedire, segnaAvvisato, segnaRimborsato, segnaSpedito, type Ordine } from "@/lib/prodotti";
+import { avvisaPronto, avvisaSpedizione, correoConfigurado } from "@/lib/correo";
+import {
+  getOrdine,
+  rimettiDaSpedire,
+  segnaAvvisato,
+  segnaPronto,
+  segnaRimborsato,
+  segnaRitirato,
+  segnaSpedito,
+  type Ordine,
+} from "@/lib/prodotti";
 import { rimborsaCheckout, sumupConfigurato } from "@/lib/sumup";
 
 export type EsitoSpedizione = { error?: string; fatto?: string };
@@ -57,6 +66,53 @@ export async function spedisciOrdine(
   return { fatto: "Segnato come spedito." };
 }
 
+/**
+ * Un ordine da ritirare è pronto: lo segna e, se lei lo lascia spuntato,
+ * scrive a chi ha comprato che può passare. Come per la spedizione, se la
+ * mail non parte l'ordine resta pronto e la riga lo dice, con il modo di
+ * riprovare.
+ */
+export async function prontoAzione(_previo: EsitoSpedizione, formData: FormData): Promise<EsitoSpedizione> {
+  await requireSession();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return { error: "Ordine non valido." };
+  const ordine = await segnaPronto(id);
+  revalidatePath("/admin", "layout");
+  if (!ordine) return { error: "Questo ordine era già pronto, ritirato o rimborsato." };
+  if (formData.get("avvisa") === "on") await avvisaRitiro(ordine);
+  revalidatePath("/admin/ordini");
+  return { fatto: "Segnato come pronto." };
+}
+
+/**
+ * Chi ha comprato è passato a prenderlo. Non scrive a nessuno: l'ha in
+ * mano, con il biglietto dentro. Il biglietto comincia a contare da oggi,
+ * come da una spedizione.
+ */
+export async function ritiratoAzione(_previo: EsitoSpedizione, formData: FormData): Promise<EsitoSpedizione> {
+  await requireSession();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return { error: "Ordine non valido." };
+  const ordine = await segnaRitirato(id);
+  revalidatePath("/admin", "layout");
+  if (!ordine) return { error: "Questo ordine era già ritirato o rimborsato." };
+  await fissaScadenza(id).catch((e) => console.error("Ordini: scadenza del biglietto non fissata.", e));
+  return { fatto: "Segnato come ritirato." };
+}
+
+/** Manda la mail «è pronto» e, se parte, lo segna nell'ordine. */
+async function avvisaRitiro(ordine: Ordine): Promise<boolean> {
+  if (!correoConfigurado()) return false;
+  try {
+    await avvisaPronto(ordine);
+    await segnaAvvisato(ordine.id);
+    return true;
+  } catch (e) {
+    console.error("Ordini: la mail «pronto da ritirare» non è partita.", e);
+    return false;
+  }
+}
+
 /** Manda la mail di spedizione e, se parte, lo segna nell'ordine. */
 async function avvisa(ordine: Ordine): Promise<boolean> {
   if (!correoConfigurado()) return false;
@@ -73,14 +129,18 @@ async function avvisa(ordine: Ordine): Promise<boolean> {
   }
 }
 
-/** Riprova la mail di spedizione di un ordine già spedito. */
+/** Riprova la mail di spedizione di un ordine già spedito, o quella «è pronto» di un ritiro pronto. */
 export async function riavvisaAzione(formData: FormData): Promise<void> {
   await requireSession();
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id)) return;
   const ordine = await getOrdine(id);
-  if (!ordine || ordine.stato !== "spedito") return;
-  await avvisa(ordine);
+  if (!ordine) return;
+  if (ordine.consegna === "ritiro") {
+    if (ordine.stato === "pagato" && ordine.pronto) await avvisaRitiro(ordine);
+  } else if (ordine.stato === "spedito") {
+    await avvisa(ordine);
+  }
   revalidatePath("/admin/ordini");
 }
 

@@ -22,13 +22,15 @@ export async function GET() {
   const cella = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
 
   const intestazione = [
-    "Ordine", "Data", "Stato", "Nome", "Email", "Telefono", "Codice fiscale", "Indirizzo", "CAP", "Città", "Provincia", "Paese",
-    "Stampe", "Subtotale €", "Sconto €", "Codice", "Spedizione €", "Totale €", "Spedito il", "Corriere", "Tracciamento", "Rimborsato il", "Transazione SumUp", "Pagamento",
+    "Ordine", "Data", "Stato", "Consegna", "Nome", "Email", "Telefono", "Codice fiscale", "Indirizzo", "CAP", "Città", "Provincia", "Paese",
+    "Stampe", "Subtotale €", "Sconto €", "Codice", "Spedizione €", "Totale €", "Pronto il", "Spedito o ritirato il", "Corriere", "Tracciamento", "Rimborsato il", "Transazione SumUp", "Pagamento",
   ];
   const righe = ordini.map((o) => [
     o.id,
     data(o.creato),
-    o.stato,
+    // Per un ritiro «spedito» vuol dire che è passato a prenderlo.
+    o.consegna === "ritiro" && o.stato === "spedito" ? "ritirato" : o.stato,
+    o.consegna === "ritiro" ? "Ritiro in negozio" : "Spedizione",
     o.nome ?? "",
     o.email,
     o.telefono ?? "",
@@ -44,6 +46,7 @@ export async function GET() {
     o.codice ?? "",
     euro(o.spedizione),
     euro(o.totale),
+    data(o.pronto),
     data(o.spedito),
     o.corriere ?? "",
     o.tracking ?? "",

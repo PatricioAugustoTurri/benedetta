@@ -4,11 +4,12 @@ import { richiediAccesso } from "@/lib/auth";
 import { bigliettiPerOrdine, type Codice } from "@/lib/codici";
 import { oggiInItalia } from "@/lib/oggi";
 import { listOrdini, ultimoCorriere, type Ordine } from "@/lib/prodotti";
-import { nomePaese } from "@/lib/spedizione";
+import { indirizzoNegozio, nomePaese } from "@/lib/spedizione";
 import { sumupConfigurato, sumupInProva } from "@/lib/sumup";
 import { pingDb } from "@/lib/works";
 import BigliettoOrdine from "../components/BigliettoOrdine";
 import RimborsaOrdine from "../components/RimborsaOrdine";
+import RitiroOrdine from "../components/RitiroOrdine";
 import Sezione from "../components/Sezione";
 import SpedisciOrdine from "../components/SpedisciOrdine";
 import { riavvisaAzione, rimettiDaSpedireAzione } from "./actions";
@@ -32,8 +33,10 @@ const data = (d: Date) =>
  * Tutti e due chiedono un secondo sì prima di partire.
  *
  * Quelli da spedire vanno sopra e con il punto terracotta, perché sono
- * quelli che chiedono qualcosa; gli spediti scendono e si spengono, e i
- * rimborsati vanno in fondo, fuori dai conti di tutti i giorni.
+ * quelli che chiedono qualcosa; subito sotto quelli da ritirare in negozio,
+ * che non si imballano ma aspettano qualcuno; gli spediti e i ritirati
+ * scendono e si spengono, e i rimborsati vanno in fondo, fuori dai conti di
+ * tutti i giorni.
  */
 export default async function OrdiniPage() {
   await richiediAccesso("/admin/ordini");
@@ -53,8 +56,10 @@ export default async function OrdiniPage() {
     bigliettiPerOrdine(),
   ]);
   const oggi = oggiInItalia();
-  const daSpedire = ordini.filter((o) => o.stato === "pagato");
+  const daSpedire = ordini.filter((o) => o.stato === "pagato" && o.consegna === "spedizione");
+  const daRitirare = ordini.filter((o) => o.stato === "pagato" && o.consegna === "ritiro");
   const spediti = ordini.filter((o) => o.stato === "spedito");
+  const qualcheRitiro = spediti.some((o) => o.consegna === "ritiro");
   const rimborsati = ordini.filter((o) => o.stato === "rimborsato");
   const sumupAttivo = sumupConfigurato();
 
@@ -87,7 +92,9 @@ export default async function OrdiniPage() {
           vuoto={
             ordini.length === 0
               ? "Non è ancora arrivato nessun ordine. Quando qualcuno paga una stampa, compare qui e ti arriva una mail."
-              : "Niente da spedire."
+              : daRitirare.length > 0
+                ? "Niente da spedire: c'è solo da preparare quelli da ritirare, qui sotto."
+                : "Niente da spedire."
           }
           testo={
             <>
@@ -101,12 +108,29 @@ export default async function OrdiniPage() {
           {...gruppo}
           corriere={corriere}
         />
+        {daRitirare.length > 0 && (
+          <Gruppo
+            id="ord-da-ritirare"
+            titolo="Da ritirare in negozio"
+            ordini={daRitirare}
+            testo={
+              <>
+                <p>Chi ha comprato passa a prenderlo in {indirizzoNegozio()}. Ha già pagato, e la spedizione no.</p>
+                <p>
+                  Quando è stampato lo segni pronto, e gli arriva una mail con l&apos;indirizzo. Quando
+                  passa, lo segni ritirato.
+                </p>
+              </>
+            }
+            {...gruppo}
+          />
+        )}
         {spediti.length > 0 && (
           <Gruppo
             id="ord-spediti"
-            titolo="Spediti"
+            titolo={qualcheRitiro ? "Spediti e ritirati" : "Spediti"}
             ordini={spediti}
-            testo={<p>Se uno è partito per sbaglio, torna fra quelli da spedire.</p>}
+            testo={<p>Se uno è segnato per sbaglio, torna fra quelli da fare.</p>}
             {...gruppo}
           />
         )}
@@ -214,6 +238,7 @@ function Voce({
   sumupAttivo: boolean;
 }) {
   const a = o.indirizzo;
+  const ritiro = o.consegna === "ritiro";
   const spedito = o.stato === "spedito";
   const rimborsato = o.stato === "rimborsato";
   const rimborso = (
@@ -256,13 +281,17 @@ function Voce({
             </li>
           )}
           <li className="figures flex justify-between gap-4 pt-1 text-xs text-ink-faint">
-            <span>Spedizione</span>
-            <span>{prezzo(o.spedizione)}</span>
+            <span>{ritiro ? "Ritiro in negozio" : "Spedizione"}</span>
+            <span>{ritiro ? "Gratis" : prezzo(o.spedizione)}</span>
           </li>
         </ul>
 
         <address className="text-sm not-italic leading-relaxed">
-          {[o.nome, a.line1, a.line2, [a.postal_code, a.city, a.state].filter(Boolean).join(" "), a.country && nomePaese(a.country)]
+          {ritiro && <span className="label mb-1.5 block text-accent">Ritiro in negozio</span>}
+          {(ritiro
+            ? [o.nome]
+            : [o.nome, a.line1, a.line2, [a.postal_code, a.city, a.state].filter(Boolean).join(" "), a.country && nomePaese(a.country)]
+          )
             .filter((r) => r && r.trim().length > 0)
             .map((r, i) => (
               <span key={i} className="block">
@@ -295,15 +324,55 @@ function Voce({
         </address>
       </div>
 
-      {!rimborsato && <BigliettoOrdine ordine={o.id} biglietto={biglietto} spedito={spedito} oggi={oggi} />}
+      {!rimborsato && (
+        <BigliettoOrdine ordine={o.id} biglietto={biglietto} spedito={spedito} ritiro={ritiro} oggi={oggi} />
+      )}
 
       {rimborsato ? (
         <p className="mt-4 text-xs text-ink-faint">
           Rimborsato{o.rimborsato && ` il ${data(o.rimborsato)}`}
-          {o.spedito
-            ? ` · era partito il ${data(o.spedito)}${o.corriere ? ` con ${o.corriere}` : ""}`
-            : " · non era ancora partito"}
+          {ritiro
+            ? o.spedito
+              ? ` · era stato ritirato il ${data(o.spedito)}`
+              : " · non era ancora stato ritirato"
+            : o.spedito
+              ? ` · era partito il ${data(o.spedito)}${o.corriere ? ` con ${o.corriere}` : ""}`
+              : " · non era ancora partito"}
         </p>
+      ) : spedito && ritiro ? (
+        <>
+          <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-ink-faint">
+            <span>Ritirato in negozio{o.spedito && ` il ${data(o.spedito)}`}</span>
+            <form action={rimettiDaSpedireAzione}>
+              <input type="hidden" name="id" value={o.id} />
+              <button type="submit" className="link-underline transition-colors hover:text-ink">
+                Rimetti fra quelli da ritirare
+              </button>
+            </form>
+          </div>
+          {rimborso}
+        </>
+      ) : ritiro ? (
+        <>
+          {o.pronto && (
+            <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-ink-faint">
+              <span>Pronto dal {data(o.pronto)}</span>
+              {o.avvisato ? (
+                <span>· Cliente avvisato per mail</span>
+              ) : (
+                <form action={riavvisaAzione} className="flex items-baseline gap-2">
+                  <input type="hidden" name="id" value={o.id} />
+                  <span className="text-accent">· Cliente non avvisato</span>
+                  <button type="submit" className="link-underline text-ink transition-colors hover:text-accent">
+                    Avvisalo per mail
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+          <RitiroOrdine id={o.id} nome={o.nome ?? o.email} email={o.email} pronto={Boolean(o.pronto)} />
+          {rimborso}
+        </>
       ) : spedito ? (
         <>
           <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-ink-faint">

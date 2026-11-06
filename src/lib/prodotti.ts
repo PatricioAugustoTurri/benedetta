@@ -268,6 +268,8 @@ export type Ordine = {
   telefono: string | null;
   /** Obbligatorio per gli ordini in Italia, in maiuscolo e senza spazi; null altrove. */
   codiceFiscale: string | null;
+  /** Spedito, o ritirato nel negozio di Foligno. Con il ritiro l'indirizzo è vuoto. */
+  consegna: "spedizione" | "ritiro";
   indirizzo: Indirizzo;
   righe: RigaOrdine[];
   subtotale: number;
@@ -277,14 +279,20 @@ export type Ordine = {
   codice: string | null;
   spedizione: number;
   totale: number;
+  /**
+   * «spedito» vuol dire consegnato: per un ritiro, è il giorno in cui chi ha
+   * comprato è passato a prenderlo (vedi la 015).
+   */
   stato: "pagato" | "spedito" | "rimborsato";
   creato: Date;
-  /** Quando è partito, con chi e con che numero: arriva per mail a chi ha comprato. */
+  /** Quando è partito, con chi e con che numero: arriva per mail a chi ha comprato. Per un ritiro, quando è stato ritirato. */
   spedito: Date | null;
   corriere: string | null;
   tracking: string | null;
-  /** Quando è partita la mail di spedizione al cliente. */
+  /** Quando è partita la mail di spedizione al cliente —o, per un ritiro, quella «è pronto»—. */
   avvisato: Date | null;
+  /** Solo per il ritiro: quando lei l'ha segnato pronto da ritirare. */
+  pronto: Date | null;
   /** Quando lei ha restituito i soldi. Se era già spedito, la spedizione resta scritta. */
   rimborsato: Date | null;
 };
@@ -298,6 +306,7 @@ function hydrateOrdine(row: Record<string, unknown>): Ordine {
     email: String(row.email),
     telefono: row.telefono ? String(row.telefono) : null,
     codiceFiscale: row.codice_fiscale ? String(row.codice_fiscale) : null,
+    consegna: row.consegna === "ritiro" ? "ritiro" : "spedizione",
     indirizzo: row.indirizzo as Indirizzo,
     righe: Array.isArray(row.righe) ? (row.righe as RigaOrdine[]) : [],
     subtotale: Number(row.subtotale),
@@ -311,11 +320,12 @@ function hydrateOrdine(row: Record<string, unknown>): Ordine {
     corriere: row.corriere ? String(row.corriere) : null,
     tracking: row.tracking ? String(row.tracking) : null,
     avvisato: row.cliente_avvisato_at ? new Date(String(row.cliente_avvisato_at)) : null,
+    pronto: row.pronto_at ? new Date(String(row.pronto_at)) : null,
     rimborsato: row.rimborsato_at ? new Date(String(row.rimborsato_at)) : null,
   };
 }
 
-const COLONNE_ORDINE = `id, pagamento, transazione, nome, email, telefono, codice_fiscale, indirizzo, righe, subtotale, sconto, codice, spedizione, totale, stato, created_at, spedito_at, corriere, tracking, cliente_avvisato_at, rimborsato_at`;
+const COLONNE_ORDINE = `id, pagamento, transazione, nome, email, telefono, codice_fiscale, consegna, indirizzo, righe, subtotale, sconto, codice, spedizione, totale, stato, created_at, spedito_at, corriere, tracking, cliente_avvisato_at, pronto_at, rimborsato_at`;
 
 /**
  * Scrive un ordine pagato. Restituisce null se c'era già: lo stesso
@@ -325,11 +335,14 @@ const COLONNE_ORDINE = `id, pagamento, transazione, nome, email, telefono, codic
  * ordine né partire un secondo avviso.
  */
 export async function registraOrdine(
-  o: Omit<Ordine, "id" | "stato" | "creato" | "spedito" | "corriere" | "tracking" | "avvisato" | "rimborsato">,
+  o: Omit<Ordine, "id" | "stato" | "creato" | "spedito" | "corriere" | "tracking" | "avvisato" | "pronto" | "rimborsato" | "consegna"> & {
+    // Le bozze salvate prima del ritiro non la portano: erano tutte spedizioni.
+    consegna?: Ordine["consegna"];
+  },
 ): Promise<Ordine | null> {
   const rows = await query<Record<string, unknown>>(
-    `INSERT INTO ordini (pagamento, nome, email, indirizzo, righe, subtotale, spedizione, totale, sconto, codice, telefono, transazione, codice_fiscale)
-          VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10, $11, $12, $13)
+    `INSERT INTO ordini (pagamento, nome, email, indirizzo, righe, subtotale, spedizione, totale, sconto, codice, telefono, transazione, codice_fiscale, consegna)
+          VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10, $11, $12, $13, $14)
      ON CONFLICT (pagamento) DO NOTHING
        RETURNING ${COLONNE_ORDINE}`,
     [
@@ -346,6 +359,7 @@ export async function registraOrdine(
       o.telefono,
       o.transazione,
       o.codiceFiscale,
+      o.consegna === "ritiro" ? "ritiro" : "spedizione",
     ],
   );
   return rows[0] ? hydrateOrdine(rows[0]) : null;
@@ -378,9 +392,35 @@ export async function segnaSpedito(
 ): Promise<Ordine | null> {
   const rows = await query<Record<string, unknown>>(
     `UPDATE ordini SET stato = 'spedito', spedito_at = now(), corriere = $2, tracking = $3
-      WHERE id = $1 AND stato = 'pagato'
+      WHERE id = $1 AND stato = 'pagato' AND consegna = 'spedizione'
   RETURNING ${COLONNE_ORDINE}`,
     [id, spedizione.corriere, spedizione.tracking],
+  );
+  return rows[0] ? hydrateOrdine(rows[0]) : null;
+}
+
+/**
+ * Un ordine da ritirare è pronto: lei l'ha stampato e lo tiene in negozio.
+ * Restituisce l'ordine, o null se non è un ritiro ancora da consegnare o era
+ * già segnato pronto: la mail al cliente parte una volta sola.
+ */
+export async function segnaPronto(id: number): Promise<Ordine | null> {
+  const rows = await query<Record<string, unknown>>(
+    `UPDATE ordini SET pronto_at = now()
+      WHERE id = $1 AND consegna = 'ritiro' AND stato = 'pagato' AND pronto_at IS NULL
+  RETURNING ${COLONNE_ORDINE}`,
+    [id],
+  );
+  return rows[0] ? hydrateOrdine(rows[0]) : null;
+}
+
+/** Chi ha comprato è passato a prenderlo: l'ordine è consegnato. Null se non era un ritiro da consegnare. */
+export async function segnaRitirato(id: number): Promise<Ordine | null> {
+  const rows = await query<Record<string, unknown>>(
+    `UPDATE ordini SET stato = 'spedito', spedito_at = now()
+      WHERE id = $1 AND consegna = 'ritiro' AND stato = 'pagato'
+  RETURNING ${COLONNE_ORDINE}`,
+    [id],
   );
   return rows[0] ? hydrateOrdine(rows[0]) : null;
 }
@@ -389,7 +429,10 @@ export async function segnaAvvisato(id: number): Promise<void> {
   await query(`UPDATE ordini SET cliente_avvisato_at = now() WHERE id = $1`, [id]);
 }
 
-/** Rimette un ordine fra quelli da spedire, per un errore di clic. Corriere e numero restano scritti. */
+/**
+ * Rimette un ordine fra quelli da spedire —o da ritirare—, per un errore di
+ * clic. Corriere e numero restano scritti; un ritiro resta pronto.
+ */
 export async function rimettiDaSpedire(id: number): Promise<void> {
   await query(`UPDATE ordini SET stato = 'pagato', spedito_at = NULL WHERE id = $1 AND stato = 'spedito'`, [id]);
 }

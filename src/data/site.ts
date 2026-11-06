@@ -22,6 +22,18 @@ export const site = {
   email: "bzibetti98@gmail.com",
   location: "Foligno, Italia",
   /**
+   * Il negozio, dove chi compra può passare a ritirare invece di farsi
+   * spedire (cliente, 2026-11-06): gratis, per chiunque, senza scadenza.
+   * Lo dice la cassa accanto alla scelta, la conferma dell'ordine e la mail
+   * «è pronto».
+   */
+  negozio: {
+    indirizzo: "Via Corso Nuovo 7h",
+    cap: "06034",
+    citta: "Foligno",
+    provincia: "PG",
+  },
+  /**
    * La riga di mestiere del footer: come lavora, detto con le parole della sua
    * bio —soprattutto in digitale, con le tecniche a mano come terreno di
    * prova—. È l'unica cosa che il footer afferma sul lavoro: non promette

@@ -5,7 +5,7 @@ import PaginaLegale, { Dato, type SezioneLegale } from "@/components/legale/Pagi
 import { elencoCorrieri, legale, misuraFormato, legaliPronte } from "@/data/legale";
 import { FORMATI_BASE, prezzo } from "@/data/shop";
 import { listPubblicati } from "@/lib/prodotti";
-import { tariffeSpedizione } from "@/lib/spedizione";
+import { indirizzoNegozio, tariffeSpedizione } from "@/lib/spedizione";
 
 export const metadata: Metadata = {
   title: "Spedizioni e resi",
@@ -112,6 +112,17 @@ export default async function SpedizioniPage() {
           </ul>
           <p>Per ora non spedisco fuori dall&apos;Unione Europea. Se sei altrove, scrivimi e vediamo.</p>
         </>
+      ),
+    },
+    {
+      id: "ritiro",
+      titolo: "Ritiro in negozio",
+      corpo: (
+        <p>
+          Se preferisci, alla cassa puoi scegliere di ritirare l&apos;ordine in negozio, in{" "}
+          {indirizzoNegozio()}: è gratis, e paghi online come per la spedizione. Quando è pronto ti
+          scrivo, e passi quando vuoi.
+        </p>
       ),
     },
     {

@@ -12,6 +12,7 @@ import { site } from "@/data/site";
 import {
   DATI_VUOTI,
   ORDINE_CAMPI,
+  costoConsegna,
   nomePaese,
   tariffaPer,
   validaSpedizione,
@@ -58,8 +59,9 @@ const ascoltaDesktop = (fatto: () => void) => {
  * verso il centro, come il modulo dall'altra parte, così i due si guardano
  * attraverso la cucitura invece di scappare ai bordi di uno schermo largo.
  *
- * **A destra il modulo**: contatti e indirizzo (DatiSpedizione), e alla fine
- * «Paga» con l'importo scritto, perché chi preme sa quanto sta pagando.
+ * **A destra il modulo**: come lo riceve —spedito o ritirato a Foligno—,
+ * contatti e indirizzo (DatiSpedizione), e alla fine «Paga» con l'importo
+ * scritto, perché chi preme sa quanto sta pagando.
  *
  * Sul telefono l'ordine diventa una striscia in cima con il totale e
  * «Dettagli», che lo srotola: il modulo arriva subito, e chi vuole
@@ -151,8 +153,9 @@ export default function CassaVista({ inProva }: { inProva: boolean }) {
   if (voci.length === 0) return <Vuota avviso={avviso} />;
 
   const subtotale = totaleCarrello(voci);
+  const ritiro = dati.consegna === "ritiro";
   const tariffa = tariffaPer(dati.paese);
-  const spedizione = tariffa?.prezzo ?? null;
+  const spedizione = costoConsegna(dati);
   const sconto = codice ? scontoCodice(voci, codice.percentuale) : 0;
   const totale = subtotale - sconto + (spedizione ?? 0);
   // Quante righe restano fuori dal codice perché già in sconto di stagione.
@@ -189,8 +192,14 @@ export default function CassaVista({ inProva }: { inProva: boolean }) {
     setDati(nuovi);
     ricordaDati(nuovi);
     // Cambiare paese cambia le regole del codice fiscale, del CAP e della provincia: se erano
-    // segnati, si ricontrollano anche loro.
-    const dipendenti: CampoSpedizione[] = campo === "paese" ? ["paese", "codiceFiscale", "cap", "provincia"] : [campo];
+    // segnati, si ricontrollano anche loro. Cambiare fra spedizione e ritiro cambia quali
+    // campi si chiedono: si ricontrolla tutto quello che era segnato.
+    const dipendenti: CampoSpedizione[] =
+      campo === "consegna"
+        ? ORDINE_CAMPI
+        : campo === "paese"
+          ? ["paese", "codiceFiscale", "cap", "provincia"]
+          : [campo];
     if (dipendenti.some((c) => errori[c])) {
       const trovati = validaSpedizione(nuovi);
       const dopo = { ...errori };
@@ -324,13 +333,19 @@ export default function CassaVista({ inProva }: { inProva: boolean }) {
               <dl className={`${codice ? "" : "mt-4 border-t border-line"}`}>
                 <div className="flex items-start justify-between gap-6 border-b border-line py-3">
                   <dt className="min-w-0">
-                    <span className="label">Spedizione</span>
-                    {/* Dove va, perché è il paese a decidere quanto costa. */}
+                    <span className="label">{ritiro ? "Ritiro in negozio" : "Spedizione"}</span>
+                    {/* Dove va, perché è il paese a decidere quanto costa; o dove passare a prenderlo. */}
                     <span className="mt-1.5 block text-xs leading-relaxed text-ink-faint">
-                      {tariffa ? nomePaese(dati.paese) : "Scegli il paese"}
+                      {ritiro
+                        ? `${site.negozio.indirizzo}, ${site.negozio.citta}`
+                        : tariffa
+                          ? nomePaese(dati.paese)
+                          : "Scegli il paese"}
                     </span>
                   </dt>
-                  <dd className="figures shrink-0 text-sm">{spedizione === null ? "—" : prezzo(spedizione)}</dd>
+                  <dd className="figures shrink-0 text-sm">
+                    {ritiro ? "Gratis" : spedizione === null ? "—" : prezzo(spedizione)}
+                  </dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-6 py-3.5">
                   <dt className="label text-ink">Totale</dt>
@@ -377,7 +392,10 @@ export default function CassaVista({ inProva }: { inProva: boolean }) {
 
           <p className="mt-4 text-xs leading-relaxed text-ink-faint">
             Paghi sulla pagina di SumUp, con carta o con i metodi che propone: qui non si scrive la
-            carta. Il pacco parte con i dati che hai scritto sopra.
+            carta.{" "}
+            {ritiro
+              ? "Ti scrivo appena il tuo ordine è pronto da ritirare."
+              : "Il pacco parte con i dati che hai scritto sopra."}
             {legaliPronte() && (
               <>
                 {" "}Pagando accetti le{" "}

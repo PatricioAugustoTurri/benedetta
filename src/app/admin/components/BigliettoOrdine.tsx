@@ -23,11 +23,14 @@ export default function BigliettoOrdine({
   ordine,
   biglietto: b,
   spedito,
+  ritiro = false,
   oggi,
 }: {
   ordine: number;
   biglietto: Codice | null;
   spedito: boolean;
+  /** Un ritiro in negozio: il biglietto conta dal giorno in cui passa a prenderlo, non da una spedizione. */
+  ritiro?: boolean;
   /** Oggi in Italia, dal server: «scaduto» non deve dipendere dall'orologio di chi guarda. */
   oggi: string;
 }) {
@@ -75,7 +78,9 @@ export default function BigliettoOrdine({
         : `fino al ${giornoLungo(b.scade)}`
       : spedito
         ? "senza scadenza"
-        : "scade 90 giorni dopo la spedizione",
+        : ritiro
+          ? "scade 90 giorni dopo il ritiro"
+          : "scade 90 giorni dopo la spedizione",
   ].filter(Boolean);
 
   return (
@@ -169,14 +174,16 @@ export default function BigliettoOrdine({
                 className={`${CONTROL} figures mt-1 py-1.5`}
               />
               <p id={`${base}-sh`} className="mt-1.5 text-xs leading-relaxed text-ink-faint">
-                {spedito ? "Vuota: non scade." : "Vuota: 90 giorni dalla spedizione."}
+                {spedito ? "Vuota: non scade." : ritiro ? "Vuota: 90 giorni dal ritiro." : "Vuota: 90 giorni dalla spedizione."}
               </p>
             </div>
           </div>
 
           {spedito && rinominato && (
             <p className="mt-3 text-xs leading-relaxed text-accent">
-              «{b.codice}» è già nel pacco e nella mail: cambiandolo, quello smette di valere.
+              {ritiro
+                ? `«${b.codice}» è già nel biglietto che hai consegnato: cambiandolo, quello smette di valere.`
+                : `«${b.codice}» è già nel pacco e nella mail: cambiandolo, quello smette di valere.`}
             </p>
           )}
           {esito.error && (

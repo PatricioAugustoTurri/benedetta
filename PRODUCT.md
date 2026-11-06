@@ -95,6 +95,16 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
     el precio, va en la línea del carrito y del pedido («Da muro A4 · Copertina:
     verde») y se ve en mails, `/admin/ordini` y la exportación. Las tintas de
     los círculos son una propuesta: ella las corrige desde el producto.
+  - **Ritiro in negozio** (2026-11-06): en la cassa, antes que nada, se elige
+    entre envío y retiro en el negocio (Via Corso Nuovo 7h, 06034 Foligno PG,
+    en `site.negozio`). Gratis, para cualquiera, sin plazo. Se paga igual con
+    SumUp; no se pide dirección, sí nombre, teléfono y codice fiscale (ella
+    factura igual). A ella le llega «Nuovo ordine #N da ritirare in negozio».
+    En `/admin/ordini` tiene su sección: «pronto» le manda al cliente un mail
+    con la dirección (las stampe se imprimen a pedido), «ritirato» lo cierra y
+    arranca los 90 días del biglietto. En la base, `ordini.consegna` y
+    `pronto_at` (migración 015); `stato = 'spedito'` quiere decir entregado.
+    No se inventaron horarios del negocio: quien quiere coordinar, responde el mail.
   - **Illustrazioni Personalizzate** y **Ritratti Illustrati** no son productos: son
     dos servicios, uno cada uno y siempre los mismos (tabla `servizi`, dos filas
     fijas). Una página que se lee —de qué se trata, cómo funciona, ejemplos— y lleva a

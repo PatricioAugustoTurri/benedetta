@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AZIONE } from "@/components/azione";
 import { ArrowRight, Meno, Plus } from "@/components/Icon";
 import { chiaveVoce, prezzo, prodottoHref, variante } from "@/data/shop";
+import { site } from "@/data/site";
 import { tariffeSpedizione } from "@/lib/spedizione";
 import { Conto } from "./Conti";
 import { cambiaQuantita, MAX_QUANTITA, togli, totaleCarrello, type VoceCarrello } from "./store";
@@ -76,7 +77,8 @@ export default function CarrelloVista() {
           <p className="mt-3 text-xs leading-relaxed text-ink-faint">
             Spedizione alla cassa: <span className="figures">{prezzo(ITALIA.prezzo)}</span> in Italia,{" "}
             <span className="figures">{prezzo(UE.prezzo)}</span> nell&apos;Unione Europea, una volta per
-            ordine. Lì scrivi anche il codice sconto, se ce l&apos;hai.
+            ordine. Oppure lo ritiri gratis in negozio a {site.negozio.citta}. Lì scrivi anche il codice
+            sconto, se ce l&apos;hai.
           </p>
 
           <Link href="/carrello/cassa" className={`mt-8 w-full justify-center ${AZIONE}`}>

@@ -408,8 +408,13 @@ CREATE TABLE ordini (
   -- Obbligatorio per chi spedisce in Italia; vuoto altrove. Vedi la 011.
   codice_fiscale    text CONSTRAINT ordini_codice_fiscale_forma CHECK (codice_fiscale IS NULL OR codice_fiscale ~ '^([A-Z0-9]{16}|[0-9]{11})$'),
 
+  -- Spedito, o ritirato da chi compra nel negozio di Foligno. Vedi la 015.
+  consegna          text        NOT NULL DEFAULT 'spedizione'
+                    CONSTRAINT ordini_consegna_valida CHECK (consegna IN ('spedizione', 'ritiro')),
+
   -- L'indirizzo di spedizione così come l'ha scritto chi compra:
   -- { "line1", "line2", "city", "postal_code", "state", "country" }.
+  -- Per un ritiro, tutte le chiavi vuote.
   indirizzo         jsonb       NOT NULL,
 
   -- Una fotografia di quello che si è comprato, non un riferimento:
@@ -438,6 +443,8 @@ CREATE TABLE ordini (
   corriere          text CONSTRAINT ordini_corriere_misura CHECK (corriere IS NULL OR length(corriere) <= 80),
   tracking          text CONSTRAINT ordini_tracking_misura CHECK (tracking IS NULL OR length(tracking) <= 300),
   cliente_avvisato_at timestamptz,
+  -- Solo per il ritiro: quando lei l'ha segnato pronto. Vedi la 015.
+  pronto_at         timestamptz,
   rimborsato_at     timestamptz,
 
   created_at        timestamptz NOT NULL DEFAULT now(),

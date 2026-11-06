@@ -9,7 +9,7 @@ import { giornoLungo } from "@/lib/oggi";
 import { prodottiPerSlug } from "@/lib/prodotti";
 import { scontiInCorso } from "@/lib/sconti";
 import { apriPagamento, legaCheckout } from "@/lib/pagamento";
-import { pulisci, tariffaPer, validaSpedizione, type DatiSpedizione, type ErroriSpedizione } from "@/lib/spedizione";
+import { costoConsegna, pulisci, validaSpedizione, type DatiSpedizione, type ErroriSpedizione } from "@/lib/spedizione";
 import { creaCheckout, sumupConfigurato } from "@/lib/sumup";
 import { immagineFerma } from "@/lib/video";
 
@@ -173,7 +173,8 @@ export type EsitoPagamento = { url: string } | { error: string; errori?: ErroriS
  *
  * Il server non crede a niente di quello che arriva: rifà il carrello con i
  * prezzi della tabella, ricontrolla il codice, ricontrolla i dati e calcola
- * la spedizione dal paese dell'indirizzo. Poi salva l'ordine intero come
+ * la spedizione dal paese dell'indirizzo —o zero, se chi compra passa a
+ * ritirarlo a Foligno—. Poi salva l'ordine intero come
  * bozza (`pagamenti`), crea su SumUp un pagamento per il totale e
  * restituisce l'indirizzo della pagina di SumUp. Da quel momento il sito
  * non tocca più niente fino al ritorno: la carta la vede solo SumUp.
@@ -195,8 +196,9 @@ export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagame
     return { error: "Controlla i dati segnati qui sopra.", errori };
   }
   const dati = pulisci(crudi);
-  // Validato: il paese è in una delle due zone.
-  const tariffa = tariffaPer(dati.paese)!;
+  const ritiro = dati.consegna === "ritiro";
+  // Validato: o è un ritiro, o il paese è in una delle due zone.
+  const spedizione = costoConsegna(dati)!;
 
   const voci = await rifai(leggiRichiesta(r?.voci));
   if (voci.length === 0) return { error: "Il carrello è vuoto." };
@@ -222,7 +224,7 @@ export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagame
 
   const subtotale = voci.reduce((n, v) => n + v.prezzo * v.quantita, 0);
   const sconto = codice ? scontoCodice(voci, codice.percentuale) : 0;
-  const totale = subtotale - sconto + tariffa.prezzo;
+  const totale = subtotale - sconto + spedizione;
   const copie = voci.reduce((n, v) => n + v.quantita, 0);
 
   // Dove SumUp riporta e dove avvisa. In produzione è il dominio; in
@@ -235,14 +237,18 @@ export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagame
       email: dati.email,
       telefono: dati.telefono,
       codiceFiscale: dati.codiceFiscale || null,
-      indirizzo: {
-        line1: dati.indirizzo,
-        line2: dati.interno || null,
-        city: dati.citta,
-        postal_code: dati.cap,
-        state: dati.provincia || null,
-        country: dati.paese,
-      },
+      consegna: ritiro ? "ritiro" : "spedizione",
+      // Con il ritiro non c'è un indirizzo: quello del negozio non è di chi compra.
+      indirizzo: ritiro
+        ? { line1: null, line2: null, city: null, postal_code: null, state: null, country: null }
+        : {
+            line1: dati.indirizzo,
+            line2: dati.interno || null,
+            city: dati.citta,
+            postal_code: dati.cap,
+            state: dati.provincia || null,
+            country: dati.paese,
+          },
       righe: voci.map((v) => ({
         slug: v.slug,
         title: v.title,
@@ -256,7 +262,7 @@ export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagame
       // niente —tutte stampe già in sconto— non è stato usato.
       sconto,
       codice: codice && sconto > 0 ? codice.codice : null,
-      spedizione: tariffa.prezzo,
+      spedizione,
       totale,
     });
     const checkout = await creaCheckout({

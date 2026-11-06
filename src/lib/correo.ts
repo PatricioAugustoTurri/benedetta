@@ -6,7 +6,7 @@ import { prezzo, variante } from "@/data/shop";
 import type { Codice } from "@/lib/codici";
 import { giornoLungo, oggiInItalia } from "@/lib/oggi";
 import type { Ordine } from "@/lib/prodotti";
-import { nomePaese } from "@/lib/spedizione";
+import { indirizzoNegozio, nomePaese } from "@/lib/spedizione";
 
 /**
  * La posta che parte dal sito, via Resend.
@@ -255,13 +255,19 @@ ${oggetto ? `<div style="font-family:${FONT};font-size:14px;color:${C.ink};margi
 /**
  * L'avviso a lei di un ordine pagato. Porta tutto quello che serve per
  * spedire senza aprire SumUp: cosa, quante copie, a chi e dove.
+ *
+ * Un ritiro lo dice già nell'oggetto, prima del prezzo: è un ordine che non
+ * si imballa, e chi l'ha comprato un giorno entra in negozio a chiederlo.
  */
 export async function avvisaOrdine(o: Ordine): Promise<void> {
+  const ritiro = o.consegna === "ritiro";
   const { error } = await cliente().emails.send({
     from: desde(),
     to: para(),
     replyTo: o.nome ? `${unaRiga(o.nome)} <${o.email}>` : o.email,
-    subject: unaRiga(`Nuovo ordine #${o.id} — ${prezzo(o.totale)}${o.nome ? ` — ${o.nome}` : ""}`),
+    subject: unaRiga(
+      `Nuovo ordine #${o.id}${ritiro ? " da ritirare in negozio" : ""} — ${prezzo(o.totale)}${o.nome ? ` — ${o.nome}` : ""}`,
+    ),
     html: htmlOrdine(o, "lei"),
     text: testoOrdine(o, "lei"),
   });
@@ -281,6 +287,27 @@ export async function confermaOrdine(o: Ordine): Promise<void> {
   if (error) throw new Error(`Resend (conferma ordine): ${error.message}`);
 }
 
+/**
+ * Il blocco sotto i conti. Per una spedizione, l'indirizzo. Per un ritiro,
+ * a lei il nome di chi passerà —con telefono e codice fiscale sotto, come
+ * sempre—; a chi ha comprato, dove passare e che lo avviserà quando è
+ * pronto, perché le stampe si stampano su ordinazione e non sono lì il
+ * giorno dopo.
+ */
+function destinazione(o: Ordine, per: "lei" | "cliente"): string {
+  const titolo = (t: string) =>
+    `<div style="font-family:${FONT};font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${C.inkFaint};margin-bottom:10px;">${t}</div>`;
+  const testo = (righe: string[]) =>
+    `<div style="font-family:${FONT};font-size:15px;line-height:1.6;color:${C.ink};">${righe.map(esc).join("<br>")}</div>`;
+  if (o.consegna !== "ritiro") return titolo("Spedizione a") + testo(indirizzoInRighe(o));
+  if (per === "lei") return titolo("Ritiro in negozio · passa a prenderlo") + testo([o.nome ?? o.email]);
+  return (
+    titolo("Ritiro in negozio") +
+    testo([site.negozio.indirizzo, `${site.negozio.cap} ${site.negozio.citta} (${site.negozio.provincia})`]) +
+    `<p style="margin:10px 0 0;font-family:${FONT};font-size:14px;line-height:1.6;color:${C.inkSoft};">Ti scrivo appena è pronto da ritirare.</p>`
+  );
+}
+
 function indirizzoInRighe(o: Ordine): string[] {
   const a = o.indirizzo;
   return [
@@ -292,7 +319,21 @@ function indirizzoInRighe(o: Ordine): string[] {
   ].filter((r) => r.trim().length > 0);
 }
 
+/** Le righe sotto i conti: dove va l'ordine, o chi passa a prenderlo e dove. */
+function consegnaInRighe(o: Ordine, per: "lei" | "cliente"): string[] {
+  if (o.consegna !== "ritiro") return ["Spedizione a:", ...indirizzoInRighe(o)];
+  return per === "lei"
+    ? ["Ritiro in negozio. Passa a prenderlo:", o.nome ?? o.email]
+    : [
+        "Ritiro in negozio:",
+        indirizzoNegozio(),
+        "",
+        "Ti scrivo appena è pronto da ritirare.",
+      ];
+}
+
 function testoOrdine(o: Ordine, per: "lei" | "cliente"): string {
+  const ritiro = o.consegna === "ritiro";
   const righe = [
     per === "lei"
       ? `Nuovo ordine #${o.id}, pagato il ${fecha(o.creato)}.`
@@ -304,11 +345,10 @@ function testoOrdine(o: Ordine, per: "lei" | "cliente"): string {
     "",
     `Subtotale:   ${prezzo(o.subtotale)}`,
     ...(o.sconto > 0 ? [`Sconto${o.codice ? ` ${o.codice}` : ""}: −${prezzo(o.sconto)}`] : []),
-    `Spedizione:  ${prezzo(o.spedizione)}`,
+    ritiro ? "Ritiro:      gratis" : `Spedizione:  ${prezzo(o.spedizione)}`,
     `Totale:      ${prezzo(o.totale)}`,
     "",
-    "Spedizione a:",
-    ...indirizzoInRighe(o),
+    ...consegnaInRighe(o, per),
   ];
   if (per === "lei")
     righe.push(
@@ -323,6 +363,7 @@ function testoOrdine(o: Ordine, per: "lei" | "cliente"): string {
 }
 
 function htmlOrdine(o: Ordine, per: "lei" | "cliente"): string {
+  const ritiro = o.consegna === "ritiro";
   const voci = o.righe
     .map((r) =>
       riga(
@@ -339,13 +380,15 @@ function htmlOrdine(o: Ordine, per: "lei" | "cliente"): string {
           `${o.codice ? esc(o.codice) : ""}<span style="float:right;">−${esc(prezzo(o.sconto))}</span>`,
         )
       : "",
-    riga("Spedizione", `<span style="float:right;">${esc(prezzo(o.spedizione))}</span>`),
+    ritiro
+      ? riga("Ritiro", `In negozio<span style="float:right;">Gratis</span>`)
+      : riga("Spedizione", `<span style="float:right;">${esc(prezzo(o.spedizione))}</span>`),
     riga("Totale", `<strong style="float:right;font-weight:600;">${esc(prezzo(o.totale))}</strong>`),
   ].join("");
 
   const apertura =
     per === "lei"
-      ? `<div style="font-family:${FONT};font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${C.accent};">Nuovo ordine</div>
+      ? `<div style="font-family:${FONT};font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${C.accent};">${ritiro ? "Nuovo ordine · ritiro in negozio" : "Nuovo ordine"}</div>
 <h1 style="margin:10px 0 0;font-family:${SERIF};font-weight:normal;font-size:24px;line-height:1.3;color:${C.ink};">Ordine #${o.id} · ${esc(prezzo(o.totale))}</h1>
 <p style="margin:10px 0 0;font-family:${FONT};font-size:14px;color:${C.inkSoft};">Pagato il ${esc(fecha(o.creato))} da <a href="mailto:${esc(o.email)}" style="color:${C.accent};">${esc(o.email)}</a>.</p>`
       : `<h1 style="margin:0;font-family:${SERIF};font-weight:normal;font-size:24px;line-height:1.3;color:${C.ink};">Grazie${o.nome ? `, ${esc(o.nome)}` : ""}!</h1>
@@ -358,8 +401,7 @@ function htmlOrdine(o: Ordine, per: "lei" | "cliente"): string {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${C.line};">${voci}${conti}</table>
 </td></tr>
 <tr><td style="padding:24px 32px 32px;">
-<div style="font-family:${FONT};font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${C.inkFaint};margin-bottom:10px;">Spedizione a</div>
-<div style="font-family:${FONT};font-size:15px;line-height:1.6;color:${C.ink};">${indirizzoInRighe(o).map(esc).join("<br>")}</div>
+${destinazione(o, per)}
 ${per === "lei" && o.telefono ? `<div style="margin-top:8px;font-family:${FONT};font-size:14px;color:${C.inkSoft};">Telefono <a href="tel:${esc(o.telefono.replace(/[^\d+]/g, ""))}" style="color:${C.accent};">${esc(o.telefono)}</a></div>` : ""}
 ${per === "lei" && o.codiceFiscale ? `<div style="margin-top:4px;font-family:${FONT};font-size:14px;color:${C.inkSoft};">Codice fiscale <span style="color:${C.ink};letter-spacing:.04em;">${esc(o.codiceFiscale)}</span></div>` : ""}
 ${per === "cliente" ? `<p style="margin:24px 0 0;font-family:${FONT};font-size:14px;line-height:1.6;color:${C.inkSoft};">Per qualsiasi domanda basta rispondere a questa mail.</p><p style="margin:16px 0 0;font-family:${SERIF};font-size:18px;color:${C.ink};">Benedetta</p>` : ""}
@@ -782,6 +824,73 @@ ${firma()}
     ].join("\n"),
   });
   if (error) throw new Error(`Resend (spedizione): ${error.message}`);
+}
+
+/* --------------------------------------------------------------- ritiro */
+
+/**
+ * La mail a chi ha comprato quando lei segna pronto un ordine da ritirare:
+ * è lì, in negozio, e lo aspetta. Ha la forma della lettera di spedizione
+ * —è lei che scrive— con l'indirizzo del negozio dove quella ha il numero
+ * per seguire il pacco. Non dice orari né scadenze: non ce ne sono di
+ * decisi, e chi vuole accordarsi risponde alla mail.
+ */
+export async function avvisaPronto(o: Ordine): Promise<void> {
+  const nome = o.nome?.split(" ")[0] ?? null;
+  const n = site.negozio;
+  const apertura = "il tuo ordine è pronto e ti aspetta in negozio. Puoi passare quando vuoi: basta dire il tuo nome o il numero dell’ordine.";
+  const chiusura = "Se vuoi accordarti su quando passare, o c’è qualcosa che non va, rispondi a questa mail.";
+
+  const voci = o.righe
+    .map((r) =>
+      riga(`${r.quantita} ×`, `${esc(r.title)} <span style="color:${C.inkFaint};">— ${esc(variante(r))}</span>`),
+    )
+    .join("");
+  const mappa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(indirizzoNegozio())}`;
+
+  const { error } = await cliente().emails.send({
+    from: desde(),
+    to: o.email,
+    replyTo: para(),
+    subject: `Il tuo ordine è pronto da ritirare — ordine #${o.id}`,
+    html: lettera(
+      `Il tuo ordine #${o.id} ti aspetta in negozio.`,
+      `<tr><td class="px" style="padding:36px 40px 8px;">
+<p style="margin:0;font-family:${DISPLAY};font-size:28px;line-height:1.2;color:${C.ink};">${esc(saluto(nome))}</p>
+${paragrafo(apertura)}
+</td></tr>
+<tr><td class="px" style="padding:20px 40px 4px;"><div style="background:${C.paperDeep};padding:16px 18px;">
+<div style="font-family:${FONT};font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${C.inkFaint};margin-bottom:6px;">Dove ritirarlo · ordine #${o.id}</div>
+<div style="font-family:${FONT};font-size:15px;line-height:1.6;color:${C.ink};">${esc(n.indirizzo)}<br>${esc(`${n.cap} ${n.citta} (${n.provincia})`)}</div>
+<p style="margin:8px 0 0;"><a href="${esc(mappa)}" style="font-family:${FONT};font-size:14px;color:${C.accent};text-decoration:underline;">Apri nella mappa</a></p>
+</div></td></tr>
+<tr><td class="px" style="padding:20px 40px 8px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${C.line};">${voci}</table>
+</td></tr>
+<tr><td class="px" style="padding:20px 40px 40px;">
+${paragrafo(chiusura).replace("margin:18px 0 0", "margin:0")}
+${firma()}
+</td></tr>`,
+      null,
+    ),
+    text: [
+      saluto(nome),
+      "",
+      apertura,
+      "",
+      `Dove ritirarlo (ordine #${o.id}):`,
+      n.indirizzo,
+      `${n.cap} ${n.citta} (${n.provincia})`,
+      mappa,
+      "",
+      ...o.righe.map((r) => `${r.quantita} × ${r.title} — ${variante(r)}`),
+      "",
+      chiusura,
+      "",
+      "Benedetta",
+    ].join("\n"),
+  });
+  if (error) throw new Error(`Resend (pronto da ritirare): ${error.message}`);
 }
 
 /* ------------------------------------------------------------- utilità */

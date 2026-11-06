@@ -72,6 +72,8 @@ psql -d illustrando -f db/migrations/010-codici.sql
 psql -d illustrando -f db/migrations/011-sumup.sql
 psql -d illustrando -f db/migrations/012-rimborsi.sql
 psql -d illustrando -f db/migrations/013-categorie.sql
+psql -d illustrando -f db/migrations/014-colori.sql
+psql -d illustrando -f db/migrations/015-ritiro.sql
 ```
 
 ## La tienda: `prodotti`, `servizi`, `copertine` y `ordini`

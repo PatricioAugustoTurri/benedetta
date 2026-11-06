@@ -1,4 +1,5 @@
 import { PROVINCE } from "@/data/province";
+import { site } from "@/data/site";
 
 /**
  * Dove si spedisce e quanto costa, e i dati che chi compra scrive nel
@@ -58,6 +59,32 @@ export function tariffeSpedizione(): TariffaSpedizione[] {
   ];
 }
 
+/* -------------------------------------------------------------- ritiro */
+
+/**
+ * Come arriva l'ordine: spedito, o ritirato da chi compra nel negozio di
+ * Foligno. Il ritiro è gratis e per chiunque lo scelga (cliente,
+ * 2026-11-06): chi è di Foligno non paga una spedizione per una stampa che
+ * può venire a prendere.
+ */
+export type Consegna = "spedizione" | "ritiro";
+
+/** L'indirizzo del negozio in una riga: «Via Corso Nuovo 7h, 06034 Foligno (PG)». */
+export function indirizzoNegozio(): string {
+  const n = site.negozio;
+  return `${n.indirizzo}, ${n.cap} ${n.citta} (${n.provincia})`;
+}
+
+/**
+ * Quanto costa far arrivare l'ordine, in centesimi: niente per il ritiro, la
+ * tariffa del paese per la spedizione, o null se il paese non è ancora
+ * scelto o lì non si spedisce.
+ */
+export function costoConsegna(d: Pick<DatiSpedizione, "consegna" | "paese">): number | null {
+  if (d.consegna === "ritiro") return 0;
+  return tariffaPer(d.paese)?.prezzo ?? null;
+}
+
 /** La tariffa che vale per un paese, o null se lì non si spedisce. */
 export function tariffaPer(paese: string): TariffaSpedizione | null {
   return tariffeSpedizione().find((t) => t.paesi.includes(paese)) ?? null;
@@ -88,6 +115,7 @@ export const PROVINCE_ORDINATE = [...PROVINCE].sort((a, b) => a[1].localeCompare
 /* ----------------------------------------------------------------- dati */
 
 export type CampoSpedizione =
+  | "consegna"
   | "email"
   | "telefono"
   | "nome"
@@ -103,6 +131,7 @@ export type DatiSpedizione = Record<CampoSpedizione, string>;
 export type ErroriSpedizione = Partial<Record<CampoSpedizione, string>>;
 
 export const DATI_VUOTI: DatiSpedizione = {
+  consegna: "spedizione",
   email: "",
   telefono: "",
   nome: "",
@@ -120,6 +149,7 @@ export const DATI_VUOTI: DatiSpedizione = {
  * vero, e non abbastanza per usare il modulo come un sacco.
  */
 export const MAX: Record<CampoSpedizione, number> = {
+  consegna: 10,
   email: 254,
   telefono: 24,
   nome: 100,
@@ -135,6 +165,7 @@ export const MAX: Record<CampoSpedizione, number> = {
 
 /** L'ordine dei campi nel modulo: il fuoco va al primo che non va. */
 export const ORDINE_CAMPI: CampoSpedizione[] = [
+  "consegna",
   "email",
   "telefono",
   "nome",
@@ -147,12 +178,25 @@ export const ORDINE_CAMPI: CampoSpedizione[] = [
   "provincia",
 ];
 
-/** Toglie gli spazi in testa e in coda, e taglia al tetto: quello che si scrive nell'ordine. */
+/**
+ * Toglie gli spazi in testa e in coda, e taglia al tetto: quello che si
+ * scrive nell'ordine.
+ *
+ * Con il ritiro l'indirizzo non serve e non si tiene, anche se chi compra
+ * l'aveva scritto prima di cambiare idea: il paese resta l'Italia, perché il
+ * codice fiscale si chiede sempre —lei fattura lo stesso— e si legge con le
+ * regole italiane.
+ */
 export function pulisci(dati: Partial<Record<string, unknown>>): DatiSpedizione {
   const d = { ...DATI_VUOTI };
   for (const c of ORDINE_CAMPI) {
     const v = dati[c];
     d[c] = typeof v === "string" ? v.trim().replace(/\s+/g, " ").slice(0, MAX[c]) : "";
+  }
+  d.consegna = d.consegna === "ritiro" ? "ritiro" : "spedizione";
+  if (d.consegna === "ritiro") {
+    d.paese = "IT";
+    d.indirizzo = d.interno = d.cap = d.citta = d.provincia = "";
   }
   d.paese = d.paese.toUpperCase();
   if (d.paese === "IT") {
@@ -177,19 +221,20 @@ export function validaSpedizione(grezzi: DatiSpedizione): ErroriSpedizione {
   const d = pulisci(grezzi);
   const errori: ErroriSpedizione = {};
   const italia = d.paese === "IT";
+  const ritiro = d.consegna === "ritiro";
 
   if (!d.email) errori.email = "Manca la tua email.";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) errori.email = "Questa email non sembra completa.";
 
   const cifre = d.telefono.replace(/\D/g, "").length;
-  if (!d.telefono) errori.telefono = "Manca il telefono: serve al corriere.";
+  if (!d.telefono) errori.telefono = ritiro ? "Manca il telefono." : "Manca il telefono: serve al corriere.";
   else if (!/^\+?[\d\s().\/-]+$/.test(d.telefono) || cifre < 6 || cifre > 15)
     errori.telefono = "Questo numero non sembra completo.";
 
-  if (!d.nome) errori.nome = "Manca il nome di chi riceve il pacco.";
+  if (!d.nome) errori.nome = ritiro ? "Manca il nome di chi passa a ritirare." : "Manca il nome di chi riceve il pacco.";
   else if (d.nome.length < 2) errori.nome = "Scrivi nome e cognome.";
 
-  if (!tariffaPer(d.paese)) errori.paese = "Spedisco solo in Italia e nell'Unione Europea.";
+  if (!ritiro && !tariffaPer(d.paese)) errori.paese = "Spedisco solo in Italia e nell'Unione Europea.";
 
   if (italia) {
     if (!d.codiceFiscale) errori.codiceFiscale = "Manca il codice fiscale.";
@@ -199,6 +244,9 @@ export function validaSpedizione(grezzi: DatiSpedizione): ErroriSpedizione {
           ? "Il codice fiscale ha 16 caratteri (11 cifre per un'azienda)."
           : "Questo codice fiscale non torna: controlla lettere e numeri.";
   }
+
+  // Per il ritiro non serve altro: l'indirizzo è quello del negozio.
+  if (ritiro) return errori;
 
   if (!d.indirizzo) errori.indirizzo = "Manca l'indirizzo.";
   else if (d.indirizzo.length < 3) errori.indirizzo = "Scrivi via e numero civico.";

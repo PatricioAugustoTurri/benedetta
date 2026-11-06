@@ -3,16 +3,21 @@
 import type { ReactNode } from "react";
 import { CONTROL, LABEL } from "@/components/campo";
 import { ChevronDown } from "@/components/Icon";
+import { prezzo } from "@/data/shop";
+import { site } from "@/data/site";
 import {
   MAX,
   PROVINCE_ORDINATE,
   paesiSpedizione,
+  tariffeSpedizione,
+  type Consegna,
   type CampoSpedizione,
   type DatiSpedizione as Dati,
   type ErroriSpedizione,
 } from "@/lib/spedizione";
 
 const PAESI = paesiSpedizione();
+const DA = Math.min(...tariffeSpedizione().map((t) => t.prezzo));
 
 /**
  * I dati per spedire: quello che prima si scriveva sulla pagina di Stripe e
@@ -33,6 +38,13 @@ const PAESI = paesiSpedizione();
  * Ogni campo porta il suo `autocomplete` con il prefisso `shipping`: il
  * browser e il gestore di password riempiono l'indirizzo in un tocco, come
  * su qualsiasi pagina di pagamento.
+ *
+ * **Prima di tutto, come arriva.** Spedito, o ritirato nel negozio di
+ * Foligno, gratis (cliente, 2026-11-06). Sta in cima perché decide il resto
+ * del modulo: con il ritiro l'indirizzo non si chiede, e restano il nome di
+ * chi passa e il codice fiscale, che lei fattura lo stesso. La scelta ha il
+ * disegno dei formati nella scheda della stampa —righe su filetto, il punto
+ * terracotta—: è lo stesso gesto, scegliere una cosa fra due.
  */
 export default function DatiSpedizione({
   id,
@@ -45,7 +57,9 @@ export default function DatiSpedizione({
   errori: ErroriSpedizione;
   onCambia: (campo: CampoSpedizione, valore: string) => void;
 }) {
-  const italia = dati.paese === "IT";
+  const ritiro = dati.consegna === "ritiro";
+  // Con il ritiro il codice fiscale si chiede sempre, con le regole italiane.
+  const italia = ritiro || dati.paese === "IT";
 
   // Le proprietà che ogni controllo ha uguali: id, nome, valore, errore.
   const comune = (campo: CampoSpedizione) => ({
@@ -67,7 +81,7 @@ export default function DatiSpedizione({
       key={c}
       id={`${id}-${c}`}
       etichetta={etichetta}
-      suggerimento={suggerimenti[c]}
+      suggerimento={(ritiro && suggerimentiRitiro[c]) || suggerimenti[c]}
       errore={errori[c]}
       facoltativo={opzioni?.facoltativo}
       className={opzioni?.classe}
@@ -76,8 +90,48 @@ export default function DatiSpedizione({
     </Campo>
   );
 
+  const codiceFiscale = campo(
+    "codiceFiscale",
+    "Codice fiscale",
+    <input
+      {...comune("codiceFiscale")}
+      type="text"
+      autoComplete="off"
+      autoCapitalize="characters"
+      autoCorrect="off"
+      spellCheck={false}
+      className={`${CONTROL} figures mt-2 tracking-[0.06em] uppercase`}
+    />,
+    { classe: "sm:col-span-12" },
+  );
+
   return (
     <div className="space-y-12">
+      <Gruppo id={`${id}-consegna-titolo`} titolo="Come lo ricevi">
+        <fieldset aria-labelledby={`${id}-consegna-titolo`} className="border-t border-line">
+          <Opzione
+            id={`${id}-consegna`}
+            nome={`${id}-consegna`}
+            valore="spedizione"
+            scelta={dati.consegna as Consegna}
+            onScegli={(v) => onCambia("consegna", v)}
+            titolo="Spedizione"
+            nota="A casa tua, in Italia o nell'Unione Europea."
+            prezzo={`da ${prezzo(DA)}`}
+          />
+          <Opzione
+            id={`${id}-consegna-ritiro`}
+            nome={`${id}-consegna`}
+            valore="ritiro"
+            scelta={dati.consegna as Consegna}
+            onScegli={(v) => onCambia("consegna", v)}
+            titolo={`Ritiro a ${site.negozio.citta}`}
+            nota={`In negozio, ${site.negozio.indirizzo}. Ti scrivo quando è pronto.`}
+            prezzo="Gratis"
+          />
+        </fieldset>
+      </Gruppo>
+
       <Gruppo id={`${id}-contatti`} titolo="Contatti">
         <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
           {campo(
@@ -100,120 +154,181 @@ export default function DatiSpedizione({
         </div>
       </Gruppo>
 
-      <Gruppo id={`${id}-indirizzo`} titolo="Indirizzo di spedizione">
-        <div className="grid gap-x-6 gap-y-8 sm:grid-cols-12">
-          {campo(
-            "nome",
-            "Nome e cognome",
-            <input {...comune("nome")} type="text" autoComplete="shipping name" className={`${CONTROL} mt-2`} />,
-            { classe: "sm:col-span-12" },
-          )}
-          {campo(
-            "paese",
-            "Paese",
-            <Menu>
-              <select {...comune("paese")} autoComplete="shipping country" className={`${CONTROL} ${MENU}`}>
-                {PAESI.map((p) => (
-                  <option key={p.codice} value={p.codice}>
-                    {p.nome}
-                  </option>
-                ))}
-              </select>
-            </Menu>,
-            { classe: "sm:col-span-12" },
-          )}
-          {/*
-            Subito sotto il paese, perché è il paese a chiederlo: scegliendo
-            Italia compare, scegliendone un altro se ne va. Chi lo vede nascere
-            sotto la sua scelta capisce perché è lì.
-          */}
-          {italia &&
-            campo(
-              "codiceFiscale",
-              "Codice fiscale",
-              <input
-                {...comune("codiceFiscale")}
-                type="text"
-                autoComplete="off"
-                autoCapitalize="characters"
-                autoCorrect="off"
-                spellCheck={false}
-                className={`${CONTROL} figures mt-2 tracking-[0.06em] uppercase`}
-              />,
+      {ritiro ? (
+        <Gruppo id={`${id}-ritiro`} titolo="Chi passa a ritirare">
+          <div className="grid gap-x-6 gap-y-8 sm:grid-cols-12">
+            {campo(
+              "nome",
+              "Nome e cognome",
+              <input {...comune("nome")} type="text" autoComplete="name" className={`${CONTROL} mt-2`} />,
               { classe: "sm:col-span-12" },
             )}
-          {campo(
-            "indirizzo",
-            "Indirizzo",
-            <input
-              {...comune("indirizzo")}
-              type="text"
-              autoComplete="shipping address-line1"
-              className={`${CONTROL} mt-2`}
-            />,
-            { classe: "sm:col-span-12" },
-          )}
-          {campo(
-            "interno",
-            "Scala, interno, presso",
-            <input
-              {...comune("interno")}
-              type="text"
-              autoComplete="shipping address-line2"
-              className={`${CONTROL} mt-2`}
-            />,
-            { facoltativo: true, classe: "sm:col-span-12" },
-          )}
-          {campo(
-            "cap",
-            "CAP",
-            <input
-              {...comune("cap")}
-              type="text"
-              autoComplete="shipping postal-code"
-              inputMode={italia ? "numeric" : "text"}
-              autoCapitalize="characters"
-              className={`${CONTROL} figures mt-2`}
-            />,
-            { classe: italia ? "sm:col-span-3" : "sm:col-span-4" },
-          )}
-          {campo(
-            "citta",
-            "Città",
-            <input
-              {...comune("citta")}
-              type="text"
-              autoComplete="shipping address-level2"
-              className={`${CONTROL} mt-2`}
-            />,
-            { classe: italia ? "sm:col-span-5" : "sm:col-span-8" },
-          )}
-          {italia &&
-            campo(
-              "provincia",
-              "Provincia",
+            {codiceFiscale}
+          </div>
+        </Gruppo>
+      ) : (
+        <Gruppo id={`${id}-indirizzo`} titolo="Indirizzo di spedizione">
+          <div className="grid gap-x-6 gap-y-8 sm:grid-cols-12">
+            {campo(
+              "nome",
+              "Nome e cognome",
+              <input {...comune("nome")} type="text" autoComplete="shipping name" className={`${CONTROL} mt-2`} />,
+              { classe: "sm:col-span-12" },
+            )}
+            {campo(
+              "paese",
+              "Paese",
               <Menu>
-                <select
-                  {...comune("provincia")}
-                  autoComplete="shipping address-level1"
-                  data-vuoto={dati.provincia === ""}
-                  className={`${CONTROL} ${MENU} data-[vuoto=true]:text-ink-faint`}
-                >
-                  <option value="" disabled>
-                    Scegli
-                  </option>
-                  {PROVINCE_ORDINATE.map(([sigla, nome]) => (
-                    <option key={sigla} value={sigla} className="text-ink">
-                      {nome}
+                <select {...comune("paese")} autoComplete="shipping country" className={`${CONTROL} ${MENU}`}>
+                  {PAESI.map((p) => (
+                    <option key={p.codice} value={p.codice}>
+                      {p.nome}
                     </option>
                   ))}
                 </select>
               </Menu>,
-              { classe: "sm:col-span-4" },
+              { classe: "sm:col-span-12" },
             )}
-        </div>
-      </Gruppo>
+            {/*
+              Subito sotto il paese, perché è il paese a chiederlo: scegliendo
+              Italia compare, scegliendone un altro se ne va. Chi lo vede nascere
+              sotto la sua scelta capisce perché è lì.
+            */}
+            {italia && codiceFiscale}
+            {campo(
+              "indirizzo",
+              "Indirizzo",
+              <input
+                {...comune("indirizzo")}
+                type="text"
+                autoComplete="shipping address-line1"
+                className={`${CONTROL} mt-2`}
+              />,
+              { classe: "sm:col-span-12" },
+            )}
+            {campo(
+              "interno",
+              "Scala, interno, presso",
+              <input
+                {...comune("interno")}
+                type="text"
+                autoComplete="shipping address-line2"
+                className={`${CONTROL} mt-2`}
+              />,
+              { facoltativo: true, classe: "sm:col-span-12" },
+            )}
+            {campo(
+              "cap",
+              "CAP",
+              <input
+                {...comune("cap")}
+                type="text"
+                autoComplete="shipping postal-code"
+                inputMode={italia ? "numeric" : "text"}
+                autoCapitalize="characters"
+                className={`${CONTROL} figures mt-2`}
+              />,
+              { classe: italia ? "sm:col-span-3" : "sm:col-span-4" },
+            )}
+            {campo(
+              "citta",
+              "Città",
+              <input
+                {...comune("citta")}
+                type="text"
+                autoComplete="shipping address-level2"
+                className={`${CONTROL} mt-2`}
+              />,
+              { classe: italia ? "sm:col-span-5" : "sm:col-span-8" },
+            )}
+            {italia &&
+              campo(
+                "provincia",
+                "Provincia",
+                <Menu>
+                  <select
+                    {...comune("provincia")}
+                    autoComplete="shipping address-level1"
+                    data-vuoto={dati.provincia === ""}
+                    className={`${CONTROL} ${MENU} data-[vuoto=true]:text-ink-faint`}
+                  >
+                    <option value="" disabled>
+                      Scegli
+                    </option>
+                    {PROVINCE_ORDINATE.map(([sigla, nome]) => (
+                      <option key={sigla} value={sigla} className="text-ink">
+                        {nome}
+                      </option>
+                    ))}
+                  </select>
+                </Menu>,
+                { classe: "sm:col-span-4" },
+              )}
+          </div>
+        </Gruppo>
+      )}
     </div>
+  );
+}
+
+/**
+ * Una delle due maniere di ricevere l'ordine: il radio vero è invisibile e
+ * il segno è disegnato, come nei formati della stampa, con l'anello di fuoco
+ * sul segno perché chi usa la tastiera veda dove si trova. A destra quanto
+ * costa: è quello che fa scegliere.
+ */
+function Opzione({
+  id,
+  nome,
+  valore,
+  scelta,
+  onScegli,
+  titolo,
+  nota,
+  prezzo: costo,
+}: {
+  id: string;
+  nome: string;
+  valore: Consegna;
+  scelta: Consegna;
+  onScegli: (v: Consegna) => void;
+  titolo: string;
+  nota: string;
+  prezzo: string;
+}) {
+  const scelto = scelta === valore;
+  return (
+    <label
+      htmlFor={id}
+      data-scelto={scelto}
+      className="group flex cursor-pointer items-start justify-between gap-6 border-b border-line py-4 last:border-b-0 text-ink-soft transition-colors hover:text-ink data-[scelto=true]:text-ink"
+    >
+      <span className="flex min-w-0 items-start gap-3">
+        <input
+          id={id}
+          type="radio"
+          name={nome}
+          value={valore}
+          checked={scelto}
+          onChange={() => onScegli(valore)}
+          aria-describedby={`${id}-nota`}
+          className="peer sr-only"
+        />
+        <span
+          aria-hidden="true"
+          className="mt-[0.3rem] flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-ink-faint transition-colors group-data-[scelto=true]:border-ink peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
+        >
+          <span className="block h-1.5 w-1.5 rounded-full bg-accent opacity-0 transition-opacity group-data-[scelto=true]:opacity-100" />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-base">{titolo}</span>
+          <span id={`${id}-nota`} className="mt-1 block text-xs leading-relaxed text-ink-faint">
+            {nota}
+          </span>
+        </span>
+      </span>
+      <span className="figures shrink-0 pt-0.5 text-sm">{costo}</span>
+    </label>
   );
 }
 
@@ -226,6 +341,12 @@ const suggerimenti: Partial<Record<CampoSpedizione, string>> = {
   email: "Qui ti arriva la conferma dell'ordine.",
   telefono: "Per il corriere, se deve chiamarti.",
   codiceFiscale: "Obbligatorio per gli ordini in Italia: lo trovi sulla tessera sanitaria.",
+};
+
+/** Con il ritiro il corriere non c'è, e il codice fiscale serve per la fattura. */
+const suggerimentiRitiro: Partial<Record<CampoSpedizione, string>> = {
+  telefono: "Se devo chiamarti per il ritiro.",
+  codiceFiscale: "Mi serve per la fattura: lo trovi sulla tessera sanitaria.",
 };
 
 /*
