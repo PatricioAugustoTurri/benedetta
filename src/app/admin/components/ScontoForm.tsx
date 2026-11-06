@@ -266,6 +266,11 @@ export default function ScontoForm({
             Il prezzo scontato vale davvero: nella scheda della stampa, nel carrello e nel pagamento.
           </li>
           <li>Puoi prepararlo prima: resta programmato e si accende da solo il primo giorno.</li>
+          <li>
+            Vale solo sugli ordini da 30 € in su, contati a prezzo pieno e senza spedizione. Sotto, le
+            stampe si pagano piene e il carrello dice quanto manca. Lo dicono anche la scheda della
+            stampa e la striscia in alto.
+          </li>
         </ul>
         <p className="mt-6 border-t border-line pt-4 text-xs leading-relaxed text-ink-faint">
           Per legge, il prezzo barrato deve essere il più basso degli ultimi 30 giorni: non cambiare il

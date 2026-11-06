@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
-import { prezzo, prezzoMinimo, prezzoScontato, prodottoHref } from "@/data/shop";
+import { MINIMO_SCONTI, prezzo, prezzoMinimo, prezzoScontato, prodottoHref } from "@/data/shop";
 import { site } from "@/data/site";
 import type { ScontoInCorso } from "@/lib/sconti";
 import { immagineFerma } from "@/lib/video";
@@ -46,6 +46,8 @@ export default function ScontiShop({ sconti }: { sconti: ScontoInCorso[] }) {
                 <span className="font-medium text-accent">−{s.percentuale}%</span>
                 <span aria-hidden="true"> · </span>
                 fino al {giorno(s.al)}
+                <span aria-hidden="true"> · </span>
+                sugli ordini da {prezzo(MINIMO_SCONTI)}
               </p>
             </div>
             {s.testo && (

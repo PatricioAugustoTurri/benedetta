@@ -202,6 +202,7 @@ export default function AggiungiAlCarrello({
             // comunque prima di pagare, quindi questo è solo per mostrarlo.
             prezzo: prezzoScontato(formato.prezzo, sconto),
             scontata: Boolean(sconto),
+            ...(sconto ? { pieno: formato.prezzo } : {}),
             immagine,
           });
           setAggiunto({

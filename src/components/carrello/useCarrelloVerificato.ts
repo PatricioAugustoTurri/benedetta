@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { verificaCarrello } from "@/app/(sitio)/carrello/actions";
+import { applicaMinimo, mancaAlMinimo } from "@/data/shop";
 import { sostituisci, useCarrello } from "./store";
 
 const nessuno = () => () => {};
@@ -18,6 +19,11 @@ const nessuno = () => () => {};
  * `montato` è falso sul server e al primo disegno: il carrello vive nel
  * browser, e finché non lo si è letto la pagina non dice «vuoto», che
  * sarebbe falso per mezzo secondo.
+ *
+ * `voci` sono già quelle che si pagano: sotto i 30 € del minimo d'ordine le
+ * stampe in sconto di stagione tornano al prezzo pieno (`applicaMinimo`).
+ * `mancano` dice quanto manca al minimo, e `stagione` se nel carrello c'è
+ * una stampa che lo sconto di stagione lo avrebbe, per dirlo a chi compra.
  */
 export function useCarrelloVerificato() {
   const voci = useCarrello();
@@ -45,5 +51,7 @@ export function useCarrelloVerificato() {
       });
   }, [montato, voci]);
 
-  return { voci, montato, avviso, setAvviso };
+  const mancano = mancaAlMinimo(voci);
+  const stagione = mancano > 0 && voci.some((v) => v.scontata);
+  return { voci: applicaMinimo(voci), mancano, stagione, montato, avviso, setAvviso };
 }

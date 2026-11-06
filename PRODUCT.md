@@ -82,6 +82,16 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
     una tarjeta del paquete, 15%, un solo uso, vence 90 días después del envío,
     y todo —código, porcentaje, fecha— se corrige desde el pedido antes de
     mandarlo. Ningún código se suma a los sconti de temporada ni toca el envío.
+    Desde el admin cada código —el del pedido y los que ella crea— se baja como
+    PDF para imprimir (A6 en un A4 con marcas de corte; cuatro copias si vale
+    para todos), con la chica con la estrella de la apertura en versión a línea (archivo que
+    dio el cliente, `public/biglietto-ragazza.png`) y su firma (2026-11-06).
+  - **Mínimo de 30 €** (cliente, 2026-11-06): ningún descuento vale por debajo,
+    ni los códigos ni los sconti de temporada. Se cuenta sobre el precio lleno
+    de los productos, sin envío (`MINIMO_SCONTI` en `src/data/shop.ts`). Por
+    debajo, las stampe en sconto se cobran llenas, el código queda escrito pero
+    no descuenta ni se consume, y el carrito dice cuánto falta. El feed de
+    Google sólo declara precio rebajado en los formatos que llegan solos a 30 €.
   - **Categorías** (2026-11-01): salen de la tabla `categorie` y ella las crea
     desde `/admin/shop`. Una nueva funciona como Stampe —productos con formatos,
     precio y carrito—, nace **oculta** y al final del menú, y se enciende cuando

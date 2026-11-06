@@ -4,10 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { AZIONE } from "@/components/azione";
 import { ArrowRight, Meno, Plus } from "@/components/Icon";
-import { chiaveVoce, prezzo, prodottoHref, variante } from "@/data/shop";
+import { chiaveVoce, MINIMO_SCONTI, prezzo, prodottoHref, variante } from "@/data/shop";
 import { site } from "@/data/site";
 import { tariffeSpedizione } from "@/lib/spedizione";
-import { Conto } from "./Conti";
+import { Conto, NotaMinimo } from "./Conti";
 import { cambiaQuantita, MAX_QUANTITA, togli, totaleCarrello, type VoceCarrello } from "./store";
 import { useCarrelloVerificato } from "./useCarrelloVerificato";
 
@@ -25,7 +25,7 @@ const [ITALIA, UE] = tariffeSpedizione();
  * filetti della scheda di un'opera, con le cifre a destra in tabulari.
  */
 export default function CarrelloVista() {
-  const { voci, montato, avviso } = useCarrelloVerificato();
+  const { voci, montato, avviso, mancano, stagione } = useCarrelloVerificato();
 
   if (!montato) return <div className="min-h-[40vh]" aria-hidden="true" />;
 
@@ -74,11 +74,13 @@ export default function CarrelloVista() {
           <dl className="mt-3 border-t border-line">
             <Conto etichetta="Subtotale" valore={prezzo(totaleCarrello(voci))} />
           </dl>
+          {stagione && <NotaMinimo mancano={mancano} />}
           <p className="mt-3 text-xs leading-relaxed text-ink-faint">
             Spedizione alla cassa: <span className="figures">{prezzo(ITALIA.prezzo)}</span> in Italia,{" "}
             <span className="figures">{prezzo(UE.prezzo)}</span> nell&apos;Unione Europea, una volta per
             ordine. Oppure lo ritiri gratis in negozio a {site.negozio.citta}. Lì scrivi anche il codice
-            sconto, se ce l&apos;hai.
+            sconto, se ce l&apos;hai: vale sugli ordini da{" "}
+            <span className="figures">{prezzo(MINIMO_SCONTI)}</span> in su.
           </p>
 
           <Link href="/carrello/cassa" className={`mt-8 w-full justify-center ${AZIONE}`}>

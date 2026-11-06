@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "@/components/Icon";
+import { MINIMO_SCONTI, prezzo } from "@/data/shop";
 import { scontiInCorsoConStampe } from "@/lib/sconti";
 
 const giorno = (iso: string) =>
@@ -35,7 +36,7 @@ export default async function CintaSconti() {
   if (sconti.length === 0) return null;
 
   const etichetta = sconti
-    .map((s) => `${s.titolo}: −${s.percentuale}% fino al ${giorno(s.al)}`)
+    .map((s) => `${s.titolo}: −${s.percentuale}% fino al ${giorno(s.al)}, sugli ordini da ${prezzo(MINIMO_SCONTI)}`)
     .join(". ");
 
   // Una voce per sconto, ripetuta finché la striscia è più larga dello
@@ -60,7 +61,7 @@ export default async function CintaSconti() {
             −{s.percentuale}%
           </span>
           <span className="text-[0.6875rem] tracking-[0.18em] text-ink-soft uppercase">
-            fino al {giorno(s.al)}
+            fino al {giorno(s.al)} · ordini da {prezzo(MINIMO_SCONTI)}
           </span>
           <span className="flex items-center gap-1.5 text-[0.8125rem] text-ink">
             Scopri le stampe

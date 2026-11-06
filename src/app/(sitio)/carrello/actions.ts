@@ -3,7 +3,7 @@
 import { origine } from "@/lib/origine";
 import type { VoceCarrello } from "@/components/carrello/store";
 import { site } from "@/data/site";
-import { chiaveVoce, prezzoScontato, scontoCodice } from "@/data/shop";
+import { applicaMinimo, chiaveVoce, prezzoScontato, scontoCodice } from "@/data/shop";
 import { cercaCodice, normalizzaCodice, type Ricerca } from "@/lib/codici";
 import { giornoLungo } from "@/lib/oggi";
 import { prodottiPerSlug } from "@/lib/prodotti";
@@ -90,6 +90,7 @@ async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
       title: p.title,
       prezzo: prezzoScontato(f.prezzo, sconti.get(p.id)?.percentuale),
       scontata: sconti.has(p.id),
+      ...(sconti.has(p.id) ? { pieno: f.prezzo } : {}),
       immagine: portada
         ? { url: immagineFerma(portada), width: portada.width, height: portada.height, alt: portada.alt }
         : undefined,
@@ -200,7 +201,8 @@ export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagame
   // Validato: o è un ritiro, o il paese è in una delle due zone.
   const spedizione = costoConsegna(dati)!;
 
-  const voci = await rifai(leggiRichiesta(r?.voci));
+  // Sotto i 30 € gli sconti di stagione non valgono: si paga il prezzo pieno.
+  const voci = applicaMinimo(await rifai(leggiRichiesta(r?.voci)));
   if (voci.length === 0) return { error: "Il carrello è vuoto." };
 
   /*
@@ -259,7 +261,8 @@ export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagame
       })),
       subtotale,
       // Il codice si scrive solo se ha tolto qualcosa: uno che non tocca
-      // niente —tutte stampe già in sconto— non è stato usato.
+      // niente —tutte stampe già in sconto, o un ordine sotto i 30 €— non è
+      // stato usato, e un biglietto resta buono per la volta dopo.
       sconto,
       codice: codice && sconto > 0 ? codice.codice : null,
       spedizione,

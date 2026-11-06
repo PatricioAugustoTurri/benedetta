@@ -1,5 +1,5 @@
 import { site } from "@/data/site";
-import { prezzoScontato, prodottoHref } from "@/data/shop";
+import { MINIMO_SCONTI, prezzoScontato, prodottoHref } from "@/data/shop";
 import { listPubblicati } from "@/lib/prodotti";
 import { scontiInCorso } from "@/lib/sconti";
 import { tariffeSpedizione } from "@/lib/spedizione";
@@ -47,7 +47,10 @@ export async function GET() {
         const altre = p.image.slice(1, 6).map((i) => `<g:additional_image_link>${esc(immagineFeed(immagineFerma(i)))}</g:additional_image_link>`);
         if (p.mockup) altre.push(`<g:additional_image_link>${esc(immagineFeed(p.mockup.url))}</g:additional_image_link>`);
         // Lo sconto in corso, con le sue date: Google mostra il prezzo barrato finché vale.
-        const sconto = sconti.get(p.id);
+        // Solo per i formati che da soli arrivano ai 30 € del minimo d'ordine: per gli
+        // altri lo sconto non è il prezzo di quella stampa, e Google non accetta un
+        // prezzo scontato che chiede di comprare altro.
+        const sconto = f.prezzo >= MINIMO_SCONTI ? sconti.get(p.id) : undefined;
         const saldo = sconto
           ? `<g:sale_price>${(prezzoScontato(f.prezzo, sconto.percentuale) / 100).toFixed(2)} EUR</g:sale_price>
 <g:sale_price_effective_date>${sconto.dal}T00:00+01:00/${sconto.al}T23:59+01:00</g:sale_price_effective_date>`

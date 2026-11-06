@@ -325,7 +325,14 @@ function Voce({
       </div>
 
       {!rimborsato && (
-        <BigliettoOrdine ordine={o.id} biglietto={biglietto} spedito={spedito} ritiro={ritiro} oggi={oggi} />
+        <BigliettoOrdine
+          ordine={o.id}
+          biglietto={biglietto}
+          spedito={spedito}
+          ritiro={ritiro}
+          oggi={oggi}
+          nome={o.nome}
+        />
       )}
 
       {rimborsato ? (

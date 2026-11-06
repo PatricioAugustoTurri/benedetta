@@ -177,14 +177,56 @@ export function prezzoScontato(centesimi: number, percentuale: number | null | u
  * con un solo arrotondamento sul totale: così non possono non coincidere.
  *
  * Le stampe già in uno sconto di stagione restano fuori: il codice non si
- * somma (cliente, 2026-10-09). La spedizione non entra mai.
+ * somma (cliente, 2026-10-09). La spedizione non entra mai. Sotto il
+ * minimo d'ordine non toglie niente (vedi `MINIMO_SCONTI`).
  */
-export function scontoCodice(
-  voci: { prezzo: number; quantita: number; scontata?: boolean }[],
-  percentuale: number,
-): number {
+export function scontoCodice(voci: VoceConti[], percentuale: number): number {
+  if (mancaAlMinimo(voci) > 0) return 0;
   const base = voci.reduce((n, v) => (v.scontata ? n : n + v.prezzo * v.quantita), 0);
   return Math.round((base * percentuale) / 100);
+}
+
+/* ----------------------------------------------------- il minimo d'ordine */
+
+/**
+ * Nessuno sconto vale sotto i 30 € (cliente, 2026-11-06): né i codici —i
+ * biglietti, BENZIBET98— né gli sconti di stagione. Su un ordine piccolo lo
+ * sconto le costa più di quello che porta.
+ *
+ * I 30 € si contano sul prezzo pieno delle stampe, prima di qualsiasi
+ * sconto, e senza la spedizione: un A3 da 30 € basta da solo, due A5 no.
+ */
+export const MINIMO_SCONTI = 3000;
+
+/** Quello che serve dei conti di una riga per fare i conti del carrello. */
+export type VoceConti = {
+  prezzo: number;
+  quantita: number;
+  scontata?: boolean;
+  /** Il prezzo pieno di una riga in sconto di stagione. */
+  pieno?: number;
+};
+
+/** Il carrello a prezzo pieno, prima di ogni sconto, senza spedizione. */
+export function subtotalePieno(voci: VoceConti[]): number {
+  return voci.reduce((n, v) => n + (v.scontata && v.pieno ? v.pieno : v.prezzo) * v.quantita, 0);
+}
+
+/** Quanto manca ai 30 € perché valgano gli sconti; zero se ci sono già. */
+export function mancaAlMinimo(voci: VoceConti[]): number {
+  return Math.max(0, MINIMO_SCONTI - subtotalePieno(voci));
+}
+
+/**
+ * Il carrello come si paga: sotto il minimo le stampe in sconto di stagione
+ * tornano al prezzo pieno. Le righe nel browser tengono tutti e due i prezzi,
+ * così quando il carrello sale sopra i 30 € lo sconto torna senza chiedere
+ * niente al server; il server fa lo stesso conto con questa funzione prima
+ * di far pagare.
+ */
+export function applicaMinimo<T extends VoceConti>(voci: T[]): T[] {
+  if (mancaAlMinimo(voci) === 0) return voci;
+  return voci.map((v) => (v.scontata ? { ...v, prezzo: v.pieno ?? v.prezzo, scontata: false, pieno: undefined } : v));
 }
 
 /** I formati di una stampa con lo sconto applicato; senza sconto, gli stessi. */

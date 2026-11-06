@@ -3,6 +3,7 @@ import AggiungiAlCarrello from "@/components/carrello/AggiungiAlCarrello";
 import { ArrowRight } from "@/components/Icon";
 import Reveal from "@/components/Reveal";
 import { legaliPronte } from "@/data/legale";
+import { MINIMO_SCONTI, prezzo } from "@/data/shop";
 import type { Prodotto } from "@/lib/prodotti";
 import { immagineFerma } from "@/lib/video";
 
@@ -34,14 +35,15 @@ export default function ProdottoScheda({
       <Reveal delay={90}>
         {/*
           Lo sconto si dice sopra i formati, con il suo nome e il suo ultimo
-          giorno: è un prezzo che scade, e chi compra deve saperlo.
+          giorno: è un prezzo che scade, e chi compra deve saperlo. E con il
+          minimo d'ordine, perché sotto i 30 € nel carrello non vale.
         */}
         {sconto && (
           <p className="mb-5 flex items-start gap-2.5 text-sm leading-relaxed text-ink">
             <span aria-hidden="true" className="mt-[0.55em] block h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
             <span>
               {sconto.titolo}: <strong className="font-medium">−{sconto.percentuale}%</strong> fino al{" "}
-              {giorno(sconto.al)}.
+              {giorno(sconto.al)}, sugli ordini da <span className="figures">{prezzo(MINIMO_SCONTI)}</span> in su.
             </span>
           </p>
         )}

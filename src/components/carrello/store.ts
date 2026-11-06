@@ -34,6 +34,12 @@ export type VoceCarrello = {
    * è per mostrarlo; il pagamento lo ricalcola.
    */
   scontata?: boolean;
+  /**
+   * Il prezzo pieno di una riga in sconto di stagione. Serve a contare i 30 €
+   * del minimo d'ordine e a tornare al prezzo pieno quando il carrello sta
+   * sotto (vedi `applicaMinimo`).
+   */
+  pieno?: number;
   immagine?: { url: string; width: number; height: number; alt: string };
 };
 

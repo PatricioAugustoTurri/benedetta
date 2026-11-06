@@ -7,7 +7,7 @@ import { vaiAlPagamento, verificaCodice } from "@/app/(sitio)/carrello/actions";
 import { AZIONE } from "@/components/azione";
 import { ArrowLeft, ArrowRight, ChevronDown } from "@/components/Icon";
 import { legaliPronte } from "@/data/legale";
-import { chiaveVoce, prezzo, scontoCodice, variante } from "@/data/shop";
+import { chiaveVoce, MINIMO_SCONTI, prezzo, scontoCodice, variante } from "@/data/shop";
 import { site } from "@/data/site";
 import {
   DATI_VUOTI,
@@ -21,7 +21,7 @@ import {
   type ErroriSpedizione,
 } from "@/lib/spedizione";
 import CodiceSconto from "./CodiceSconto";
-import { Conto, RigaCodice } from "./Conti";
+import { Conto, NotaMinimo, RigaCodice } from "./Conti";
 import DatiSpedizione from "./DatiSpedizione";
 import {
   codiceRicordato,
@@ -73,7 +73,7 @@ const ascoltaDesktop = (fatto: () => void) => {
  * una cifra.
  */
 export default function CassaVista({ inProva }: { inProva: boolean }) {
-  const { voci, montato, avviso, setAvviso } = useCarrelloVerificato();
+  const { voci, montato, avviso, setAvviso, mancano, stagione } = useCarrelloVerificato();
   const desktop = useSyncExternalStore(ascoltaDesktop, () => window.matchMedia(DESKTOP).matches, () => false);
   const [dettagli, setDettagli] = useState(false);
   /*
@@ -170,7 +170,9 @@ export default function CassaVista({ inProva }: { inProva: boolean }) {
     setAnnuncio(
       toglie > 0
         ? `Codice ${c.codice} applicato: meno ${prezzo(toglie)}.`
-        : `Codice ${c.codice} applicato, ma le stampe nel carrello sono già in sconto.`,
+        : mancano > 0
+          ? `Codice ${c.codice} applicato: vale quando il carrello arriva a ${prezzo(MINIMO_SCONTI)}, ti mancano ${prezzo(mancano)}.`
+          : `Codice ${c.codice} applicato, ma le stampe nel carrello sono già in sconto.`,
     );
   };
   const toglilo = () => {
@@ -322,10 +324,12 @@ export default function CassaVista({ inProva }: { inProva: boolean }) {
                     sconto={sconto}
                     fuori={fuori}
                     righe={voci.length}
+                    mancano={mancano}
                     onTogli={toglilo}
                   />
                 )}
               </dl>
+              {stagione && <NotaMinimo mancano={mancano} />}
               {!codice && <CodiceSconto onApplica={applica} focusAllInizio={rifuoca} />}
               <p role="status" className="sr-only">
                 {annuncio}

@@ -7,6 +7,7 @@ import type { Codice } from "@/lib/codici";
 import type { EstadoFormulario } from "../actions";
 import { cancellaCodiceAzione, salvaCodiceAzione } from "../shop/actions";
 import { CONTROL, LABEL } from "./campo";
+import ScaricaBiglietto from "./ScaricaBiglietto";
 
 /**
  * Un codice sconto: la parola, la percentuale e se vale.
@@ -20,10 +21,15 @@ export default function CodiceForm({ codice }: { codice?: Codice }) {
   const base = useId();
   const [scritto, setScritto] = useState(codice?.codice ?? "");
   const [percentuale, setPercentuale] = useState(codice?.percentuale ?? 15);
+  const [scade, setScade] = useState(codice?.scade ?? "");
+  const [monouso, setMonouso] = useState(codice?.monouso ?? false);
   const [confermaCancella, setConfermaCancella] = useState(false);
   const valida = Number.isInteger(percentuale) && percentuale >= 1 && percentuale <= 90;
   // Cambiare la parola di un codice che è già sui biglietti spediti li spegne.
-  const rinominato = Boolean(codice) && scritto.replace(/\s+/g, "").toUpperCase() !== codice?.codice;
+  const normalizzato = scritto.replace(/\s+/g, "").toUpperCase();
+  const rinominato = Boolean(codice) && normalizzato !== codice?.codice;
+  // La stessa forma di FORMA_CODICE in lib/codici, che qui non si può importare.
+  const stampabile = valida && /^[A-Z0-9-]{3,30}$/.test(normalizzato);
 
   return (
     <div className="grid gap-12 md:grid-cols-12 md:gap-16">
@@ -113,7 +119,8 @@ export default function CodiceForm({ codice }: { codice?: Codice }) {
               id={`${base}-s`}
               name="scade"
               type="date"
-              defaultValue={codice?.scade ?? ""}
+              value={scade}
+              onChange={(e) => setScade(e.target.value)}
               className={`${CONTROL} figures mt-2`}
             />
           </div>
@@ -137,7 +144,8 @@ export default function CodiceForm({ codice }: { codice?: Codice }) {
             <input
               type="checkbox"
               name="monouso"
-              defaultChecked={codice?.monouso ?? false}
+              checked={monouso}
+              onChange={(e) => setMonouso(e.target.checked)}
               className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-[var(--color-accent)]"
             />
             <span>
@@ -165,7 +173,7 @@ export default function CodiceForm({ codice }: { codice?: Codice }) {
           </label>
         </div>
 
-        <div className="sticky bottom-0 z-10 -mx-[var(--gutter)] mt-12 flex items-center gap-6 border-t border-line bg-paper/95 px-[var(--gutter)] py-4 backdrop-blur-sm md:mx-0 md:px-0">
+        <div className="sticky bottom-0 z-10 -mx-[var(--gutter)] mt-12 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line bg-paper/95 px-[var(--gutter)] py-4 backdrop-blur-sm md:mx-0 md:px-0">
           <button
             type="submit"
             disabled={inCorso}
@@ -176,6 +184,16 @@ export default function CodiceForm({ codice }: { codice?: Codice }) {
           <Link href="/admin/shop" className="link-underline text-sm text-ink-soft transition-colors hover:text-ink">
             Annulla
           </Link>
+          <ScaricaBiglietto
+            className="text-sm sm:ml-auto"
+            disabilitato={!stampabile}
+            dati={{
+              codice: normalizzato,
+              percentuale,
+              monouso,
+              scade: scade || null,
+            }}
+          />
         </div>
       </form>
 
@@ -184,6 +202,11 @@ export default function CodiceForm({ codice }: { codice?: Codice }) {
         <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-soft">
           <li>Chi compra lo scrive nel carrello, sotto la spedizione, prima di andare a pagare.</li>
           <li>Vale sulle stampe, non sulla spedizione.</li>
+          <li>
+            Vale solo sugli ordini da 30 € in su, contati a prezzo pieno e senza spedizione. Sotto, il
+            codice resta scritto nel carrello ma non toglie niente, e un codice che vale una volta sola
+            non si consuma.
+          </li>
           <li>
             Non si somma agli sconti di stagione: le stampe già scontate restano al loro prezzo.
           </li>
@@ -195,6 +218,11 @@ export default function CodiceForm({ codice }: { codice?: Codice }) {
             Ordini.
           </li>
           <li>Nel carrello e nella mail dell&apos;ordine compare come riga a sé.</li>
+          <li>
+            «Scarica il biglietto» fa un PDF da stampare con quello che c&apos;è scritto qui: un A4 da
+            ritagliare, con una copia se vale una volta sola e quattro se vale per tutti. Salva il
+            codice, se no il biglietto non vale.
+          </li>
         </ul>
 
         {codice && (

@@ -3,6 +3,7 @@
 import { useActionState, useId, useState } from "react";
 import { giornoLungo } from "@/lib/oggi";
 import type { Codice } from "@/lib/codici";
+import ScaricaBiglietto from "./ScaricaBiglietto";
 import { correggiBigliettoAzione, creaBigliettoAzione, type EsitoBiglietto } from "../ordini/actions";
 import { CONTROL, LABEL } from "./campo";
 
@@ -25,6 +26,7 @@ export default function BigliettoOrdine({
   spedito,
   ritiro = false,
   oggi,
+  nome,
 }: {
   ordine: number;
   biglietto: Codice | null;
@@ -33,6 +35,8 @@ export default function BigliettoOrdine({
   ritiro?: boolean;
   /** Oggi in Italia, dal server: «scaduto» non deve dipendere dall'orologio di chi guarda. */
   oggi: string;
+  /** Chi l'ha comprato: il biglietto stampato dice «Per …». */
+  nome?: string | null;
 }) {
   const [esito, azione, inCorso] = useActionState<EsitoBiglietto, FormData>(correggiBigliettoAzione, {});
   const [aperto, setAperto] = useState(false);
@@ -68,6 +72,14 @@ export default function BigliettoOrdine({
   const spento = !b.attivo;
   const fuoriUso = usato || scaduto || spento;
   const rinominato = scritto.replace(/\s+/g, "").toUpperCase() !== b.codice;
+  /*
+    Sul biglietto stampato ci va una data vera anche prima della spedizione:
+    lei lo stampa mentre impacchetta, e i 90 giorni partono quando segna il
+    pacco come spedito, cioè oggi o poco dopo. La data di oggi + 90 è quindi
+    quella giusta o un giorno prima: mai una promessa più lunga del vero.
+  */
+  const scadeStampata =
+    b.scade ?? (spedito ? null : new Date(Date.parse(`${oggi}T00:00:00Z`) + 90 * 86_400_000).toISOString().slice(0, 10));
 
   const condizioni = [
     `−${b.percentuale}%`,
@@ -88,16 +100,29 @@ export default function BigliettoOrdine({
       <div className="flex items-baseline justify-between gap-6">
         <h3 className="label">Biglietto</h3>
         {!aperto && !usato && (
-          <button
-            type="button"
-            onClick={() => {
-              setScritto(b.codice);
-              setAperto(true);
-            }}
-            className="area-tocco link-underline text-xs text-ink-soft transition-colors hover:text-ink"
-          >
-            Modifica
-          </button>
+          <div className="flex items-baseline gap-5 text-xs">
+            {!fuoriUso && (
+              <ScaricaBiglietto
+                dati={{
+                  codice: b.codice,
+                  percentuale: b.percentuale,
+                  monouso: b.monouso,
+                  scade: scadeStampata,
+                  per: nome,
+                }}
+              />
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setScritto(b.codice);
+                setAperto(true);
+              }}
+              className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink"
+            >
+              Modifica
+            </button>
+          </div>
         )}
       </div>
 

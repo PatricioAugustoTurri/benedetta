@@ -1,7 +1,7 @@
 "use client";
 
 import type { RefObject } from "react";
-import { prezzo } from "@/data/shop";
+import { MINIMO_SCONTI, prezzo } from "@/data/shop";
 import type { CodiceApplicato } from "./store";
 
 /*
@@ -17,7 +17,8 @@ import type { CodiceApplicato } from "./store";
  *
  * Se tutte le stampe sono già in sconto di stagione il codice resta, ma lo
  * dice: «già in sconto» e niente cifra, invece di un «−0,00 €» che sembra un
- * errore.
+ * errore. Lo stesso sotto i 30 € del minimo d'ordine: il codice resta
+ * scritto, dice quanto manca, e vale appena il carrello ci arriva.
  */
 export function RigaCodice({
   ref,
@@ -25,6 +26,7 @@ export function RigaCodice({
   sconto,
   fuori,
   righe,
+  mancano,
   onTogli,
 }: {
   ref: RefObject<HTMLDivElement | null>;
@@ -32,10 +34,14 @@ export function RigaCodice({
   sconto: number;
   fuori: number;
   righe: number;
+  /** Quanto manca ai 30 € del minimo d'ordine. */
+  mancano: number;
   onTogli: () => void;
 }) {
   const nota =
-    fuori === 0
+    mancano > 0
+      ? `Vale sugli ordini da ${prezzo(MINIMO_SCONTI)}: ti mancano ${prezzo(mancano)}`
+      : fuori === 0
       ? `−${codice.percentuale}% sulle stampe`
       : fuori === righe
         ? "Le stampe nel carrello sono già in sconto: il codice non si somma"
@@ -77,5 +83,19 @@ export function Conto({ etichetta, valore }: { etichetta: string; valore: string
       <dt className="label">{etichetta}</dt>
       <dd className="figures text-sm">{valore}</dd>
     </div>
+  );
+}
+
+/**
+ * Sotto il subtotale, quando il carrello ha una stampa in sconto di stagione
+ * ma non arriva ai 30 €: perché la si paga piena, e quanto manca.
+ */
+export function NotaMinimo({ mancano }: { mancano: number }) {
+  return (
+    <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+      Gli sconti valgono sugli ordini da <span className="figures">{prezzo(MINIMO_SCONTI)}</span> in su:
+      ti mancano <span className="figures text-accent">{prezzo(mancano)}</span>. Fino ad allora le stampe in
+      sconto sono a prezzo pieno.
+    </p>
   );
 }
