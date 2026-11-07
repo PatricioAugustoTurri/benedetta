@@ -19,10 +19,11 @@ export const legale = {
   /** Chi vende e chi tratta i dati. */
   titolare: site.name,
   /** Obbligatoria nel sito se vende con partita IVA (DPR 633/72, art. 35). */
-  partitaIva: null as string | null,
+  partitaIva: "03963740547" as string | null,
   codiceFiscale: null as string | null,
   /** L'indirizzo dove riceve posta: serve nelle condizioni e per il recesso. */
-  indirizzo: null as string | null,
+  indirizzo: `${site.negozio.indirizzo}, ${site.negozio.cap} ${site.negozio.citta} (${site.negozio.provincia})` as
+    string | null,
   email: site.email,
   pec: null as string | null,
   /**
@@ -31,7 +32,9 @@ export const legale = {
    * dell'art. 1, commi 54–89, L. 190/2014». Lo decide chi tiene la sua
    * contabilità.
    */
-  regimeIva: null as string | null,
+  regimeIva:
+    "Operazione senza applicazione dell'IVA ai sensi dell'art. 1, commi 54–89, L. 190/2014 (regime forfettario)" as
+      string | null,
 
   /** Quanto ci mette a stampare un ordine prima di spedirlo: «3–5 giorni lavorativi». */
   tempiProduzione: "uno o due giorni" as string | null,
@@ -77,7 +80,7 @@ export const legale = {
   cornice: "si concorda insieme: scrivimi se la vuoi" as string | null,
 
   /** Quando sono stati scritti o cambiati questi testi. */
-  aggiornato: "8 ottobre 2026",
+  aggiornato: "7 novembre 2026",
 };
 
 /**
