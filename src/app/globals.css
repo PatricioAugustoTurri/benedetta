@@ -331,6 +331,29 @@
     font-weight: 500;
   }
 
+  /*
+    Le domande frequenti: la risposta si apre scivolando invece di comparire
+    di colpo. È l'unico movimento della pagina. Dove il browser non sa
+    animare fino ad `auto` (`interpolate-size`) si apre e basta, come un
+    `<details>` qualsiasi; con il movimento ridotto la regola globale toglie
+    la transizione.
+  */
+  @supports (interpolate-size: allow-keywords) {
+    .domande {
+      interpolate-size: allow-keywords;
+    }
+    .domande details::details-content {
+      block-size: 0;
+      overflow: clip;
+      transition:
+        block-size 0.5s var(--ease-out-soft),
+        content-visibility 0.5s allow-discrete;
+    }
+    .domande details[open]::details-content {
+      block-size: auto;
+    }
+  }
+
   /* Sottolineatura che cresce al passaggio, senza spostare il testo. */
   .link-underline {
     position: relative;

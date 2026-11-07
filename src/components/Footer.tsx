@@ -271,25 +271,29 @@ export default async function Footer() {
               Tutte le illustrazioni sono opera dell&apos;autrice.
             </p>
             {/*
-              Le tre pagine da leggere prima di comprare. In fila e piccole:
-              sono un riferimento, non una strada che il footer propone.
-              Escono solo quando i dati legali sono completi (`legaliPronte`).
+              Le pagine da leggere prima di comprare. In fila e piccole: sono un
+              riferimento, non una strada che il footer propone. Le domande
+              frequenti ci sono sempre; le tre legali escono solo quando i dati
+              sono completi (`legaliPronte`).
             */}
-            {legaliPronte() && (
-              <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                {[
-                  { href: "/spedizioni-e-resi", label: "Spedizioni e resi" },
-                  { href: "/condizioni-di-vendita", label: "Condizioni di vendita" },
-                  { href: "/privacy", label: "Privacy e cookie" },
-                ].map((l) => (
-                  <li key={l.href}>
-                    <Link href={l.href} className="area-tocco link-underline text-ink-faint transition-colors hover:text-ink">
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+              {[
+                { href: "/domande-frequenti", label: "Domande frequenti" },
+                ...(legaliPronte()
+                  ? [
+                      { href: "/spedizioni-e-resi", label: "Spedizioni e resi" },
+                      { href: "/condizioni-di-vendita", label: "Condizioni di vendita" },
+                      { href: "/privacy", label: "Privacy e cookie" },
+                    ]
+                  : []),
+              ].map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="area-tocco link-underline text-ink-faint transition-colors hover:text-ink">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/*

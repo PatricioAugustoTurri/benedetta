@@ -21,10 +21,13 @@ export default function PaginaLegale({
   titolo,
   intro,
   sezioni,
+  chiusura,
 }: {
   titolo: string;
   intro?: ReactNode;
   sezioni: SezioneLegale[];
+  /** Quello che viene dopo l'ultima sezione, nella stessa colonna. */
+  chiusura?: ReactNode;
 }) {
   const mancanti = datiMancanti();
 
@@ -50,7 +53,7 @@ export default function PaginaLegale({
         </header>
 
         <nav aria-label="In questa pagina" className="md:col-span-3 md:row-start-1 md:row-span-2">
-          <div className="border-t border-line pt-5 md:sticky md:top-24">
+          <div className="border-t border-line pt-5 md:sticky md:top-40">
             <h2 className="label">In questa pagina</h2>
             <ol className="mt-4 space-y-2 text-sm">
               {sezioni.map((s) => (
@@ -66,7 +69,7 @@ export default function PaginaLegale({
 
         <div className="md:col-span-8 md:col-start-5">
           {sezioni.map((s) => (
-            <section key={s.id} id={s.id} aria-labelledby={`${s.id}-t`} className="scroll-mt-24 border-t border-line pt-6 pb-10">
+            <section key={s.id} id={s.id} aria-labelledby={`${s.id}-t`} className="scroll-mt-28 border-t border-line pt-6 pb-10 md:scroll-mt-44">
               <h2 id={`${s.id}-t`} className="display-section font-display text-[clamp(1.25rem,2vw,1.5rem)] leading-tight">
                 {s.titolo}
               </h2>
@@ -75,6 +78,7 @@ export default function PaginaLegale({
               </div>
             </section>
           ))}
+          {chiusura}
         </div>
       </div>
     </article>

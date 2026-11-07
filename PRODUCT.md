@@ -58,8 +58,9 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   TypeScript. Rutas públicas: `/` (el archivo), `/opera/<slug>`, `/studio`,
   `/contatti`, `/shop` (con `/shop/<categoria>` y `/shop/stampe/<slug>`),
   `/carrello`, `/carrello/cassa` (la caja, sin menú ni pie) y la newsletter; `/privacy`, `/condizioni-di-vendita` y
-  `/spedizioni-e-resi` existen pero dan 404 hasta que estén los datos fiscales
-  (ver «Para vender de verdad»). Más `/admin`, que es la pantalla de trabajo y
+  `/spedizioni-e-resi`, públicas desde el 2026-11-07 con P.IVA, dirección y
+  régimen forfettario; y `/domande-frequenti`, con las respuestas de ella
+  (2026-11-07) en `src/data/domande.ts`, que leen los datos de las legales. Más `/admin`, que es la pantalla de trabajo y
   no se indexa.
   El diario y el portfolio se eliminaron por pedido del cliente; el diario es
   recuperable del commit `6db3fb9`.

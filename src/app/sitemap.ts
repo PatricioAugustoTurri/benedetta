@@ -36,6 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${site.url}/studio`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${site.url}/shop`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${site.url}/contatti`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${site.url}/domande-frequenti`, changeFrequency: "monthly", priority: 0.4 },
     // Le pagine legali entrano quando sono complete (vedi `legaliPronte`).
     ...(legaliPronte()
       ? ([

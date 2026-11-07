@@ -68,8 +68,9 @@ export default function ProdottoScheda({
 
         {/*
           Le domande che vengono subito dopo il prezzo —che carta, quando
-          arriva, se si può restituire— hanno una pagina sola. Qui la strada,
-          in piccolo, sotto l'azione.
+          arriva, se si può restituire— hanno una pagina sola, più le domande
+          frequenti per le risposte corte. Qui la strada, in piccolo, sotto
+          l'azione.
 
           «Stampata su ordinazione» vale per le stampe, ed è quello che ha
           detto lei. Per un calendario o per quello che verrà non si sa: fuori
@@ -89,18 +90,34 @@ export default function ProdottoScheda({
                 </Link>
               </>
             )}
+            {" · "}
+            <Link
+              href="/domande-frequenti"
+              className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink"
+            >
+              domande frequenti
+            </Link>
           </p>
         ) : (
-          legaliPronte() && (
-            <p className="mt-6 text-xs leading-relaxed text-ink-faint">
-              <Link
-                href="/spedizioni-e-resi"
-                className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink"
-              >
-                Spedizioni e resi
-              </Link>
-            </p>
-          )
+          <p className="mt-6 text-xs leading-relaxed text-ink-faint">
+            {legaliPronte() && (
+              <>
+                <Link
+                  href="/spedizioni-e-resi"
+                  className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink"
+                >
+                  Spedizioni e resi
+                </Link>
+                {" · "}
+              </>
+            )}
+            <Link
+              href="/domande-frequenti"
+              className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink"
+            >
+              Domande frequenti
+            </Link>
+          </p>
         )}
 
         {/*

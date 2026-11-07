@@ -61,6 +61,12 @@ export const legale = {
     italia: "5–7 giorni" as string | null,
     ue: "10–15 giorni" as string | null,
   },
+  /**
+   * Fino a quando ordinare per ricevere a Natale. In Italia dieci giorni
+   * prima (cliente, 2026-11-07); nell'UE, dove la consegna richiede fino a
+   * 15 giorni, venti. Le leggono le domande frequenti.
+   */
+  natale: { italia: "15 dicembre", ue: "5 dicembre" },
   /** Come viaggia la stampa. */
   imballaggio:
     "in una scatola di cartone, imballata con cura e protetta perché non si pieghi né si rovini" as
