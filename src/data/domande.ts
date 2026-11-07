@@ -107,8 +107,9 @@ export function domandeFrequenti(): GruppoDomande[] {
           id: "pagamento",
           domanda: "Come posso pagare?",
           risposta: [
-            // I metodi li ha confermati lei (cliente, 2026-11-07).
-            "Con carta di credito o di debito, Apple Pay, Google Pay o PayPal, sulle pagine protette di SumUp. Appena il pagamento va a buon fine ti arriva una mail con il riepilogo dell'ordine.",
+            // I metodi li ha confermati lei (cliente, 2026-11-07). PayPal no:
+            // SumUp non lo accetta.
+            "Con carta di credito o di debito, Apple Pay o Google Pay, sulle pagine protette di SumUp. Appena il pagamento va a buon fine ti arriva una mail con il riepilogo dell'ordine.",
           ],
         },
         {
