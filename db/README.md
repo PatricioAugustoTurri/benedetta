@@ -76,6 +76,11 @@ psql -d illustrando -f db/migrations/014-colori.sql
 psql -d illustrando -f db/migrations/015-ritiro.sql
 ```
 
+`db/dati/` no son migraciones: son cargas de contenido hechas a mano en
+producción, guardadas como registro. Ya están aplicadas allá y no hace falta
+correrlas en una base nueva. Sólo llenan lo que está vacío, así que correrlas
+de nuevo no pisa lo que ella escribió desde `/admin`.
+
 ## La tienda: `prodotti`, `servizi`, `copertine` y `ordini`
 
 `categorie` son las partes de la tienda, y desde la 013 las crea ella en
