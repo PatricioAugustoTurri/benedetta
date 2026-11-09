@@ -35,11 +35,11 @@ export default function CarrelloVista() {
         {avviso && <p className="mb-6 text-sm text-accent">{avviso}</p>}
         <p className="prose-measure text-lg leading-relaxed text-ink-soft">Il carrello è vuoto.</p>
         <Link
-          href="/shop/stampe"
+          href="/shop"
           className="group mt-5 inline-flex items-center gap-1.5 self-start text-sm text-ink transition-colors hover:text-accent"
         >
           <span className="link-underline" data-active="true">
-            Guarda le stampe
+            Guarda lo Shop
           </span>
           <ArrowRight size={16} className="shrink-0" />
         </Link>

@@ -514,7 +514,7 @@ function Piede({ className }: { className: string }) {
   );
 }
 
-/** La cassa senza niente da pagare: lo si dice, e si torna alle stampe. */
+/** La cassa senza niente da pagare: lo si dice, e si torna allo Shop. */
 function Vuota({ avviso }: { avviso: string | null }) {
   return (
     <div className="flex flex-1 flex-col px-6 pt-5 pb-12 sm:px-10 md:px-12 md:pt-10 lg:px-16">
@@ -524,11 +524,11 @@ function Vuota({ avviso }: { avviso: string | null }) {
         <h1 className="display-h1 text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1]">Non c&apos;è niente da pagare.</h1>
         <p className="prose-measure mt-4 text-lg leading-relaxed text-ink-soft">Il carrello è vuoto.</p>
         <Link
-          href="/shop/stampe"
+          href="/shop"
           className="group mt-6 inline-flex items-center gap-1.5 self-start text-sm text-ink transition-colors hover:text-accent"
         >
           <span className="link-underline" data-active="true">
-            Guarda le stampe
+            Guarda lo Shop
           </span>
           <ArrowRight size={16} className="shrink-0" />
         </Link>
