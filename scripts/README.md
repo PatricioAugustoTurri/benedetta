@@ -58,3 +58,15 @@ gunzip -c ~/Backups/benedetta/locale-AAAAMMDD-HHMMSS.sql.gz | psql "$DATABASE_UR
 ```
 
 (después de vaciarla con `psql "$DATABASE_URL" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"`).
+
+## `apertura-immagini.mjs`
+
+Genera las medidas de la ilustración de la cortina del inicio (AVIF y WebP,
+de 640 a 2048 px) en `public/apertura/`, a partir de `public/instagram/3.jpg`.
+La cortina no pasa por `next/image`: en producción el optimizador codificaba
+el AVIF en el momento y tardaba 6–13 s, y la cortina se levantaba antes de
+mostrar la obra. Se corre sólo si cambia la ilustración:
+
+```bash
+node scripts/apertura-immagini.mjs
+```

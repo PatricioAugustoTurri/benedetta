@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { preload } from "react-dom";
 import { dipingi } from "./pennello";
 
 /**
@@ -33,8 +33,35 @@ const PITTURA_MS = 1600;
 const SOSTA_MS = 1100;
 // Con il movimento ridotto non si dipinge: compare e resta.
 const SOSTA_RIDOTTA_MS = 1700;
-// Se l'immagine non è pronta in questo tempo, il telo si alza lo stesso.
-const ATTESA_MAX_MS = 2500;
+// Se l'immagine non è pronta in questo tempo, il telo si alza lo stesso. Con
+// i file già pronti (sotto) arriva in decimi di secondo; il margine è per
+// una rete lenta.
+const ATTESA_MAX_MS = 4000;
+// Quando il CSS toglie il telo da solo, se il JavaScript non è ancora
+// arrivato: `apertura-riserva` in globals.css, che parte a 6 s.
+const RISERVA_MS = 6000;
+
+/*
+  L'illustrazione in file statici, già codificati da
+  scripts/apertura-immagini.mjs, e non attraverso `next/image`: il suo
+  ottimizzatore in produzione codifica l'AVIF alla prima richiesta di ogni
+  misura, e ci metteva da 6 a 13 secondi. L'apertura si alzava prima, e
+  l'opera non si vedeva quasi mai (2026-11-09).
+*/
+const MISURE = [640, 960, 1280, 1600, 2048];
+const srcset = (formato: "avif" | "webp") =>
+  MISURE.map((w) => `/apertura/apertura-${w}.${formato} ${w}w`).join(", ");
+// È un quadrato in `cover`: in orizzontale lo misura la larghezza dello
+// schermo, in verticale l'altezza. Con «100vw» un telefono la chiedeva da
+// 640 e la stirava a tutta altezza. In verticale si dichiara il 60%
+// dell'altezza: un telefono a 3× prende la 1600 (78 KB) e non la 2048
+// (134 KB). Per i tre secondi che resta a tutto schermo la differenza non
+// si vede, e sul telefono la banda è quella che divide con l'archivio sotto.
+const SIZES = "(max-aspect-ratio: 1/1) 60vh, 100vw";
+
+// I tasti che da soli non sono un gesto: chi ricarica con ⌘R li ha ancora
+// premuti mentre la pagina parte.
+const MODIFICATORI = new Set(["Meta", "Control", "Alt", "Shift", "CapsLock"]);
 
 /*
   Vale per il caricamento della pagina, non per la sessione: tornando alla
@@ -47,6 +74,17 @@ let giaVista = false;
 type Fase = "attesa" | "scena" | "uscita" | "finita";
 
 export default function Apertura() {
+  // Nel <head>, prima ancora del JavaScript: il browser comincia a scaricarla
+  // con l'HTML. Solo l'AVIF —chi non lo legge salta il preload e prende il
+  // WebP dal <picture>—, così nessuno scarica due formati.
+  preload(`/apertura/apertura-${MISURE[MISURE.length - 1]}.avif`, {
+    as: "image",
+    type: "image/avif",
+    imageSrcSet: srcset("avif"),
+    imageSizes: SIZES,
+    fetchPriority: "high",
+  });
+
   const [fase, setFase] = useState<Fase>(() => (giaVista ? "finita" : "attesa"));
   // «no» con il movimento ridotto: allora l'immagine compare e basta.
   const [pennello, setPennello] = useState<"si" | "no">("si");
@@ -69,6 +107,13 @@ export default function Apertura() {
   useEffect(() => {
     if (fase === "finita") return;
     giaVista = true;
+    // Con una rete molto lenta il JavaScript arriva dopo che il CSS ha già
+    // tolto il telo da solo (`apertura-riserva`, a 6 s): chi guarda è già
+    // sull'archivio, e l'opera non deve ricomparirgli sopra.
+    if (performance.now() > RISERVA_MS) {
+      const via = window.setTimeout(() => setFase("finita"), 0);
+      return () => window.clearTimeout(via);
+    }
     if (img.current?.complete) pronta();
     const t = window.setTimeout(
       () => setFase((f) => (f === "attesa" ? "uscita" : f)),
@@ -115,11 +160,15 @@ export default function Apertura() {
     const root = document.documentElement;
     const prima = root.style.overflow;
     root.style.overflow = "hidden";
+    const gesto = (e: Event) => {
+      if (e instanceof KeyboardEvent && (e.repeat || MODIFICATORI.has(e.key))) return;
+      esci();
+    };
     const eventi = ["pointerdown", "keydown", "wheel", "touchmove"] as const;
-    eventi.forEach((e) => window.addEventListener(e, esci, { passive: true }));
+    eventi.forEach((e) => window.addEventListener(e, gesto, { passive: true }));
     return () => {
       root.style.overflow = prima;
-      eventi.forEach((e) => window.removeEventListener(e, esci));
+      eventi.forEach((e) => window.removeEventListener(e, gesto));
     };
   }, [fase, esci]);
 
@@ -146,16 +195,20 @@ export default function Apertura() {
       >
         <div className="apertura__opera">
           <canvas ref={tela} className="apertura__tela" />
-          <Image
-            ref={img}
-            src="/instagram/3.jpg"
-            alt=""
-            fill
-            sizes="100vw"
-            preload
-            onLoad={pronta}
-            className="apertura__immagine"
-          />
+          <picture>
+            <source type="image/avif" srcSet={srcset("avif")} sizes={SIZES} />
+            <img
+              ref={img}
+              src="/apertura/apertura-1280.webp"
+              srcSet={srcset("webp")}
+              sizes={SIZES}
+              alt=""
+              decoding="async"
+              fetchPriority="high"
+              onLoad={pronta}
+              className="apertura__immagine"
+            />
+          </picture>
         </div>
       </div>
       <div className="apertura__filo" />

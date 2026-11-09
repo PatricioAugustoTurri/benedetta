@@ -701,6 +701,10 @@ code {
 }
 
 .apertura__immagine {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   /* Il quadrato tagliato in orizzontale tiene la stella e il viso. */
   object-position: 50% 30%;
