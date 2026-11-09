@@ -54,8 +54,7 @@ export default function PrivacyPage() {
             l&apos;indirizzo e la data, come prova che non devo più scriverti.
           </p>
           <p>
-            <strong>Se compri una stampa:</strong> nome, email, telefono, indirizzo di spedizione, il
-            codice fiscale se spedisci in Italia, e
+            <strong>Se compri una stampa:</strong> nome, email, telefono, indirizzo di spedizione e
             quello che hai ordinato, che scrivi nel carrello prima di pagare. Il telefono serve solo al
             corriere, se deve contattarti per la consegna. Servono per spedirti l&apos;ordine e tenerti aggiornato (base giuridica: il
             contratto, art. 6.1.b) e per gli obblighi fiscali e contabili (art. 6.1.c), che impongono

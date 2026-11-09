@@ -116,8 +116,8 @@ export function domandeFrequenti(): GruppoDomande[] {
           id: "fattura",
           domanda: "Posso avere la fattura?",
           risposta: [
-            "Sì. Per gli ordini in Italia la faccio con il codice fiscale che mi lasci alla cassa.",
-            "Se ti serve intestata a un'azienda, scrivimi subito dopo l'ordine con ragione sociale, partita IVA e codice SDI o PEC. Sono in regime forfettario: i prezzi sono senza IVA.",
+            "Sì: scrivimi subito dopo l'ordine con il tuo codice fiscale.",
+            "Se ti serve intestata a un'azienda, mandami invece ragione sociale, partita IVA e codice SDI o PEC. Sono in regime forfettario: i prezzi sono senza IVA.",
           ],
           link: SCRIVIMI,
         },

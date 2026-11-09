@@ -266,7 +266,7 @@ export type Ordine = {
   email: string;
   /** Per il corriere. Gli ordini pagati con Stripe, prima di SumUp, non l'hanno. */
   telefono: string | null;
-  /** Obbligatorio per gli ordini in Italia, in maiuscolo e senza spazi; null altrove. */
+  /** Solo negli ordini fino al 2026-11-09, quando la cassa lo chiedeva per l'Italia; null dopo. */
   codiceFiscale: string | null;
   /** Spedito, o ritirato nel negozio di Foligno. Con il ritiro l'indirizzo è vuoto. */
   consegna: "spedizione" | "ritiro";

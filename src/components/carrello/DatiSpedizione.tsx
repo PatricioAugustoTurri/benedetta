@@ -31,9 +31,9 @@ const DA = Math.min(...tariffeSpedizione().map((t) => t.prezzo));
  *
  * **Il paese decide il resto.** Sceglie la tariffa di spedizione —i conti a
  * destra cambiano appena lo si sceglie— e il modulo: in Italia il CAP sono
- * cinque cifre, la provincia è una sigla da una lista e il codice fiscale è
- * obbligatorio; altrove provincia e codice fiscale non si chiedono, perché il
- * codice postale basta al corriere, e il CAP prende lettere e spazi.
+ * cinque cifre e la provincia è una sigla da una lista; altrove la provincia
+ * non si chiede, perché il codice postale basta al corriere, e il CAP prende
+ * lettere e spazi.
  *
  * Ogni campo porta il suo `autocomplete` con il prefisso `shipping`: il
  * browser e il gestore di password riempiono l'indirizzo in un tocco, come
@@ -41,8 +41,8 @@ const DA = Math.min(...tariffeSpedizione().map((t) => t.prezzo));
  *
  * **Prima di tutto, come arriva.** Spedito, o ritirato nel negozio di
  * Foligno, gratis (cliente, 2026-11-06). Sta in cima perché decide il resto
- * del modulo: con il ritiro l'indirizzo non si chiede, e restano il nome di
- * chi passa e il codice fiscale, che lei fattura lo stesso. La scelta ha il
+ * del modulo: con il ritiro l'indirizzo non si chiede, e resta il nome di
+ * chi passa. La scelta ha il
  * disegno dei formati nella scheda della stampa —righe su filetto, il punto
  * terracotta—: è lo stesso gesto, scegliere una cosa fra due.
  */
@@ -58,8 +58,7 @@ export default function DatiSpedizione({
   onCambia: (campo: CampoSpedizione, valore: string) => void;
 }) {
   const ritiro = dati.consegna === "ritiro";
-  // Con il ritiro il codice fiscale si chiede sempre, con le regole italiane.
-  const italia = ritiro || dati.paese === "IT";
+  const italia = dati.paese === "IT";
 
   // Le proprietà che ogni controllo ha uguali: id, nome, valore, errore.
   const comune = (campo: CampoSpedizione) => ({
@@ -88,21 +87,6 @@ export default function DatiSpedizione({
     >
       {controllo}
     </Campo>
-  );
-
-  const codiceFiscale = campo(
-    "codiceFiscale",
-    "Codice fiscale",
-    <input
-      {...comune("codiceFiscale")}
-      type="text"
-      autoComplete="off"
-      autoCapitalize="characters"
-      autoCorrect="off"
-      spellCheck={false}
-      className={`${CONTROL} figures mt-2 tracking-[0.06em] uppercase`}
-    />,
-    { classe: "sm:col-span-12" },
   );
 
   return (
@@ -163,7 +147,6 @@ export default function DatiSpedizione({
               <input {...comune("nome")} type="text" autoComplete="name" className={`${CONTROL} mt-2`} />,
               { classe: "sm:col-span-12" },
             )}
-            {codiceFiscale}
           </div>
         </Gruppo>
       ) : (
@@ -189,12 +172,6 @@ export default function DatiSpedizione({
               </Menu>,
               { classe: "sm:col-span-12" },
             )}
-            {/*
-              Subito sotto il paese, perché è il paese a chiederlo: scegliendo
-              Italia compare, scegliendone un altro se ne va. Chi lo vede nascere
-              sotto la sua scelta capisce perché è lì.
-            */}
-            {italia && codiceFiscale}
             {campo(
               "indirizzo",
               "Indirizzo",
@@ -340,13 +317,11 @@ function Opzione({
 const suggerimenti: Partial<Record<CampoSpedizione, string>> = {
   email: "Qui ti arriva la conferma dell'ordine.",
   telefono: "Per il corriere, se deve chiamarti.",
-  codiceFiscale: "Obbligatorio per gli ordini in Italia: lo trovi sulla tessera sanitaria.",
 };
 
-/** Con il ritiro il corriere non c'è, e il codice fiscale serve per la fattura. */
+/** Con il ritiro il corriere non c'è. */
 const suggerimentiRitiro: Partial<Record<CampoSpedizione, string>> = {
   telefono: "Se devo chiamarti per il ritiro.",
-  codiceFiscale: "Mi serve per la fattura: lo trovi sulla tessera sanitaria.",
 };
 
 /*

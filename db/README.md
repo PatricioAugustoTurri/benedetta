@@ -114,7 +114,7 @@ pedido de ayer sigue diciendo lo que se pagó. `pagamento` (el id del pago en
 SumUp) es único: lo confirman dos entradas —el aviso de SumUp en
 `/api/sumup/webhook` y la página `/carrello/grazie`— y gana la primera que
 llega, sin duplicar el pedido ni los mails. `telefono`, `codice_fiscale`
-(obligatorio si se envía a Italia, vacío si no) y `transazione` (el código
+(se pidió para Italia hasta el 2026-11-09; desde entonces queda vacío) y `transazione` (el código
 que ella ve en la app de SumUp) llegan con la 011; los pedidos de
 prueba de Stripe no los tienen.
 

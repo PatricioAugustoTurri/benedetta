@@ -120,7 +120,6 @@ export type CampoSpedizione =
   | "telefono"
   | "nome"
   | "paese"
-  | "codiceFiscale"
   | "indirizzo"
   | "interno"
   | "cap"
@@ -136,7 +135,6 @@ export const DATI_VUOTI: DatiSpedizione = {
   telefono: "",
   nome: "",
   paese: "IT",
-  codiceFiscale: "",
   indirizzo: "",
   interno: "",
   cap: "",
@@ -154,8 +152,6 @@ export const MAX: Record<CampoSpedizione, number> = {
   telefono: 24,
   nome: 100,
   paese: 2,
-  // 16 con qualche spazio in mezzo, come lo si copia dalla tessera.
-  codiceFiscale: 20,
   indirizzo: 120,
   interno: 100,
   cap: 10,
@@ -170,7 +166,6 @@ export const ORDINE_CAMPI: CampoSpedizione[] = [
   "telefono",
   "nome",
   "paese",
-  "codiceFiscale",
   "indirizzo",
   "interno",
   "cap",
@@ -183,9 +178,8 @@ export const ORDINE_CAMPI: CampoSpedizione[] = [
  * scrive nell'ordine.
  *
  * Con il ritiro l'indirizzo non serve e non si tiene, anche se chi compra
- * l'aveva scritto prima di cambiare idea: il paese resta l'Italia, perché il
- * codice fiscale si chiede sempre —lei fattura lo stesso— e si legge con le
- * regole italiane.
+ * l'aveva scritto prima di cambiare idea, e il paese resta l'Italia, quello
+ * del negozio.
  */
 export function pulisci(dati: Partial<Record<string, unknown>>): DatiSpedizione {
   const d = { ...DATI_VUOTI };
@@ -202,10 +196,6 @@ export function pulisci(dati: Partial<Record<string, unknown>>): DatiSpedizione 
   if (d.paese === "IT") {
     d.provincia = d.provincia.toUpperCase();
     d.cap = d.cap.replace(/\s/g, "");
-    d.codiceFiscale = d.codiceFiscale.replace(/\s/g, "").toUpperCase();
-  } else {
-    // Fuori dall'Italia non si chiede: non resta scritto uno vecchio.
-    d.codiceFiscale = "";
   }
   return d;
 }
@@ -236,15 +226,6 @@ export function validaSpedizione(grezzi: DatiSpedizione): ErroriSpedizione {
 
   if (!ritiro && !tariffaPer(d.paese)) errori.paese = "Spedisco solo in Italia e nell'Unione Europea.";
 
-  if (italia) {
-    if (!d.codiceFiscale) errori.codiceFiscale = "Manca il codice fiscale.";
-    else if (!codiceFiscaleValido(d.codiceFiscale))
-      errori.codiceFiscale =
-        d.codiceFiscale.length !== 16 && d.codiceFiscale.length !== 11
-          ? "Il codice fiscale ha 16 caratteri (11 cifre per un'azienda)."
-          : "Questo codice fiscale non torna: controlla lettere e numeri.";
-  }
-
   // Per il ritiro non serve altro: l'indirizzo è quello del negozio.
   if (ritiro) return errori;
 
@@ -261,47 +242,4 @@ export function validaSpedizione(grezzi: DatiSpedizione): ErroriSpedizione {
     errori.provincia = "Scegli la provincia.";
 
   return errori;
-}
-
-/* ------------------------------------------------------- codice fiscale */
-
-/*
-  I valori del carattere di controllo: l'ultimo dei 16 si calcola dagli altri
-  quindici, con un valore per i caratteri in posizione dispari e uno per
-  quelli in posizione pari. Così una lettera sbagliata copiando dalla tessera
-  si vede qui, e non quando lei prepara la ricevuta.
-*/
-const DISPARI: Record<string, number> = Object.fromEntries(
-  [1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 2, 4, 18, 20, 11, 3, 6, 8, 12, 14, 16, 10, 22, 25, 24, 23].flatMap((v, i) => [
-    [String.fromCharCode(65 + i), v],
-    ...(i < 10 ? [[String(i), v]] : []),
-  ]),
-);
-
-/**
- * Un codice fiscale italiano: 16 caratteri per una persona —con il controllo
- * dell'ultimo, e le lettere che sostituiscono le cifre nei casi di omocodia—
- * o 11 cifre per un'azienda, che ha come codice fiscale la sua partita IVA.
- */
-export function codiceFiscaleValido(cf: string): boolean {
-  if (/^\d{11}$/.test(cf)) {
-    // La partita IVA: l'undicesima cifra controlla le altre dieci.
-    let somma = 0;
-    for (let i = 0; i < 10; i++) {
-      let n = Number(cf[i]);
-      if (i % 2 === 1) n = n * 2 > 9 ? n * 2 - 9 : n * 2;
-      somma += n;
-    }
-    return (10 - (somma % 10)) % 10 === Number(cf[10]);
-  }
-  if (!/^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/.test(cf)) {
-    return false;
-  }
-  let somma = 0;
-  for (let i = 0; i < 15; i++) {
-    const c = cf[i];
-    // Posizione 1, 3, 5… (dispari contando da 1) è l'indice pari.
-    somma += i % 2 === 0 ? DISPARI[c] : /\d/.test(c) ? Number(c) : c.charCodeAt(0) - 65;
-  }
-  return String.fromCharCode(65 + (somma % 26)) === cf[15];
 }

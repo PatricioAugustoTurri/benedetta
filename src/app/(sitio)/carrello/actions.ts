@@ -238,7 +238,8 @@ export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagame
       nome: dati.nome,
       email: dati.email,
       telefono: dati.telefono,
-      codiceFiscale: dati.codiceFiscale || null,
+      // Non si chiede più (cliente, 2026-11-09); la colonna resta per gli ordini di prima.
+      codiceFiscale: null,
       consegna: ritiro ? "ritiro" : "spedizione",
       // Con il ritiro non c'è un indirizzo: quello del negozio non è di chi compra.
       indirizzo: ritiro
