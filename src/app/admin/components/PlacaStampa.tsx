@@ -80,6 +80,13 @@ export default function PlacaStampa({ stampa: p, enMano = false }: { stampa: Pro
 
       <span className="figures mt-0.5 block text-xs text-ink-faint">
         {da === null ? "Senza formati" : `${n} ${n === 1 ? "formato" : "formati"} · ${n > 1 ? "da " : ""}${prezzo(da)}`}
+        {/* Le copie, quando si contano. Lo zero in terracotta: nel sito è già «Esaurito». */}
+        {p.scorte !== null &&
+          (p.scorte <= 0 ? (
+            <span className="text-accent"> · esaurito</span>
+          ) : (
+            ` · ${p.scorte === 1 ? "1 copia" : `${p.scorte} copie`}`
+          ))}
       </span>
     </>
   );

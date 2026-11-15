@@ -73,6 +73,13 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   - **Stampe** son productos y se agregan seguido (tabla `prodotti`): formatos con
     precio, carrito, pago con SumUp, envío a Italia (8 €) y a la UE (15 €), por pedido. Lista base del cliente:
     A5 10 €, 20×20 cm 15 €, A4 20 €, A3 30 €, editable por stampa. Sin stock: se imprimen a pedido.
+    **Copias en depósito** (cliente, 2026-11-15, por los quaderni): un producto puede
+    contar sus copias (`prodotti.scorte`, migración 016; vacío = no se cuentan, como las
+    stampe). Cada pedido pagado las descuenta en la misma transacción que lo registra;
+    las vendidas fuera del sitio las resta ella con el «−» de «Magazzino» en
+    `/admin/shop`, y escribe el número cuando llega un lote nuevo. A cero el producto
+    sigue en el Shop como «Esaurito», con «Chiedi quando torna» hacia Contatti. Un
+    reembolso no devuelve copias solo: si el quaderno vuelve, lo suma ella con el «+».
     Los pedidos los escribe la confirmación de SumUp en `ordini` y ella los marca como
     enviados en `/admin/ordini` (con el transportista obligatorio y un paso de
     confirmación). Desde el mismo pedido los reembolsa enteros por SumUp, también con

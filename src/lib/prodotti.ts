@@ -31,11 +31,23 @@ export type Prodotto = {
    */
   mockup: WorkImage | null;
   pubblicato: boolean;
+  /**
+   * Le copie che ha, per quello che finisce —i quaderni—. Null: non si
+   * contano, come le stampe, che si stampano su ordinazione. Le scala ogni
+   * ordine pagato (`registraOrdine`) e lei a mano, per quelle vendute fuori
+   * dal sito. A zero il prodotto resta nello Shop, esaurito.
+   */
+  scorte: number | null;
 };
 
-export type ProdottoInput = Omit<Prodotto, "id">;
+/**
+ * Quello che scrive il modulo. `scorte` assente vuol dire «non toccarle»: il
+ * modulo le manda solo se lei ha cambiato il numero, così salvare un titolo
+ * non riscrive le copie che un ordine ha scalato mentre la scheda era aperta.
+ */
+export type ProdottoInput = Omit<Prodotto, "id" | "scorte"> & { scorte?: number | null };
 
-const COLONNE = `id, categoria, slug, title, description, image, formati, colori, opera_slug, mockup, pubblicato`;
+const COLONNE = `id, categoria, slug, title, description, image, formati, colori, opera_slug, mockup, pubblicato, scorte`;
 
 function hydrate(row: Record<string, unknown>): Prodotto {
   return {
@@ -51,8 +63,12 @@ function hydrate(row: Record<string, unknown>): Prodotto {
     mockup:
       row.mockup && typeof row.mockup === "object" ? (row.mockup as WorkImage) : null,
     pubblicato: Boolean(row.pubblicato),
+    scorte: row.scorte === null || row.scorte === undefined ? null : Number(row.scorte),
   };
 }
+
+/** Si contano, e non ne resta nessuna. */
+export const esaurito = (p: Pick<Prodotto, "scorte">) => p.scorte !== null && p.scorte <= 0;
 
 /**
  * Tutti i prodotti, bozze comprese, nell'ordine di ogni categoria. Per
@@ -135,8 +151,8 @@ export async function createProdotto(input: ProdottoInput): Promise<Prodotto> {
   return transaction(async (run) => {
     await run(`LOCK TABLE prodotti IN SHARE ROW EXCLUSIVE MODE`);
     const rows = await run<Record<string, unknown>>(
-      `INSERT INTO prodotti (categoria, slug, title, description, image, formati, opera_slug, pubblicato, mockup, colori, position)
-            VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, $9::jsonb, $10::jsonb,
+      `INSERT INTO prodotti (categoria, slug, title, description, image, formati, opera_slug, pubblicato, mockup, colori, scorte, position)
+            VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, $9::jsonb, $10::jsonb, $11,
                     (SELECT COALESCE(MIN(position), 1) - 1 FROM prodotti WHERE categoria = $1))
          RETURNING ${COLONNE}`,
       [
@@ -150,6 +166,7 @@ export async function createProdotto(input: ProdottoInput): Promise<Prodotto> {
         input.pubblicato,
         input.mockup ? JSON.stringify(input.mockup) : null,
         JSON.stringify(input.colori),
+        input.scorte ?? null,
       ],
     );
     return hydrate(rows[0]);
@@ -167,6 +184,7 @@ export async function updateProdotto(id: number, input: ProdottoInput): Promise<
       `UPDATE prodotti
           SET categoria = $2, slug = $3, title = $4, description = $5, image = $6::jsonb,
               formati = $7::jsonb, opera_slug = $8, pubblicato = $9, mockup = $10::jsonb, colori = $11::jsonb,
+              scorte = CASE WHEN $12 THEN $13::integer ELSE scorte END,
               position = CASE WHEN categoria = $2 THEN position
                               ELSE (SELECT COALESCE(MIN(position), 1) - 1 FROM prodotti WHERE categoria = $2)
                          END
@@ -184,10 +202,38 @@ export async function updateProdotto(id: number, input: ProdottoInput): Promise<
         input.pubblicato,
         input.mockup ? JSON.stringify(input.mockup) : null,
         JSON.stringify(input.colori),
+        input.scorte !== undefined,
+        input.scorte ?? null,
       ],
     );
     return hydrate(rows[0]);
   });
+}
+
+/**
+ * Una copia in più o in meno, dall'admin: quella venduta al mercato, il pacco
+ * che torna. È una somma e non un numero da scrivere, perché un ordine può
+ * scalarne una nello stesso momento e nessuna delle due deve perdersi. Non
+ * scende sotto zero, e non tocca un prodotto che non si conta.
+ *
+ * Restituisce le copie di adesso, o null se il prodotto non si conta.
+ */
+export async function cambiaScorte(id: number, di: number): Promise<number | null> {
+  const rows = await query<{ scorte: number }>(
+    `UPDATE prodotti SET scorte = GREATEST(scorte + $2, 0)
+      WHERE id = $1 AND scorte IS NOT NULL
+  RETURNING scorte`,
+    [id, di],
+  );
+  return rows[0] ? Number(rows[0].scorte) : null;
+}
+
+/**
+ * Le copie contate a mano: «ne ho 20». Qui sì è un numero da scrivere, perché
+ * è quello che lei ha davanti. Null smette di contarle.
+ */
+export async function fissaScorte(id: number, scorte: number | null): Promise<void> {
+  await query(`UPDATE prodotti SET scorte = $2 WHERE id = $1`, [id, scorte]);
 }
 
 export async function deleteProdotto(id: number): Promise<Prodotto | null> {
@@ -340,29 +386,53 @@ export async function registraOrdine(
     consegna?: Ordine["consegna"];
   },
 ): Promise<Ordine | null> {
-  const rows = await query<Record<string, unknown>>(
-    `INSERT INTO ordini (pagamento, nome, email, indirizzo, righe, subtotale, spedizione, totale, sconto, codice, telefono, transazione, codice_fiscale, consegna)
-          VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-     ON CONFLICT (pagamento) DO NOTHING
-       RETURNING ${COLONNE_ORDINE}`,
-    [
-      o.pagamento,
-      o.nome,
-      o.email,
-      JSON.stringify(o.indirizzo),
-      JSON.stringify(o.righe),
-      o.subtotale,
-      o.spedizione,
-      o.totale,
-      o.sconto,
-      o.codice,
-      o.telefono,
-      o.transazione,
-      o.codiceFiscale,
-      o.consegna === "ritiro" ? "ritiro" : "spedizione",
-    ],
-  );
-  return rows[0] ? hydrateOrdine(rows[0]) : null;
+  return transaction(async (run) => {
+    const rows = await run<Record<string, unknown>>(
+      `INSERT INTO ordini (pagamento, nome, email, indirizzo, righe, subtotale, spedizione, totale, sconto, codice, telefono, transazione, codice_fiscale, consegna)
+            VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       ON CONFLICT (pagamento) DO NOTHING
+         RETURNING ${COLONNE_ORDINE}`,
+      [
+        o.pagamento,
+        o.nome,
+        o.email,
+        JSON.stringify(o.indirizzo),
+        JSON.stringify(o.righe),
+        o.subtotale,
+        o.spedizione,
+        o.totale,
+        o.sconto,
+        o.codice,
+        o.telefono,
+        o.transazione,
+        o.codiceFiscale,
+        o.consegna === "ritiro" ? "ritiro" : "spedizione",
+      ],
+    );
+    if (!rows[0]) return null;
+
+    /*
+      Le copie se ne vanno con l'ordine, nella stessa transazione: o nascono
+      tutti e due o nessuno. E solo quando l'ordine nasce davvero —il secondo
+      avviso dello stesso pagamento non scala niente—.
+
+      Le righe si sommano per prodotto prima di sottrarre: lo stesso quaderno
+      in due righe pesa sulle stesse copie. Il pagamento ha già controllato che
+      bastassero; se nel frattempo qualcuno ha comprato l'ultima, chi ha pagato
+      ha pagato e l'ordine nasce lo stesso, e il magazzino si ferma a zero
+      invece di andare sotto.
+    */
+    await run(
+      `UPDATE prodotti AS p
+          SET scorte = GREATEST(p.scorte - r.copie, 0)
+         FROM (SELECT slug, SUM(quantita)::int AS copie
+                 FROM jsonb_to_recordset($1::jsonb) AS x(slug text, quantita int)
+                GROUP BY slug) AS r
+        WHERE p.slug = r.slug AND p.scorte IS NOT NULL`,
+      [JSON.stringify(o.righe)],
+    );
+    return hydrateOrdine(rows[0]);
+  });
 }
 
 export async function listOrdini(): Promise<Ordine[]> {

@@ -1,6 +1,6 @@
 import { site } from "@/data/site";
 import { MINIMO_SCONTI, prezzoScontato, prodottoHref } from "@/data/shop";
-import { listPubblicati } from "@/lib/prodotti";
+import { esaurito, listPubblicati } from "@/lib/prodotti";
 import { scontiInCorso } from "@/lib/sconti";
 import { tariffeSpedizione } from "@/lib/spedizione";
 import { immagineFerma } from "@/lib/video";
@@ -65,7 +65,7 @@ export async function GET() {
 ${altre.join("\n")}
 <g:price>${(f.prezzo / 100).toFixed(2)} EUR</g:price>
 ${saldo}
-<g:availability>in_stock</g:availability>
+<g:availability>${esaurito(p) ? "out_of_stock" : "in_stock"}</g:availability>
 <g:condition>new</g:condition>
 <g:brand>${esc(site.name)}</g:brand>
 <g:identifier_exists>no</g:identifier_exists>

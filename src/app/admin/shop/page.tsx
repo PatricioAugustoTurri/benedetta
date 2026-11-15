@@ -13,6 +13,7 @@ import { listProdotti } from "@/lib/prodotti";
 import { listServizi, type Servizio } from "@/lib/servizi";
 import { contarPezzi, immagineFerma } from "@/lib/video";
 import { pingDb } from "@/lib/works";
+import Magazzino from "../components/Magazzino";
 import Sezione from "../components/Sezione";
 import StampeOrdenabili from "../components/StampeOrdenabili";
 import { spostaCategoriaAzione } from "./actions";
@@ -123,6 +124,10 @@ export default async function AdminShopPage() {
           const dentro = prodotti.filter((p) => p.categoria === c.slug);
           const bozze = dentro.filter((p) => !p.pubblicato).length;
           const stampe = c.slug === "stampe";
+          // Le stampe non finiscono: il magazzino esce fuori da Stampe, o se
+          // una stampa ha le copie contate.
+          const contati = stampe ? dentro.filter((p) => p.scorte !== null) : dentro;
+          const esauriti = dentro.filter((p) => p.pubblicato && p.scorte !== null && p.scorte <= 0).length;
           return (
             <Sezione
               key={c.slug}
@@ -134,6 +139,11 @@ export default async function AdminShopPage() {
                     ? `${dentro.length} ${dentro.length === 1 ? "stampa" : "stampe"}`
                     : `${dentro.length} ${dentro.length === 1 ? "prodotto" : "prodotti"}`}
                   {bozze > 0 && ` · ${bozze} ${bozze === 1 ? "bozza" : "bozze"}`}
+                  {esauriti > 0 && (
+                    <span className="text-accent">
+                      {` · ${esauriti} ${esauriti === 1 ? "esaurito" : "esauriti"}`}
+                    </span>
+                  )}
                 </>
               }
               testo={
@@ -164,6 +174,20 @@ export default async function AdminShopPage() {
               }
             >
               <StampeOrdenabili stampe={dentro} categoria={c.slug} />
+
+              {contati.length > 0 && (
+                <div id={`magazzino-${c.slug}`} className="mt-14 scroll-mt-24">
+                  <h3 className="label text-ink">Magazzino</h3>
+                  <p className="mt-1.5 max-w-[60ch] text-xs leading-relaxed text-ink-faint">
+                    Ogni ordine pagato scala le copie da solo. Una venduta fuori dal sito —al
+                    mercato, in negozio— la togli col meno; quando arriva un lotto nuovo, scrivi
+                    quante ne hai. Vuoto, non si contano.
+                  </p>
+                  <div className="mt-4">
+                    <Magazzino prodotti={contati} />
+                  </div>
+                </div>
+              )}
             </Sezione>
           );
         })}

@@ -293,6 +293,13 @@ CREATE TABLE prodotti (
   -- quando è pronto, invece di caricare di notte per non farsi vedere a metà.
   pubblicato  boolean     NOT NULL DEFAULT false,
 
+  -- Le copie che ha, per i prodotti che finiscono —i quaderni—. NULL: non si
+  -- contano, come le stampe, che si stampano su ordinazione. Ogni ordine
+  -- pagato le scala; a zero il prodotto resta nello Shop come esaurito.
+  -- Vedi la migrazione 016.
+  scorte      integer
+              CONSTRAINT prodotti_scorte_positive CHECK (scorte IS NULL OR scorte >= 0),
+
   -- Il posto dentro la sua categoria. Stesso ragionamento di works.position.
   position    integer     NOT NULL,
 

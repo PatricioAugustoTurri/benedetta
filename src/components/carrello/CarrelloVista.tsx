@@ -8,7 +8,7 @@ import { chiaveVoce, MINIMO_SCONTI, prezzo, prodottoHref, variante } from "@/dat
 import { site } from "@/data/site";
 import { tariffeSpedizione } from "@/lib/spedizione";
 import { Conto, NotaMinimo } from "./Conti";
-import { cambiaQuantita, MAX_QUANTITA, togli, totaleCarrello, type VoceCarrello } from "./store";
+import { cambiaQuantita, tettoDi, togli, totaleCarrello, type VoceCarrello } from "./store";
 import { useCarrelloVerificato } from "./useCarrelloVerificato";
 
 const [ITALIA, UE] = tariffeSpedizione();
@@ -156,12 +156,21 @@ function Riga({ voce: v }: { voce: VoceCarrello }) {
             <button
               type="button"
               onClick={() => cambiaQuantita(v, v.quantita + 1)}
-              disabled={v.quantita >= MAX_QUANTITA}
+              disabled={v.quantita >= tettoDi(v)}
               className="flex h-8 w-8 items-center justify-center border border-line text-ink-soft transition-colors hover:border-ink-faint hover:text-ink disabled:opacity-40"
             >
               <span className="sr-only">Una copia in più</span>
               <Plus size={14} />
             </button>
+            {/*
+              Quando il più si ferma per il magazzino e non per il tetto, lo
+              si dice: un pulsante spento senza motivo sembra un guasto.
+            */}
+            {v.disponibili !== undefined && v.quantita >= v.disponibili && (
+              <span className="figures ml-3 text-xs text-ink-faint">
+                {v.disponibili === 1 ? "È l’ultima copia" : `Sono le ultime ${v.disponibili}`}
+              </span>
+            )}
           </div>
 
           <button

@@ -426,6 +426,47 @@ export default function ProdottoForm({
           </div>
         )}
 
+        {/* -------------------------------------------------------- scorte */}
+        {/*
+          Le stampe si stampano su ordinazione e non finiscono: il campo esce
+          fuori da Stampe, o se una stampa ha già le copie contate —per poter
+          smettere—.
+        */}
+        {(!stampa || (prodotto?.scorte ?? null) !== null) && (
+          <div className="group/campo mt-12 border-t border-line pt-8">
+            <label htmlFor={`${idBase}-scorte`} className="label text-ink">
+              Copie in magazzino
+            </label>
+            <p className="mt-1.5 max-w-[46ch] text-xs leading-relaxed text-ink-faint">
+              Quante ne hai. Ogni ordine pagato le scala da solo, e a zero nello Shop esce
+              «Esaurito». Vuoto, non si contano: va bene per quello che si stampa su ordinazione.
+            </p>
+            <input type="hidden" name="scorte_prima" value={prodotto?.scorte ?? ""} />
+            <span className="mt-3 flex items-baseline gap-3">
+              <input
+                id={`${idBase}-scorte`}
+                name="scorte"
+                defaultValue={prodotto?.scorte ?? ""}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="off"
+                placeholder="Senza limite"
+                className={`${CONTROL} figures w-36 text-right placeholder:text-left`}
+              />
+              <span className="text-sm text-ink-faint">copie</span>
+            </span>
+            {prodotto && (prodotto.scorte ?? null) !== null && (
+              <p className="mt-3 text-xs leading-relaxed text-ink-faint">
+                Per una copia venduta fuori dal sito c&apos;è il meno nella lista del magazzino, in{" "}
+                <Link href={`/admin/shop#magazzino-${prodotto.categoria}`} className="link-underline text-ink-soft transition-colors hover:text-ink">
+                  Shop
+                </Link>
+                .
+              </p>
+            )}
+          </div>
+        )}
+
         {/* ------------------------------------------------------- immagini */}
         <CampoImmagini
           iniziali={prodotto?.image}

@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { useId, useState } from "react";
 import { AZIONE } from "@/components/azione";
-import { ArrowRight, Borsa } from "@/components/Icon";
+import { ArrowRight, Borsa, Mail } from "@/components/Icon";
 import { misuraFormato } from "@/data/legale";
 import { prezzo, prezzoScontato, variante, type Colore, type Formato } from "@/data/shop";
 import { aggiungi, MAX_QUANTITA, type VoceCarrello } from "./store";
+
+/** Da quante copie in giù la scheda dice quante ne restano. */
+const POCHE = 3;
 
 /**
  * Il formato e l'aggiunta al carrello, sulla scheda di una stampa.
@@ -36,6 +39,13 @@ import { aggiungi, MAX_QUANTITA, type VoceCarrello } from "./store";
  * scelto accanto all'etichetta. Il campione è la tinta stessa, piena: è
  * l'unico punto in cui il sito si concede un colore che non è dentro
  * un'illustrazione, perché qui il colore è proprio la cosa che si compra.
+ *
+ * **Quello che finisce —un quaderno— porta le sue copie.** Quando sono
+ * poche la riga sotto il pulsante lo dice, e il più del carrello si ferma
+ * lì. Quando sono finite il listino resta —il prezzo è un'informazione anche
+ * senza copie— ma al posto del carrello c'è la strada per chiederle quando
+ * torna: un prodotto esaurito che sparisce dallo Shop è un link condiviso che
+ * porta a niente.
  */
 export default function AggiungiAlCarrello({
   slug,
@@ -45,6 +55,7 @@ export default function AggiungiAlCarrello({
   colori = [],
   immagine,
   sconto,
+  scorte = null,
 }: {
   slug: string;
   categoria: string;
@@ -55,7 +66,11 @@ export default function AggiungiAlCarrello({
   immagine?: VoceCarrello["immagine"];
   /** La percentuale dello sconto in corso, se la stampa è in uno. */
   sconto?: number | null;
+  /** Le copie che ci sono, se si contano. Null: le stampe, che non finiscono. */
+  scorte?: number | null;
 }) {
+  const finito = scorte !== null && scorte <= 0;
+  const disponibili = scorte === null ? undefined : Math.max(scorte, 0);
   const id = useId();
   const [scelto, setScelto] = useState(formati[0]?.formato ?? "");
   const [tinta, setTinta] = useState(colori[0]?.nome ?? "");
@@ -187,56 +202,84 @@ export default function AggiungiAlCarrello({
         </div>
       </fieldset>
 
-      <button
-        type="button"
-        disabled={!pronto}
-        onClick={() => {
-          if (!formato || !pronto) return;
-          const entrata = aggiungi({
-            slug,
-            categoria,
-            title,
-            formato: formato.formato,
-            ...(colore ? { colore: colore.nome } : {}),
-            // Nel carrello va il prezzo scontato; il server lo ricalcola
-            // comunque prima di pagare, quindi questo è solo per mostrarlo.
-            prezzo: prezzoScontato(formato.prezzo, sconto),
-            scontata: Boolean(sconto),
-            ...(sconto ? { pieno: formato.prezzo } : {}),
-            immagine,
-          });
-          setAggiunto({
-            // Senza colore resta la frase di sempre, «formato A4».
-            variante: colore
-              ? variante({ formato: formato.formato, colore: colore.nome })
-              : `formato ${formato.formato}`,
-            pieno: !entrata,
-          });
-        }}
-        className={`mt-8 ${AZIONE} disabled:cursor-not-allowed disabled:opacity-50`}
-      >
-        <Borsa size={18} className="shrink-0" />
-        Aggiungi al carrello
-      </button>
+      {finito ? (
+        <div className="mt-8">
+          <p className="flex items-center gap-2.5 text-sm text-ink">
+            <span aria-hidden="true" className="block h-1.5 w-1.5 shrink-0 rounded-full bg-ink-faint" />
+            Esaurito
+          </p>
+          <p className="mt-2 max-w-[40ch] text-sm leading-relaxed text-ink-soft">
+            Le copie sono finite. Se lo vuoi, scrivimi: ti dico se e quando torna.
+          </p>
+          <Link href={`/contatti?prodotto=${slug}`} className={`mt-5 ${AZIONE}`}>
+            <Mail size={18} className="shrink-0" />
+            Chiedi quando torna
+          </Link>
+        </div>
+      ) : (
+        <>
+          <button
+            type="button"
+            disabled={!pronto}
+            onClick={() => {
+              if (!formato || !pronto) return;
+              const entrata = aggiungi({
+                slug,
+                categoria,
+                title,
+                formato: formato.formato,
+                ...(colore ? { colore: colore.nome } : {}),
+                // Nel carrello va il prezzo scontato; il server lo ricalcola
+                // comunque prima di pagare, quindi questo è solo per mostrarlo.
+                prezzo: prezzoScontato(formato.prezzo, sconto),
+                scontata: Boolean(sconto),
+                ...(sconto ? { pieno: formato.prezzo } : {}),
+                ...(disponibili !== undefined ? { disponibili } : {}),
+                immagine,
+              });
+              setAggiunto({
+                // Senza colore resta la frase di sempre, «formato A4».
+                variante: colore
+                  ? variante({ formato: formato.formato, colore: colore.nome })
+                  : `formato ${formato.formato}`,
+                pieno: !entrata,
+              });
+            }}
+            className={`mt-8 ${AZIONE} disabled:cursor-not-allowed disabled:opacity-50`}
+          >
+            <Borsa size={18} className="shrink-0" />
+            Aggiungi al carrello
+          </button>
 
-      <p role="status" className="mt-3 min-h-[1.25rem] text-xs text-ink-faint">
-        {aggiunto ? (
-          <>
-            {aggiunto.pieno
-              ? `Nel carrello ci sono già ${MAX_QUANTITA} copie, ${aggiunto.variante}: è il massimo.`
-              : `Aggiunta al carrello, ${aggiunto.variante}.`}{" "}
-            <Link
-              href="/carrello"
-              className="group inline-flex items-center gap-1 text-ink-soft transition-colors hover:text-ink"
-            >
-              <span className="link-underline">Vai al carrello</span>
-              <ArrowRight size={14} className="shrink-0" />
-            </Link>
-          </>
-        ) : (
-          "Spedizione in Italia e nell’Unione Europea. Paghi con SumUp."
-        )}
-      </p>
+          <p role="status" className="mt-3 min-h-[1.25rem] text-xs text-ink-faint">
+            {aggiunto ? (
+              <>
+                {aggiunto.pieno
+                  ? disponibili !== undefined && disponibili <= MAX_QUANTITA
+                    ? `Nel carrello ci sono già tutte le copie che ci sono${disponibili > 1 ? `: ${disponibili}` : ""}.`
+                    : `Nel carrello ci sono già ${MAX_QUANTITA} copie, ${aggiunto.variante}: è il massimo.`
+                  : `Aggiunta al carrello, ${aggiunto.variante}.`}{" "}
+                <Link
+                  href="/carrello"
+                  className="group inline-flex items-center gap-1 text-ink-soft transition-colors hover:text-ink"
+                >
+                  <span className="link-underline">Vai al carrello</span>
+                  <ArrowRight size={14} className="shrink-0" />
+                </Link>
+              </>
+            ) : (
+              <>
+                {disponibili !== undefined && disponibili <= POCHE && (
+                  <span className="figures text-ink-soft">
+                    {disponibili === 1 ? "È l’ultima copia. " : `Ne restano ${disponibili}. `}
+                  </span>
+                )}
+                Spedizione in Italia e nell’Unione Europea. Paghi con SumUp.
+              </>
+            )}
+          </p>
+        </>
+      )}
     </div>
   );
 }

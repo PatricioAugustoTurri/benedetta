@@ -19,8 +19,10 @@ import { cancellaCodice, erroreCodice, normalizzaCodice, salvaCodice } from "@/l
 import { cancellaSconto, salvaSconto } from "@/lib/sconti";
 import { armarImagenes, ErrorDeImagenes, quitarImagen } from "@/lib/immaginiModulo";
 import {
+  cambiaScorte,
   createProdotto,
   deleteProdotto,
+  fissaScorte,
   getProdottoById,
   riordinaProdotti,
   updateProdotto,
@@ -139,6 +141,21 @@ export async function guardaProdotto(
   const colori = leggiColori(String(formData.get("colori") ?? "[]"));
   if (typeof colori === "string") return { error: colori };
 
+  /*
+    Le copie si scrivono solo se lei ha cambiato il numero rispetto a quello
+    con cui si è aperta la scheda. Se no restano quelle della tabella: un
+    ordine può averne scalata una mentre lei correggeva il testo, e salvare il
+    testo non deve rimettergliela.
+  */
+  const scorteScritte = String(formData.get("scorte") ?? "").trim();
+  const scortePrima = String(formData.get("scorte_prima") ?? "").trim();
+  let scorte: number | null | undefined;
+  if (formData.has("scorte") && (id === null || scorteScritte !== scortePrima)) {
+    const lette = leggiScorte(scorteScritte);
+    if (typeof lette === "string") return { error: lette };
+    scorte = lette;
+  }
+
   // «Dall'opera» è delle stampe: è quello che fa dire alla pagina dell'opera
   // «Disponibile come stampa».
   let operaSlug: string | null = null;
@@ -183,6 +200,7 @@ export async function guardaProdotto(
     operaSlug,
     mockup,
     pubblicato,
+    ...(scorte !== undefined ? { scorte } : {}),
   };
 
   const anterior = id !== null ? await getProdottoById(id) : null;
@@ -597,6 +615,64 @@ export async function cancellaCategoriaAzione(formData: FormData): Promise<void>
   Lo Shop intero e le pagine d'opera: una stampa che esce da un'opera compare
   nella sua pagina come «Disponibile come stampa».
 */
+/**
+ * Le copie come le scrive lei: un numero intero, o vuoto per non contarle.
+ * Restituisce il messaggio da mostrare se non si capisce.
+ */
+function leggiScorte(crudo: string): number | null | string {
+  if (crudo.length === 0) return null;
+  if (!/^\d+$/.test(crudo)) return "Le copie in magazzino sono un numero intero: «12», «0». Vuoto, non si contano.";
+  const n = Number(crudo);
+  if (n > 100_000) return "Le copie in magazzino sembrano troppe. Controlla il numero.";
+  return n;
+}
+
+export type EsitoScorte = { scorte: number | null } | { error: string };
+
+/**
+ * Una copia in più o in meno, dalla lista del magazzino: quella venduta al
+ * mercato, il pacco che torna. Una somma e non un numero, perché un ordine
+ * può scalarne una nello stesso istante.
+ */
+export async function cambiaScorteAzione(id: number, di: number): Promise<EsitoScorte> {
+  await requireSession();
+  if (!Number.isInteger(id) || !Number.isInteger(di) || Math.abs(di) > 1000) {
+    return { error: "Non ho capito il cambio." };
+  }
+  try {
+    const scorte = await cambiaScorte(id, di);
+    if (scorte === null) return { error: "Questo prodotto non conta le copie: scrivi prima quante ne hai." };
+    rivalidaScorte();
+    return { scorte };
+  } catch {
+    return { error: "Il database non ha risposto. Riprova." };
+  }
+}
+
+/** Le copie contate a mano —«ne ho 20»—, o vuoto per smettere di contarle. */
+export async function fissaScorteAzione(id: number, crudo: string): Promise<EsitoScorte> {
+  await requireSession();
+  if (!Number.isInteger(id)) return { error: "Non ho capito quale prodotto." };
+  const scorte = leggiScorte(String(crudo ?? "").trim());
+  if (typeof scorte === "string") return { error: scorte };
+  try {
+    await fissaScorte(id, scorte);
+    rivalidaScorte();
+    return { scorte };
+  } catch {
+    return { error: "Il database non ha risposto. Riprova." };
+  }
+}
+
+/**
+ * Le copie cambiano solo lo Shop: la scheda del prodotto, la griglia con
+ * «Esaurito» e il feed. Non serve rifare tutto il sito come per un prodotto.
+ */
+function rivalidaScorte() {
+  revalidatePath("/admin/shop");
+  revalidatePath("/shop", "layout");
+}
+
 function rivalida() {
   revalidatePath("/admin/shop");
   // Tutto il sito: la cinta degli sconti è in ogni pagina.

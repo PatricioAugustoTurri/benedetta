@@ -41,7 +41,17 @@ export type VoceCarrello = {
    */
   pieno?: number;
   immagine?: { url: string; width: number; height: number; alt: string };
+  /**
+   * Le copie che ci sono, per quello che finisce —un quaderno—. È il tetto
+   * del più al posto di MAX_QUANTITA. Senza, non si contano: le stampe.
+   * Anche questo è per mostrarlo: il pagamento ricontrolla il magazzino.
+   */
+  disponibili?: number;
 };
+
+/** Fin dove arriva il più di una riga: le copie che ci sono, e mai oltre il tetto. */
+export const tettoDi = (v: Pick<VoceCarrello, "disponibili">) =>
+  Math.min(v.disponibili ?? MAX_QUANTITA, MAX_QUANTITA);
 
 /**
  * Le copie di una stampa in un formato: da 1 a 10 (cliente, 2026-10-07).
@@ -91,7 +101,8 @@ function valida(v: unknown): v is VoceCarrello {
     typeof r.title === "string" &&
     Number.isInteger(r.quantita) &&
     (r.quantita as number) > 0 &&
-    Number.isInteger(r.prezzo)
+    Number.isInteger(r.prezzo) &&
+    (r.disponibili === undefined || Number.isInteger(r.disponibili))
   );
 }
 
@@ -160,12 +171,13 @@ const stessa = (v: VoceCarrello, k: Chiave) =>
 export function aggiungi(voce: Omit<VoceCarrello, "quantita">): boolean {
   const lista = leggi();
   const presente = lista.find((v) => stessa(v, voce));
-  if (presente && presente.quantita >= MAX_QUANTITA) return false;
+  const tetto = tettoDi(voce);
+  if (tetto <= 0 || (presente && presente.quantita >= tetto)) return false;
   scrivi(
     presente
       ? lista.map((v) =>
           stessa(v, voce)
-            ? { ...v, ...voce, quantita: Math.min(v.quantita + 1, MAX_QUANTITA) }
+            ? { ...v, ...voce, quantita: Math.min(v.quantita + 1, tetto) }
             : v,
         )
       : [...lista, { ...voce, quantita: 1 }],
@@ -184,13 +196,16 @@ export const EVENTO_AGGIUNTO = "carrello:aggiunto";
 export type DettaglioAggiunto = { nuova: boolean };
 
 /**
- * Cambia le copie di una riga, sempre fra 1 e MAX_QUANTITA. Scendere sotto
- * 1 non toglie la stampa: per quello c'è «Togli», che è un gesto deciso e non
- * un clic di troppo sul meno.
+ * Cambia le copie di una riga, sempre fra 1 e il suo tetto —MAX_QUANTITA, o
+ * le copie che ci sono—. Scendere sotto 1 non toglie la stampa: per quello
+ * c'è «Togli», che è un gesto deciso e non un clic di troppo sul meno.
  */
 export function cambiaQuantita(k: Chiave, quantita: number) {
-  const giusta = Math.min(Math.max(quantita, 1), MAX_QUANTITA);
-  scrivi(leggi().map((v) => (stessa(v, k) ? { ...v, quantita: giusta } : v)));
+  scrivi(
+    leggi().map((v) =>
+      stessa(v, k) ? { ...v, quantita: Math.min(Math.max(quantita, 1), tettoDi(v)) } : v,
+    ),
+  );
 }
 
 export function togli(k: Chiave) {

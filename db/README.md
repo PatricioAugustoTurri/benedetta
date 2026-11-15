@@ -74,6 +74,7 @@ psql -d illustrando -f db/migrations/012-rimborsi.sql
 psql -d illustrando -f db/migrations/013-categorie.sql
 psql -d illustrando -f db/migrations/014-colori.sql
 psql -d illustrando -f db/migrations/015-ritiro.sql
+psql -d illustrando -f db/migrations/016-scorte.sql
 ```
 
 `db/dati/` no son migraciones: son cargas de contenido hechas a mano en

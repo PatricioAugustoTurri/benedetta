@@ -3,7 +3,7 @@ import Link from "next/link";
 import VideoOpera from "@/components/VideoOpera";
 import { prezzo, prezzoMinimo, prodottoHref } from "@/data/shop";
 import { site } from "@/data/site";
-import type { Prodotto } from "@/lib/prodotti";
+import { esaurito, type Prodotto } from "@/lib/prodotti";
 import { esVideo } from "@/lib/video";
 
 /**
@@ -27,6 +27,11 @@ import { esVideo } from "@/lib/video";
  * quando il mouse ci si ferma un secondo: la regia è in globals.css
  * (`.stampa-mockup`). È decorativo per chi usa un lettore di schermo —il nome
  * della stampa lo dice già il link—, quindi alt vuoto.
+ *
+ * **L'unica parola che la griglia si concede è «Esaurito».** Non è una
+ * didascalia ma uno stato: chi sceglie con gli occhi deve sapere, prima di
+ * aprirla, che quella copertina non si può comprare. Sta in un angolo, su un
+ * ritaglio di carta, e la copertina resta intera.
  */
 export default function GrigliaProdotti({
   prodotti,
@@ -41,14 +46,15 @@ export default function GrigliaProdotti({
       {prodotti.map((p, i) => {
         const portada = p.image[0];
         const da = prezzoMinimo(p.formati);
+        const finito = esaurito(p);
         return (
           <li key={p.id}>
             <Link
               href={prodottoHref(p)}
               aria-label={
-                da === null
+                (da === null
                   ? p.title
-                  : `${p.title}, ${p.formati.length > 1 ? "da " : ""}${prezzo(da)}`
+                  : `${p.title}, ${p.formati.length > 1 ? "da " : ""}${prezzo(da)}`) + (finito ? ", esaurito" : "")
               }
               className="stampa-cella group block focus-visible:outline-none"
             >
@@ -84,6 +90,14 @@ export default function GrigliaProdotti({
                     loading="lazy"
                     className="stampa-mockup absolute inset-0 h-full w-full object-cover"
                   />
+                )}
+                {finito && (
+                  <span
+                    aria-hidden="true"
+                    className="label absolute bottom-2 left-2 bg-paper px-2 py-1 text-ink-soft sm:bottom-3 sm:left-3"
+                  >
+                    Esaurito
+                  </span>
                 )}
               </span>
             </Link>

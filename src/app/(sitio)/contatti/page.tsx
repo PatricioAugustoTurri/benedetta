@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import ContactForm from "@/components/ContactForm";
 import { shopSubject } from "@/data/shop";
 import { getCategoria } from "@/lib/categorie";
+import { getPubblicato } from "@/lib/prodotti";
 import { getServizio } from "@/lib/servizi";
 import { getWork } from "@/lib/works";
 import Reveal from "@/components/Reveal";
@@ -41,6 +42,9 @@ export const metadata: Metadata = {
  * stessa regola: viaggia lo slug, e l'oggetto lo scrive il server a partire
  * dalla tabella `categorie`.
  *
+ * `?prodotto=<slug>` è «Chiedi quando torna» su un quaderno esaurito: lo
+ * stesso gesto, con il titolo preso da `prodotti`.
+ *
  * Senza il parametro il database non si tocca. La pagina si serve su
  * richiesta perché guarda `searchParams`, ma chi entra dal menu non paga una
  * query.
@@ -48,16 +52,20 @@ export const metadata: Metadata = {
 export default async function ContattiPage({
   searchParams,
 }: {
-  searchParams: Promise<{ opera?: string; shop?: string; servizio?: string }>;
+  searchParams: Promise<{ opera?: string; shop?: string; servizio?: string; prodotto?: string }>;
 }) {
-  const { opera, shop, servizio } = await searchParams;
+  const { opera, shop, servizio, prodotto } = await searchParams;
   const obra = opera ? await getWork(opera) : null;
   // «Chiedi info» su un servizio: l'oggetto è il nome del servizio, preso
   // dalla tabella e non dall'indirizzo.
   const lavoro = !obra && servizio ? await getServizio(servizio) : null;
   const categoria = !obra && !lavoro && shop ? await getCategoria(shop) : null;
+  // «Chiedi quando torna» su un prodotto esaurito: il titolo, dalla tabella.
+  const articolo = !obra && !lavoro && !categoria && prodotto ? await getPubblicato(prodotto) : null;
   const asunto =
-    obra?.title ?? lavoro?.title ?? (categoria ? shopSubject(categoria) : undefined);
+    obra?.title ??
+    lavoro?.title ??
+    (categoria ? shopSubject(categoria) : articolo ? `${articolo.title}: quando torna?` : undefined);
 
   return (
     <section className="shell pt-12 pb-8 md:pt-20">

@@ -65,7 +65,13 @@ function descriviCopie(voci: VoceCarrello[], copie: number): string {
   return copie === 1 ? "1 articolo" : `${copie} articoli`;
 }
 
-async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
+/**
+ * Le righe rifatte, e quelle che il magazzino ha accorciato: i titoli dei
+ * quaderni di cui ne restano meno di quante se ne chiedevano, o nessuna.
+ */
+type Rifatto = { voci: VoceCarrello[]; corte: string[]; finite: number };
+
+async function rifai(richiesta: Richiesta[]): Promise<Rifatto> {
   const [prodotti, sconti] = await Promise.all([
     prodottiPerSlug([...new Set(richiesta.map((r) => r.slug))]),
     // Lo sconto si applica qui, e solo qui: è la stessa funzione che prepara
@@ -74,19 +80,35 @@ async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
     scontiInCorso().catch(() => new Map()),
   ]);
   const voci: VoceCarrello[] = [];
+  const corte = new Set<string>();
+  let finite = 0;
+  // Le copie si contano per prodotto, non per riga: lo stesso quaderno in due
+  // righe —un giorno, in due colori— attinge dalle stesse.
+  const rimaste = new Map(prodotti.map((p) => [p.slug, p.scorte]));
   for (const r of richiesta) {
     const p = prodotti.find((s) => s.slug === r.slug);
     const f = p?.formati.find((x) => x.formato === r.formato);
     if (!p || !f) continue;
     const colore = p.colori.length > 0 ? p.colori.find((c) => c.nome === r.colore) : null;
     if (colore === undefined) continue;
+    const libere = rimaste.get(p.slug) ?? null;
+    const quantita = libere === null ? r.quantita : Math.min(r.quantita, libere);
+    if (quantita < r.quantita) corte.add(p.title);
+    if (quantita <= 0) {
+      finite++;
+      continue;
+    }
+    if (libere !== null) rimaste.set(p.slug, libere - quantita);
     const portada = p.image[0];
     voci.push({
       slug: p.slug,
       categoria: p.categoria,
       formato: f.formato,
       ...(colore ? { colore: colore.nome } : {}),
-      quantita: r.quantita,
+      quantita,
+      // Il tetto del più nel carrello: quelle di questa riga più quelle
+      // ancora libere. Il server lo ricontrolla comunque prima di pagare.
+      ...(p.scorte !== null ? { disponibili: Math.min(p.scorte, MAX_QUANTITA) } : {}),
       title: p.title,
       prezzo: prezzoScontato(f.prezzo, sconti.get(p.id)?.percentuale),
       scontata: sconti.has(p.id),
@@ -96,7 +118,15 @@ async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
         : undefined,
     });
   }
-  return voci;
+  return { voci, corte: [...corte], finite };
+}
+
+/** «Libera» è finito… — detto a chi ne chiedeva più di quante ce ne sono. */
+function frasiCorte(corte: string[]): string {
+  const nomi = corte.map((t) => `«${t}»`);
+  return nomi.length === 1
+    ? `${nomi[0]} è finito o ne restano meno copie di quante ne avevi messe.`
+    : `${nomi.slice(0, -1).join(", ")} e ${nomi.at(-1)} sono finiti o ne restano meno copie di quante ne avevi messe.`;
 }
 
 /**
@@ -108,15 +138,17 @@ async function rifai(richiesta: Richiesta[]): Promise<VoceCarrello[]> {
  */
 export async function verificaCarrello(
   richiesta: Richiesta[],
-): Promise<{ voci: VoceCarrello[]; tolte: number; prezziCambiati: boolean }> {
+): Promise<{ voci: VoceCarrello[]; tolte: number; prezziCambiati: boolean; scorte: string | null }> {
   const lette = leggiRichiesta(richiesta);
-  const voci = await rifai(lette);
+  const { voci, corte, finite } = await rifai(lette);
   const prima = new Map(
     (richiesta as VoceCarrello[]).map((r) => [chiaveVoce(r), r.prezzo]),
   );
   return {
     voci,
-    tolte: lette.length - voci.length,
+    // Quelle finite le racconta `scorte`, con il nome: non si contano due volte.
+    tolte: lette.length - voci.length - finite,
+    scorte: corte.length > 0 ? `${frasiCorte(corte)} Il carrello ora ha quelle che ci sono.` : null,
     prezziCambiati: voci.some((v) => {
       const p = prima.get(chiaveVoce(v));
       return typeof p === "number" && p !== v.prezzo;
@@ -201,8 +233,17 @@ export async function vaiAlPagamento(r: RichiestaPagamento): Promise<EsitoPagame
   // Validato: o è un ritiro, o il paese è in una delle due zone.
   const spedizione = costoConsegna(dati)!;
 
+  const rifatto = await rifai(leggiRichiesta(r?.voci));
+  /*
+    Se nel frattempo un quaderno è finito, ci si ferma e si dice quale: far
+    pagare in silenzio meno copie di quelle che chi compra ha visto nella
+    cassa sarebbe un ordine diverso da quello che ha scelto.
+  */
+  if (rifatto.corte.length > 0) {
+    return { error: `${frasiCorte(rifatto.corte)} Torna al carrello per vedere quante ce ne sono.` };
+  }
   // Sotto i 30 € gli sconti di stagione non valgono: si paga il prezzo pieno.
-  const voci = applicaMinimo(await rifai(leggiRichiesta(r?.voci)));
+  const voci = applicaMinimo(rifatto.voci);
   if (voci.length === 0) return { error: "Il carrello è vuoto." };
 
   /*

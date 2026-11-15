@@ -35,9 +35,10 @@ export function useCarrelloVerificato() {
     if (!montato || verificato.current || voci.length === 0) return;
     verificato.current = true;
     verificaCarrello(voci)
-      .then(({ voci: nuove, tolte, prezziCambiati }) => {
+      .then(({ voci: nuove, tolte, prezziCambiati, scorte }) => {
         sostituisci(nuove);
         const cose = [
+          scorte,
           tolte > 0 &&
             (tolte === 1
               ? "Una stampa non è più disponibile ed è uscita dal carrello."

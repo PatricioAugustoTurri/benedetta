@@ -8,7 +8,7 @@ import { scontiInCorso } from "@/lib/sconti";
 import { tariffeSpedizione } from "@/lib/spedizione";
 import { site } from "@/data/site";
 import { mockupComeStampa } from "@/lib/mockup";
-import { getPubblicato, listPubblicati } from "@/lib/prodotti";
+import { esaurito, getPubblicato, listPubblicati } from "@/lib/prodotti";
 import { immagineFerma } from "@/lib/video";
 import { getWork } from "@/lib/works";
 import Visore from "../../../opera/components/Visore";
@@ -135,7 +135,7 @@ export default async function ProdottoPage({ params }: Params) {
       price: (prezzoScontato(f.prezzo, sconto?.percentuale) / 100).toFixed(2),
       priceValidUntil: sconto?.al,
       priceCurrency: "EUR",
-      availability: "https://schema.org/InStock",
+      availability: esaurito(p) ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
       itemCondition: "https://schema.org/NewCondition",
       url,
       shippingDetails: tariffe.map((t) => ({
