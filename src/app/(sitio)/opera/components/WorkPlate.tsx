@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import VideoOpera from "@/components/VideoOpera";
+import { site } from "@/data/site";
 import { esVideo } from "@/lib/video";
 import type { Work } from "@/lib/works";
 
@@ -10,6 +11,19 @@ import type { Work } from "@/lib/works";
  */
 type Tavole = Pick<Work, "title" | "description" | "image">;
 import { ApriTavola } from "./Visore";
+
+/**
+ * Il testo alternativo di una tavola. Quando lei lo scrive nell'admin vale
+ * quello; quando resta vuoto, invece di un `alt=""` —che per Google Immagini
+ * è un'immagine senza nome— esce il titolo dell'opera con la firma. Non
+ * descrive cosa si vede, ma dice almeno di chi è e a cosa appartiene.
+ */
+function testoAlt(work: Tavole, i: number) {
+  const img = work.image[i];
+  if (img?.alt?.trim()) return img.alt;
+  const tavola = work.image.length > 1 ? `, tavola ${i + 1}` : "";
+  return `${work.title}${tavola} — illustrazione di ${site.signature}`;
+}
 
 /**
  * Le tavole, in due pezzi: la prima e le altre.
@@ -37,22 +51,23 @@ import { ApriTavola } from "./Visore";
 export default function WorkPlate({ work }: { work: Tavole }) {
   const img = work.image[0];
   if (!img) return null;
+  const alt = testoAlt(work, 0);
 
   return (
     <div className="opera__tavola flex items-start justify-center md:justify-end">
-      <ApriTavola indice={0} alt={img.alt}>
+      <ApriTavola indice={0} alt={alt}>
         {esVideo(img) ? (
           <VideoOpera
             src={img.url}
             width={img.width}
             height={img.height}
-            alt={img.alt}
+            alt={alt}
             className="block h-auto max-h-[78vh] w-auto max-w-full bg-paper-deep object-contain"
           />
         ) : (
           <Image
             src={img.url}
-            alt={img.alt}
+            alt={alt}
             width={img.width}
             height={img.height}
             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 60vw, 50rem"
@@ -105,19 +120,19 @@ export function WorkPlates({ work }: { work: Tavole }) {
               className="opera__pezzo"
               style={{ "--r": img.width / img.height } as CSSProperties}
             >
-              <ApriTavola indice={work.image.indexOf(img)} alt={img.alt} className="md:w-full">
+              <ApriTavola indice={work.image.indexOf(img)} alt={testoAlt(work, work.image.indexOf(img))} className="md:w-full">
                 {esVideo(img) ? (
                   <VideoOpera
                     src={img.url}
                     width={img.width}
                     height={img.height}
-                    alt={img.alt}
+                    alt={testoAlt(work, work.image.indexOf(img))}
                     className="block h-auto max-h-[78vh] w-auto max-w-full bg-paper-deep object-contain md:max-h-none md:w-full"
                   />
                 ) : (
                   <Image
                     src={img.url}
-                    alt={img.alt}
+                    alt={testoAlt(work, work.image.indexOf(img))}
                     width={img.width}
                     height={img.height}
                     sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 40rem"

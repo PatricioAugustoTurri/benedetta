@@ -14,8 +14,16 @@ export const site = {
   role: "Illustratrice",
   // Si usa nel <title> e nelle anteprime quando si condivide il link.
   tagline: "Illustrazioni personalizzate e ritratti",
+  /*
+    Dove lavora, detto come lo cerca chi non la conosce ancora: «illustratrice
+    Foligno», «illustratrice Umbria». Va nel titolo della home e nelle
+    descrizioni perché Google lega una ricerca locale a un luogo solo se il
+    luogo è scritto; il suo nome da solo esce già primo.
+  */
+  zona: "Foligno, Umbria",
+  regione: "Umbria",
   description:
-    "Benedetta Zibetti, illustratrice a Foligno: illustrazioni personalizzate e ritratti che trasformano ricordi e racconti in immagini.",
+    "Benedetta Zibetti, illustratrice a Foligno, in Umbria: ritratti illustrati e illustrazioni personalizzate su commissione, stampe e quaderni da comprare online.",
   // Il dominio del sito. Si usa per la SEO, per le anteprime quando si
   // condivide il link e nel piè di pagina delle mail del modulo di contatto.
   url: "https://benedettazibetti.com",

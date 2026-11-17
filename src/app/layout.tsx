@@ -49,7 +49,7 @@ const caprasimo = Caprasimo({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} · ${site.role}`,
+    default: `${site.name} · ${site.role} a ${site.zona}`,
     template: `%s · ${site.name}`,
   },
   description: site.description,
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   authors: [{ name: site.signature, url: site.url }],
   creator: site.signature,
   openGraph: {
-    title: `${site.name} · ${site.role}`,
+    title: `${site.name} · ${site.role} a ${site.zona}`,
     description: site.description,
     url: site.url,
     siteName: site.name,

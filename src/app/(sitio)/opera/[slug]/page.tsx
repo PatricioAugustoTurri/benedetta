@@ -83,7 +83,7 @@ export default async function OperaPage({ params }: Params) {
     image: portada ? immagineFerma(portada) : undefined,
     dateCreated: String(work.year),
     artMedium: work.tecnica,
-    creator: { "@type": "Person", name: site.signature },
+    creator: { "@type": "Person", "@id": `${site.url}/#person`, name: site.signature },
     url: `${site.url}/opera/${slug}`,
   };
 

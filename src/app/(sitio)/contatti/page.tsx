@@ -12,7 +12,8 @@ import ContactNote from "./components/ContactNote";
 
 export const metadata: Metadata = {
   title: "Contatti",
-  description: "Commissioni, collaborazioni e richieste di stampe.",
+  description:
+    "Scrivimi per ritratti illustrati, illustrazioni personalizzate, collaborazioni e stampe. Lavoro da Foligno, in Umbria, per clienti in tutta Italia.",
   // Il canonical resta la pagina pulita anche quando arriva `?opera=<slug>`,
   // `?shop=<slug>` o `?servizio=<slug>`:
   // quel parametro precompila l'oggetto, non cambia cosa mostra la pagina.

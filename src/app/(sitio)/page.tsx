@@ -6,7 +6,7 @@ import { site } from "@/data/site";
 export const metadata = {
   // `absolute`: il template del layout aggiungerebbe " · Benedetta Zibetti" in
   // coda, e la home direbbe il nome due volte.
-  title: { absolute: `${site.name} · ${site.role}` },
+  title: { absolute: `${site.name} · ${site.role} a ${site.zona}` },
   alternates: { canonical: "/" },
 };
 
@@ -23,7 +23,7 @@ export default async function Home() {
         di schermo, che invece hanno bisogno di sapere dove atterrano.
       */}
       <h1 className="sr-only">
-        {`Opere — ${site.signature}, ${site.role.toLowerCase()}. ${works.length} ${
+        {`Opere — ${site.signature}, ${site.role.toLowerCase()} a ${site.zona}. ${works.length} ${
           works.length === 1 ? "lavoro" : "lavori"
         }.`}
       </h1>

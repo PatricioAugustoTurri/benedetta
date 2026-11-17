@@ -26,7 +26,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     const descrizione =
       servizio?.description?.split(/\n/)[0] ?? `${c.label} su commissione: leggi come funziona e scrivimi.`;
     return {
-      title: servizio?.title ?? c.label,
+      // «su commissione» è come lo si cerca: un ritratto illustrato si ordina,
+      // non si compra già fatto, e il titolo lo dice prima ancora di aprirlo.
+      title: `${servizio?.title ?? c.label} su commissione`,
       description: descrizione,
       alternates: { canonical: `/shop/${c.slug}` },
       openGraph: portada

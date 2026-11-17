@@ -42,8 +42,17 @@ export default function ServizioPagina({
     name: s.title,
     description: s.description ?? undefined,
     image: portada ? immagineFerma(portada) : undefined,
-    provider: { "@type": "Person", name: site.signature },
-    areaServed: "IT",
+    serviceType: s.title,
+    // Il `@id` lega il servizio a lei come la descrive `StructuredData`, così
+    // Google non deve indovinare che le due voci sono la stessa persona.
+    provider: { "@type": "Person", "@id": `${site.url}/#person`, name: site.signature },
+    // Lavora a distanza per tutta Italia, ma la zona da cui parte è questa:
+    // nominarla è quello che fa uscire il servizio in una ricerca locale.
+    areaServed: [
+      { "@type": "City", name: site.negozio.citta },
+      { "@type": "AdministrativeArea", name: site.regione },
+      { "@type": "Country", name: "Italia" },
+    ],
     url: `${site.url}/shop/${s.slug}`,
   };
 
