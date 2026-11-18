@@ -230,7 +230,7 @@ export async function correggiBigliettoAzione(
   return { fatto: Date.now() };
 }
 
-/** Il biglietto di un ordine che non l'ha avuto: arrivato prima dei codici, o il webhook non ce l'ha fatta. */
+/** Il biglietto di un ordine: non nasce col pagamento, lo crea lei da qui quando vuole darne uno. */
 export async function creaBigliettoAzione(formData: FormData): Promise<void> {
   await requireSession();
   const id = Number(formData.get("ordine"));

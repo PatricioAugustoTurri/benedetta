@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { creaBiglietto, segnaUsato } from "@/lib/codici";
+import { segnaUsato } from "@/lib/codici";
 import { avvisaOrdine, confermaOrdine, correoConfigurado } from "@/lib/correo";
 import { query } from "@/lib/db";
 import { registraOrdine, type Ordine } from "@/lib/prodotti";
@@ -122,16 +122,17 @@ export async function confermaPagamento(riferimento: string): Promise<Esito> {
 }
 
 /**
- * I codici e le mail, dopo l'ordine e senza farlo fallire: l'ordine è la
- * cosa che non si può perdere. Un biglietto che non nasce qui si crea dalla
- * pagina degli ordini; un codice monouso non segnato è al peggio un secondo
- * uso; una mail che non parte la recupera lei, che vede l'ordine in
- * /admin/ordini comunque.
+ * Il codice speso e le mail, dopo l'ordine e senza farlo fallire: l'ordine è
+ * la cosa che non si può perdere. Un codice monouso non segnato è al peggio
+ * un secondo uso; una mail che non parte la recupera lei, che vede l'ordine
+ * in /admin/ordini comunque.
+ *
+ * Il biglietto non nasce qui: lo crea lei dall'ordine, solo quando vuole
+ * darne uno (cliente, 2026-11-18).
  */
 async function dopoOrdine(ordine: Ordine) {
   try {
     if (ordine.codice) await segnaUsato(ordine.codice, ordine.id);
-    await creaBiglietto(ordine.id);
   } catch (e) {
     console.error("Pagamento: codici dell'ordine non aggiornati", ordine.id, e);
   }

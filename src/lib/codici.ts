@@ -8,7 +8,8 @@ import { oggiInItalia } from "@/lib/oggi";
  *
  * - **Generali**, come BENZIBET98: uguali per tutti, valgono quante volte si
  *   vuole finché sono accesi.
- * - **Personali**, uno per ordine: nascono quando l'ordine è pagato, lei li
+ * - **Personali**, al più uno per ordine: li crea lei dall'ordine quando
+ *   vuole darne uno (mai da soli al pagamento, cliente 2026-11-18), li
  *   scrive a mano sul biglietto del pacco, valgono una volta sola e scadono
  *   90 giorni dopo la spedizione. Codice, percentuale e scadenza si
  *   correggono dall'ordine prima di spedire (cliente, 2026-10-09).
@@ -194,8 +195,8 @@ const SEGNI = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const nuovoCodice = () => `BEN-${Array.from({ length: 4 }, () => SEGNI[randomInt(SEGNI.length)]).join("")}`;
 
 /**
- * Il biglietto di un ordine appena pagato. Se c'è già non ne fa un altro: il
- * webhook può arrivare due volte. Se il codice estratto esiste già, ne
+ * Il biglietto di un ordine, quando lei lo chiede. Se c'è già non ne fa un
+ * altro: un doppio clic non ne crea due. Se il codice estratto esiste già, ne
  * estrae un altro.
  */
 export async function creaBiglietto(ordineId: number): Promise<Codice | null> {

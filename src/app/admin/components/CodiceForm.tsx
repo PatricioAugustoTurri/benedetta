@@ -214,8 +214,8 @@ export default function CodiceForm({ codice }: { codice?: Codice }) {
             Senza «una volta sola» vale per tutti, in più ordini, finché è acceso e non è scaduto.
           </li>
           <li>
-            I biglietti degli ordini non sono qui: ogni ordine ha il suo, e si cambia dalla pagina
-            Ordini.
+            I biglietti degli ordini non sono qui: si creano e si cambiano dall&apos;ordine, nella pagina
+            Ordini, solo per chi vuoi tu.
           </li>
           <li>Nel carrello e nella mail dell&apos;ordine compare come riga a sé.</li>
           <li>

@@ -9,7 +9,8 @@ import { CONTROL, LABEL } from "./campo";
 
 /**
  * Il biglietto del pacco: il codice personale che lei scrive a mano e mette
- * dentro con la stampa.
+ * dentro con la stampa. Non nasce da solo col pagamento: «Crealo» lo fa
+ * solo per gli ordini a cui lei vuole darlo.
  *
  * Sta nell'ordine e non in una pagina a sé perché è lì che lei si trova
  * mentre impacchetta: legge l'indirizzo, scrive il biglietto, segna come
@@ -59,7 +60,7 @@ export default function BigliettoOrdine({
       <form action={creaBigliettoAzione} className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line pt-4 text-xs">
         <input type="hidden" name="ordine" value={ordine} />
         <span className="label">Biglietto</span>
-        <span className="text-ink-faint">Questo ordine non ha ancora un codice per il biglietto.</span>
+        <span className="text-ink-faint">Nessun codice sconto per questo ordine. Se vuoi metterne uno nel pacco:</span>
         <button type="submit" className="area-tocco link-underline text-ink transition-colors hover:text-accent">
           Crealo
         </button>

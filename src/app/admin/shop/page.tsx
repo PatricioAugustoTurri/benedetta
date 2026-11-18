@@ -252,8 +252,8 @@ export default async function AdminShopPage() {
             </ul>
           )}
           {/*
-            I biglietti degli ordini si contano soltanto: sono uno per
-            pacco, e una lista che cresce a ogni ordine seppellirebbe i pochi
+            I biglietti degli ordini si contano soltanto: sono al più uno
+            per pacco, e una lista che cresce con gli ordini seppellirebbe i pochi
             codici fatti a mano. Si cambiano dall'ordine, dove lei è
             quando scrive il biglietto.
           */}
@@ -270,7 +270,7 @@ export default async function AdminShopPage() {
                 } come ordine`}
             <span aria-hidden="true">·</span>
             <Link href="/admin/ordini" className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink">
-              Si cambiano negli ordini
+              Si creano negli ordini
             </Link>
           </p>
           <Aggiungi href="/admin/shop/codici/nuovo">Nuovo codice</Aggiungi>
