@@ -650,26 +650,55 @@ CREATE TABLE magazzino (
 );
 
 -- --------------------------------------------------------------------------
--- movimenti — le vendite fuori dal sito e le spese
+-- vendite — il registro delle vendite fuori dal sito
 --
--- Le vendite del sito non stanno qui: si leggono da `ordini`. Qui quelle in
--- contanti e con bonifico, e quello che spende. In centesimi. Vedi la 017.
+-- In contanti o con bonifico, con il cliente, cosa ha comprato, se ha pagato
+-- e se l'ha ricevuto. Le vendite del sito non stanno qui: si leggono da
+-- `ordini`. spese — in cosa e quanto. Tutto in centesimi. Vedi la 018.
 -- --------------------------------------------------------------------------
-CREATE TABLE movimenti (
-  id         integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  giorno     date        NOT NULL,
-  tipo       text        NOT NULL CONSTRAINT movimenti_tipo_valido CHECK (tipo IN ('vendita', 'spesa')),
-  -- Come è entrata una vendita. Una spesa non ne ha.
-  canale     text        CONSTRAINT movimenti_canale_valido CHECK (
-                           (tipo = 'vendita' AND canale IN ('contanti', 'bonifico'))
-                           OR (tipo = 'spesa' AND canale IS NULL)
-                         ),
-  importo    integer     NOT NULL CONSTRAINT movimenti_importo_positivo CHECK (importo > 0),
-  nota       text        CONSTRAINT movimenti_nota_misura CHECK (nota IS NULL OR length(nota) <= 200),
-  created_at timestamptz NOT NULL DEFAULT now()
+CREATE TABLE vendite (
+  id          integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  -- Il numero dell'anno: V-2026-014. Non è l'id perché ricomincia a gennaio,
+  -- e non si ricalcola perché cancellare una vendita non deve rinumerare le
+  -- altre.
+  anno        smallint    NOT NULL,
+  numero      integer     NOT NULL,
+  giorno      date        NOT NULL,
+  nome        text        NOT NULL CONSTRAINT vendite_nome_misura CHECK (length(trim(nome)) BETWEEN 1 AND 120),
+  email       text        CONSTRAINT vendite_email_misura CHECK (email IS NULL OR length(email) <= 200),
+  telefono    text        CONSTRAINT vendite_telefono_misura CHECK (telefono IS NULL OR length(telefono) <= 40),
+  cosa        text        NOT NULL CONSTRAINT vendite_cosa_misura CHECK (length(trim(cosa)) BETWEEN 1 AND 500),
+  importo     integer     NOT NULL CONSTRAINT vendite_importo_positivo CHECK (importo > 0),
+  canale      text        NOT NULL CONSTRAINT vendite_canale_valido CHECK (canale IN ('contanti', 'bonifico')),
+  -- Il giorno in cui è arrivato il denaro. Vuoto: da incassare.
+  pagato_il   date,
+  consegna    text        NOT NULL CONSTRAINT vendite_consegna_valida CHECK (consegna IN ('mano', 'spedizione')),
+  -- Il giorno in cui è partita o l'ha data in mano. Vuoto: ancora da fare.
+  consegnato_il date,
+  -- Le copie tolte dal magazzino con questa vendita, per rimetterle se la si
+  -- cancella: [{ "prodotto_id": 12, "formato": "A4", "copie": 2 }].
+  magazzino   jsonb       NOT NULL DEFAULT '[]'::jsonb
+              CONSTRAINT vendite_magazzino_es_arreglo CHECK (jsonb_typeof(magazzino) = 'array'),
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT vendite_numero_unico UNIQUE (anno, numero)
 );
 
-CREATE INDEX movimenti_giorno ON movimenti (giorno);
+CREATE INDEX vendite_giorno ON vendite (giorno);
+
+CREATE TRIGGER vendite_set_updated_at
+  BEFORE UPDATE ON vendite
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE spese (
+  id          integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  giorno      date        NOT NULL,
+  descrizione text        NOT NULL CONSTRAINT spese_descrizione_misura CHECK (length(trim(descrizione)) BETWEEN 1 AND 200),
+  importo     integer     NOT NULL CONSTRAINT spese_importo_positivo CHECK (importo > 0),
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX spese_giorno ON spese (giorno);
 
 INSERT INTO codici (codice, percentuale) VALUES ('BENZIBET98', 15);
 
