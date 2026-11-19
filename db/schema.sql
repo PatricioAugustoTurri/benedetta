@@ -633,6 +633,44 @@ CREATE TRIGGER codici_set_updated_at
   BEFORE UPDATE ON codici
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+-- --------------------------------------------------------------------------
+-- magazzino — le stampe che ha nel cassetto
+--
+-- Solo per lei: il sito non lo legge, e una stampa a zero si vende lo stesso.
+-- Una riga per stampa e formato; senza riga, quel formato non si conta. Le
+-- copie che il sito conta davvero sono in prodotti.scorte. Vedi la 017.
+-- --------------------------------------------------------------------------
+CREATE TABLE magazzino (
+  prodotto_id integer     NOT NULL REFERENCES prodotti (id) ON DELETE CASCADE,
+  -- Il nome del formato, come in prodotti.formati.
+  formato     text        NOT NULL,
+  copie       integer     NOT NULL CONSTRAINT magazzino_copie_positive CHECK (copie >= 0),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (prodotto_id, formato)
+);
+
+-- --------------------------------------------------------------------------
+-- movimenti — le vendite fuori dal sito e le spese
+--
+-- Le vendite del sito non stanno qui: si leggono da `ordini`. Qui quelle in
+-- contanti e con bonifico, e quello che spende. In centesimi. Vedi la 017.
+-- --------------------------------------------------------------------------
+CREATE TABLE movimenti (
+  id         integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  giorno     date        NOT NULL,
+  tipo       text        NOT NULL CONSTRAINT movimenti_tipo_valido CHECK (tipo IN ('vendita', 'spesa')),
+  -- Come è entrata una vendita. Una spesa non ne ha.
+  canale     text        CONSTRAINT movimenti_canale_valido CHECK (
+                           (tipo = 'vendita' AND canale IN ('contanti', 'bonifico'))
+                           OR (tipo = 'spesa' AND canale IS NULL)
+                         ),
+  importo    integer     NOT NULL CONSTRAINT movimenti_importo_positivo CHECK (importo > 0),
+  nota       text        CONSTRAINT movimenti_nota_misura CHECK (nota IS NULL OR length(nota) <= 200),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX movimenti_giorno ON movimenti (giorno);
+
 INSERT INTO codici (codice, percentuale) VALUES ('BENZIBET98', 15);
 
 

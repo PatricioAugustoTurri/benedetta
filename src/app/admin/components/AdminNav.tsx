@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * Le tre parti dell'admin. Client solo per sapere dove si è: la parte attiva
+ * Le parti dell'admin. Client solo per sapere dove si è: la parte attiva
  * va in inchiostro pieno con la sottolineatura fissa, le altre in pallido.
  *
  * Il numero accanto è quanto c'è dentro —opere, prodotti, ordini da
@@ -19,9 +19,12 @@ export default function AdminNav({
 }) {
   const pathname = usePathname();
   const voci = [
-    { href: "/admin", label: "Opere", n: conti?.opere, attiva: !/^\/admin\/(shop|ordini|newsletter)/.test(pathname) },
+    { href: "/admin", label: "Opere", n: conti?.opere, attiva: !/^\/admin\/(shop|ordini|magazzino|conti|newsletter)/.test(pathname) },
     { href: "/admin/shop", label: "Shop", n: conti?.prodotti, attiva: pathname.startsWith("/admin/shop") },
     { href: "/admin/ordini", label: "Ordini", n: conti?.daSpedire, attiva: pathname.startsWith("/admin/ordini") },
+    // Due quaderni suoi, senza numero: non chiedono niente.
+    { href: "/admin/magazzino", label: "Magazzino", attiva: pathname.startsWith("/admin/magazzino") },
+    { href: "/admin/conti", label: "Conti", attiva: pathname.startsWith("/admin/conti") },
     {
       href: "/admin/newsletter",
       label: "Newsletter",

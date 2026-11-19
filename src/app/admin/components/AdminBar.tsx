@@ -65,7 +65,7 @@ export default async function AdminBar() {
         </div>
 
         <div className="flex shrink-0 items-center gap-5 text-xs">
-          {/* Sul telefono la barra serve alle quattro voci: il sito si apre dal menu del browser. */}
+          {/* Sul telefono la barra serve alle voci: il sito si apre dal menu del browser. */}
           <span className="hidden sm:inline">
             <Link href="/" className="area-tocco link-underline text-ink-soft transition-colors hover:text-ink">
               Vedi il sito
