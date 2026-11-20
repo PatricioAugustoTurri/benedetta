@@ -652,9 +652,9 @@ CREATE TABLE magazzino (
 -- --------------------------------------------------------------------------
 -- vendite — il registro delle vendite fuori dal sito
 --
--- In contanti o con bonifico, con il cliente, cosa ha comprato, se ha pagato
+-- In contanti, con bonifico o con SumUp, con il cliente, cosa ha comprato, se ha pagato
 -- e se l'ha ricevuto. Le vendite del sito non stanno qui: si leggono da
--- `ordini`. spese — in cosa e quanto. Tutto in centesimi. Vedi la 018.
+-- `ordini`. spese — in cosa e quanto. Tutto in centesimi. Vedi la 018 e la 019.
 -- --------------------------------------------------------------------------
 CREATE TABLE vendite (
   id          integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -669,7 +669,7 @@ CREATE TABLE vendite (
   telefono    text        CONSTRAINT vendite_telefono_misura CHECK (telefono IS NULL OR length(telefono) <= 40),
   cosa        text        NOT NULL CONSTRAINT vendite_cosa_misura CHECK (length(trim(cosa)) BETWEEN 1 AND 500),
   importo     integer     NOT NULL CONSTRAINT vendite_importo_positivo CHECK (importo > 0),
-  canale      text        NOT NULL CONSTRAINT vendite_canale_valido CHECK (canale IN ('contanti', 'bonifico')),
+  canale      text        NOT NULL CONSTRAINT vendite_canale_valido CHECK (canale IN ('contanti', 'bonifico', 'sumup')),
   -- Il giorno in cui è arrivato il denaro. Vuoto: da incassare.
   pagato_il   date,
   consegna    text        NOT NULL CONSTRAINT vendite_consegna_valida CHECK (consegna IN ('mano', 'spedizione')),

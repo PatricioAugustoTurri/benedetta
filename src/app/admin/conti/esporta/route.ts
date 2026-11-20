@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         "Vendita",
         v.numero,
         data(v.giorno),
-        NOME_CANALE[v.canale],
+        v.origine === "sito" ? `${NOME_CANALE[v.canale]} (sito)` : NOME_CANALE[v.canale],
         v.nome,
         v.email ?? "",
         v.telefono ?? "",

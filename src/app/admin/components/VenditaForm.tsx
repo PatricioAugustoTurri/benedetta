@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useId, useRef, useState, type ReactNode } from "react";
 import { Close, Plus } from "@/components/Icon";
-import type { Cliente, Vendita } from "@/lib/conti";
+import type { Canale, Cliente, Vendita } from "@/lib/conti";
 import { importoScritto } from "@/lib/importi";
 import { salvaVenditaAzione, type EsitoVendita } from "../conti/actions";
 import { CONTROL, LABEL } from "./campo";
@@ -19,11 +19,11 @@ export type StampaDelCassetto = {
 type RigaMagazzino = { chiave: number; prodottoId: number | ""; formato: string; copie: string };
 
 /**
- * Il modulo di una vendita in contanti o con bonifico: chi, cosa, quanto,
+ * Il modulo di una vendita in contanti, con bonifico o con SumUp: chi, cosa, quanto,
  * come ha pagato, come la riceve, e a che punto è.
  *
  * Le spunte «pagata» e «consegnata» si accendono da sole con la scelta più
- * probabile —i contanti si incassano subito, un bonifico arriva dopo; a mano
+ * probabile —contanti e SumUp si incassano subito, un bonifico arriva dopo; a mano
  * si consegna subito, una spedizione parte dopo— finché lei non le tocca: da
  * lì in poi decide lei.
  *
@@ -51,7 +51,7 @@ export default function VenditaForm({
   const [telefono, setTelefono] = useState(vendita?.telefono ?? "");
   const [cosa, setCosa] = useState(vendita?.cosa ?? "");
   const [importo, setImporto] = useState(vendita ? importoScritto(vendita.importo) : "");
-  const [canale, setCanale] = useState<"contanti" | "bonifico">(vendita?.canale === "bonifico" ? "bonifico" : "contanti");
+  const [canale, setCanale] = useState<Canale>(vendita?.canale ?? "contanti");
   const [consegna, setConsegna] = useState<"mano" | "spedizione">(vendita?.consegna ?? "mano");
   const [pagata, setPagata] = useState(vendita ? vendita.pagatoIl !== null : true);
   const [pagatoIl, setPagatoIl] = useState(vendita?.pagatoIl ?? "");
@@ -72,16 +72,16 @@ export default function VenditaForm({
       setImporto("");
       setMagazzino([]);
       setToccate({ pagata: false, consegnata: false });
-      setPagata(canale === "contanti");
+      setPagata(canale !== "bonifico");
       setConsegnata(consegna === "mano");
       primoCampo.current?.focus();
     }
     return r;
   }, {});
 
-  const scegliCanale = (c: "contanti" | "bonifico") => {
+  const scegliCanale = (c: Canale) => {
     setCanale(c);
-    if (!toccate.pagata) setPagata(c === "contanti");
+    if (!toccate.pagata) setPagata(c !== "bonifico");
   };
   const scegliConsegna = (c: "mano" | "spedizione") => {
     setConsegna(c);
@@ -305,6 +305,7 @@ export default function VenditaForm({
             opzioni={[
               ["contanti", "Contanti"],
               ["bonifico", "Bonifico"],
+              ["sumup", "SumUp"],
             ]}
           />
           <Campo id={id("giorno")} etichetta="Giorno">

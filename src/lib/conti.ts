@@ -7,18 +7,23 @@ export { importoScritto, leggiImporto } from "@/lib/importi";
 /**
  * I conti di lei: il registro di tutto quello che vende e quello che spende.
  *
- * Le vendite entrano da tre parti. Contanti e bonifici li scrive lei, con il
- * cliente, cosa ha comprato, se ha pagato e se l'ha ricevuto (tabella
- * `vendite`). Quelle del sito no: si leggono dagli ordini pagati, con gli
- * stessi campi, così il registro è uno solo e non c'è niente da ricopiare. Un
- * ordine rimborsato non conta. Le spese sono in cosa e quanto (`spese`).
+ * Le vendite entrano da due parti. Contanti, bonifici e SumUp al banco li
+ * scrive lei, con il cliente, cosa ha comprato, se ha pagato e se l'ha
+ * ricevuto (tabella `vendite`). Quelle del sito no: si leggono dagli ordini
+ * pagati, con gli stessi campi, così il registro è uno solo e non c'è niente
+ * da ricopiare. Un ordine rimborsato non conta.
+ *
+ * Il sito incassa con SumUp, e nei conti un ordine è una vendita SumUp come
+ * quelle del lettore al banco (cliente, 2026-11-20): i canali sono come sono
+ * arrivati i soldi, non da dove. Da dove lo dice `origine`. Le spese sono in cosa e quanto (`spese`).
  *
  * Come tutto il negozio, in centesimi e con l'ora italiana.
  */
 
-export type Canale = "contanti" | "bonifico" | "sito";
-export const CANALI: Canale[] = ["contanti", "bonifico", "sito"];
-export const NOME_CANALE: Record<Canale, string> = { contanti: "Contanti", bonifico: "Bonifico", sito: "Sito web" };
+export type Canale = "contanti" | "bonifico" | "sumup";
+export const CANALI: Canale[] = ["contanti", "bonifico", "sumup"];
+export const NOME_CANALE: Record<Canale, string> = { contanti: "Contanti", bonifico: "Bonifico", sumup: "SumUp" };
+export const eCanale = (c: string): c is Canale => (CANALI as string[]).includes(c);
 
 /** Una copia tolta dal magazzino con una vendita. `tolte` è quante c'erano davvero da togliere. */
 export type Scalata = { prodottoId: number; titolo: string; formato: string; copie: number; tolte: number };
@@ -55,7 +60,7 @@ export type VenditaInput = {
   telefono: string | null;
   cosa: string;
   importo: number;
-  canale: "contanti" | "bonifico";
+  canale: Canale;
   pagatoIl: string | null;
   consegna: "mano" | "spedizione";
   consegnatoIl: string | null;
@@ -69,11 +74,12 @@ export type ContoMese = {
   mese: number;
   contanti: number;
   bonifico: number;
-  sito: number;
+  /** Il lettore al banco e gli ordini del sito. */
+  sumup: number;
   spese: number;
 };
 
-export const venditeDi = (c: ContoMese) => c.contanti + c.bonifico + c.sito;
+export const venditeDi = (c: ContoMese) => c.contanti + c.bonifico + c.sumup;
 export const nettoDi = (c: ContoMese) => venditeDi(c) - c.spese;
 
 export const numeroVendita = (anno: number, numero: number) => `V-${anno}-${String(numero).padStart(3, "0")}`;
@@ -107,7 +113,7 @@ function daRiga(r: Record<string, unknown>): Vendita {
     telefono: r.telefono ? String(r.telefono) : null,
     cosa: String(r.cosa),
     importo: Number(r.importo),
-    canale: r.canale === "bonifico" ? "bonifico" : "contanti",
+    canale: eCanale(String(r.canale)) ? String(r.canale) as Canale : "contanti",
     pagatoIl: r.pagato_il ? String(r.pagato_il) : null,
     consegna: r.consegna === "spedizione" ? "spedizione" : "mano",
     consegnatoIl: r.consegnato_il ? String(r.consegnato_il) : null,
@@ -129,7 +135,8 @@ function daOrdine(o: Ordine): Vendita {
     telefono: o.telefono,
     cosa: o.righe.map((r) => `${r.quantita > 1 ? `${r.quantita} × ` : ""}${r.title} (${variante(r)})`).join(", "),
     importo: o.totale,
-    canale: "sito",
+    // Il sito incassa con SumUp.
+    canale: "sumup",
     pagatoIl: giorno,
     // Il ritiro in negozio è una consegna a mano; «spedito» vuol dire consegnato anche lì.
     consegna: o.consegna === "ritiro" ? "mano" : "spedizione",
@@ -365,13 +372,14 @@ export async function contiAnno(anno: number): Promise<ContoMese[]> {
     ),
   ]);
 
-  const mesi: ContoMese[] = Array.from({ length: 12 }, (_, i) => ({ mese: i + 1, contanti: 0, bonifico: 0, sito: 0, spese: 0 }));
+  const mesi: ContoMese[] = Array.from({ length: 12 }, (_, i) => ({ mese: i + 1, contanti: 0, bonifico: 0, sumup: 0, spese: 0 }));
   for (const r of vendite) {
     const m = mesi[Number(r.mese) - 1];
     if (r.canale === "bonifico") m.bonifico += Number(r.somma);
+    else if (r.canale === "sumup") m.sumup += Number(r.somma);
     else m.contanti += Number(r.somma);
   }
-  for (const r of ordini) mesi[Number(r.mese) - 1].sito = Number(r.somma);
+  for (const r of ordini) mesi[Number(r.mese) - 1].sumup += Number(r.somma);
   for (const r of spese) mesi[Number(r.mese) - 1].spese = Number(r.somma);
   return mesi;
 }
