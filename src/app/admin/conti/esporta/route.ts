@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
-import { NOME_CANALE, registroPeriodo } from "@/lib/conti";
+import { commissioneDi, NOME_CANALE, registroPeriodo } from "@/lib/conti";
 
 /**
  * I conti di un mese o di un anno in un foglio di calcolo, per il
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
   const intestazione = [
     "Tipo", "Numero", "Data", "Canale", "Cliente", "Email", "Telefono", "Descrizione",
-    "Entrata €", "Uscita €", "Pagato il", "Consegna", "Consegnato il",
+    "Entrata €", "Uscita €", "Commissione SumUp €", "Pagato il", "Consegna", "Consegnato il",
   ];
   const righe = [
     ...vendite.map((v) => ({
@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
         v.cosa,
         euro(v.importo),
         "",
+        v.canale === "sumup" ? euro(commissioneDi(v)) : "",
         v.pagatoIl ? data(v.pagatoIl) : "Da incassare",
         v.consegna === "spedizione" ? "Spedizione" : "A mano",
         v.consegnatoIl ? data(v.consegnatoIl) : "Da fare",
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
     })),
     ...spese.map((s) => ({
       giorno: s.giorno,
-      celle: ["Spesa", "", data(s.giorno), "", "", "", "", s.descrizione, "", euro(s.importo), "", "", ""],
+      celle: ["Spesa", "", data(s.giorno), "", "", "", "", s.descrizione, "", euro(s.importo), "", "", "", ""],
     })),
   ].sort((a, b) => a.giorno.localeCompare(b.giorno));
 

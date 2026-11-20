@@ -77,10 +77,23 @@ export type ContoMese = {
   /** Il lettore al banco e gli ordini del sito. */
   sumup: number;
   spese: number;
+  /** Quello che SumUp trattiene sulle vendite SumUp del mese. */
+  commissioni: number;
 };
 
 export const venditeDi = (c: ContoMese) => c.contanti + c.bonifico + c.sumup;
-export const nettoDi = (c: ContoMese) => venditeDi(c) - c.spese;
+export const nettoDi = (c: ContoMese) => venditeDi(c) - c.spese - c.commissioni;
+
+/**
+ * Quello che SumUp trattiene su ogni incasso, al banco e sul sito: il 2,5 %,
+ * senza quota fissa —su 20 € ne tiene 0,50— (cliente, 2026-11-20). Non si
+ * scrive da nessuna parte: si calcola vendita per vendita, arrotondato al
+ * centesimo come fa SumUp. Se cambia la tariffa, cambia qui, e cambiano anche
+ * i mesi passati.
+ */
+export const COMMISSIONE_SUMUP = 0.025;
+export const commissioneDi = (v: { canale: Canale; importo: number }) =>
+  v.canale === "sumup" ? Math.round(v.importo * COMMISSIONE_SUMUP) : 0;
 
 export const numeroVendita = (anno: number, numero: number) => `V-${anno}-${String(numero).padStart(3, "0")}`;
 
@@ -347,21 +360,23 @@ export async function cancellaSpesa(id: number): Promise<void> {
 /** Le dodici righe di un anno, anche quelle vuote. Una vendita conta nel mese in cui si è fatta, pagata o no. */
 export async function contiAnno(anno: number): Promise<ContoMese[]> {
   const [vendite, ordini, spese] = await Promise.all([
-    query<{ mese: number; canale: string; somma: string }>(
-      `SELECT extract(month FROM giorno)::int AS mese, canale, sum(importo)::bigint AS somma
+    query<{ mese: number; canale: string; somma: string; commissioni: string }>(
+      `SELECT extract(month FROM giorno)::int AS mese, canale, sum(importo)::bigint AS somma,
+              sum(round(importo * $2::numeric))::bigint AS commissioni
          FROM vendite
         WHERE giorno >= make_date($1, 1, 1) AND giorno < make_date($1 + 1, 1, 1)
         GROUP BY 1, 2`,
-      [anno],
+      [anno, COMMISSIONE_SUMUP],
     ),
-    query<{ mese: number; somma: string }>(
-      `SELECT extract(month FROM created_at AT TIME ZONE 'Europe/Rome')::int AS mese, sum(totale)::bigint AS somma
+    query<{ mese: number; somma: string; commissioni: string }>(
+      `SELECT extract(month FROM created_at AT TIME ZONE 'Europe/Rome')::int AS mese, sum(totale)::bigint AS somma,
+              sum(round(totale * $2::numeric))::bigint AS commissioni
          FROM ordini
         WHERE stato <> 'rimborsato'
           AND created_at AT TIME ZONE 'Europe/Rome' >= make_date($1, 1, 1)
           AND created_at AT TIME ZONE 'Europe/Rome' < make_date($1 + 1, 1, 1)
         GROUP BY 1`,
-      [anno],
+      [anno, COMMISSIONE_SUMUP],
     ),
     query<{ mese: number; somma: string }>(
       `SELECT extract(month FROM giorno)::int AS mese, sum(importo)::bigint AS somma
@@ -372,14 +387,21 @@ export async function contiAnno(anno: number): Promise<ContoMese[]> {
     ),
   ]);
 
-  const mesi: ContoMese[] = Array.from({ length: 12 }, (_, i) => ({ mese: i + 1, contanti: 0, bonifico: 0, sumup: 0, spese: 0 }));
+  const mesi: ContoMese[] = Array.from({ length: 12 }, (_, i) => ({ mese: i + 1, contanti: 0, bonifico: 0, sumup: 0, spese: 0, commissioni: 0 }));
   for (const r of vendite) {
     const m = mesi[Number(r.mese) - 1];
     if (r.canale === "bonifico") m.bonifico += Number(r.somma);
-    else if (r.canale === "sumup") m.sumup += Number(r.somma);
-    else m.contanti += Number(r.somma);
+    else if (r.canale === "sumup") {
+      m.sumup += Number(r.somma);
+      m.commissioni += Number(r.commissioni);
+    } else m.contanti += Number(r.somma);
   }
-  for (const r of ordini) mesi[Number(r.mese) - 1].sumup += Number(r.somma);
+  // Il sito incassa con SumUp: paga la stessa commissione.
+  for (const r of ordini) {
+    const m = mesi[Number(r.mese) - 1];
+    m.sumup += Number(r.somma);
+    m.commissioni += Number(r.commissioni);
+  }
   for (const r of spese) mesi[Number(r.mese) - 1].spese = Number(r.somma);
   return mesi;
 }
