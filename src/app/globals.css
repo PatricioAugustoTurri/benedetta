@@ -501,6 +501,122 @@ code {
 }
 
 /* ---------------------------------------------------------------
+   La firma che si ripassa (FirmaLogo)
+
+   Sopra la scansione ci sono due copie della firma in colore d'accento,
+   invisibili. Ognuna ha due maschere che si intersecano: la firma stessa,
+   ferma, che le dà la forma dell'inchiostro, e una sfumatura larga due volte
+   e mezzo il logotipo che scorre da destra a sinistra e scopre l'inchiostro
+   come avanza una penna. Il bordo della sfumatura è morbido (dal 45% al 55%)
+   perché una penna non taglia l'inchiostro con un righello.
+
+   Ogni copia è tagliata sulla sua riga: la firma si separa al 44,3%
+   dell'altezza, dove fra «Benedetta» e «Zibetti» non c'è inchiostro.
+   «Zibetti» parte prima che «Benedetta» finisca, come la mano che scende
+   già alla riga dopo.
+
+   Poi l'inchiostro si asciuga: le copie sfumano e resta il nero della
+   scansione. In tutto due secondi, che non fanno aspettare nessuno perché
+   il logotipo resta leggibile e cliccabile per tutto il tempo.
+
+   La maschera della firma è dichiarata sempre, anche da ferma, così il
+   file è già arrivato quando il mouse ci si appoggia per la prima volta.
+*/
+.firma-ripasso {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background-color: var(--color-accent);
+  -webkit-mask-image:
+    url("/benedetta-zibetti-wordmark.png"),
+    linear-gradient(90deg, #000 45%, transparent 55%);
+  mask-image:
+    url("/benedetta-zibetti-wordmark.png"),
+    linear-gradient(90deg, #000 45%, transparent 55%);
+  -webkit-mask-size: 100% 100%, 250% 100%;
+  mask-size: 100% 100%, 250% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 0 0, 100% 0;
+  mask-position: 0 0, 100% 0;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+.firma-ripasso--sopra {
+  clip-path: inset(0 0 55.7% 0);
+}
+
+.firma-ripasso--sotto {
+  clip-path: inset(44.3% 0 0 0);
+}
+
+.firma[data-ripassa] .firma-ripasso--sopra {
+  animation:
+    firma-scrivi 0.62s cubic-bezier(0.45, 0.05, 0.4, 1) both,
+    firma-asciuga 0.8s var(--ease-out-soft) 1.2s forwards;
+}
+
+.firma[data-ripassa] .firma-ripasso--sotto {
+  animation:
+    firma-scrivi 0.56s cubic-bezier(0.45, 0.05, 0.4, 1) 0.5s both,
+    firma-asciuga 0.8s var(--ease-out-soft) 1.2s forwards;
+}
+
+@keyframes firma-scrivi {
+  from {
+    opacity: 1;
+    -webkit-mask-position: 0 0, 100% 0;
+    mask-position: 0 0, 100% 0;
+  }
+  to {
+    opacity: 1;
+    -webkit-mask-position: 0 0, 0% 0;
+    mask-position: 0 0, 0% 0;
+  }
+}
+
+@keyframes firma-asciuga {
+  from {
+    opacity: 1;
+    -webkit-mask-position: 0 0, 0% 0;
+    mask-position: 0 0, 0% 0;
+  }
+  to {
+    opacity: 0;
+    -webkit-mask-position: 0 0, 0% 0;
+    mask-position: 0 0, 0% 0;
+  }
+}
+
+/*
+  Senza movimento la penna non corre: la firma prende il colore d'accento
+  tutta insieme, piano, finché il mouse ci resta, e torna nera quando esce.
+  Il cambio di colore resta perché è la risposta al passaggio. È una
+  transizione di opacità e non un'animazione: la regola generale per chi
+  chiede meno movimento (in `@layer base`) azzera le animazioni ma lascia
+  le transizioni di opacità.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .firma-ripasso {
+    -webkit-mask-position: 0 0, 0% 0;
+    mask-position: 0 0, 0% 0;
+    transition: opacity 0.4s var(--ease-out-soft);
+  }
+
+  .firma[data-ripassa] .firma-ripasso--sopra,
+  .firma[data-ripassa] .firma-ripasso--sotto {
+    animation: none;
+  }
+
+  .firma:hover .firma-ripasso,
+  .firma:focus-visible .firma-ripasso {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------
    La copertina che arriva
 
    Finché la copertina non è caricata, la cella è il suo scheletro: il

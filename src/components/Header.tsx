@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
+import FirmaLogo from "@/components/FirmaLogo";
 import { ArrowRight, ChevronDown } from "@/components/Icon";
 import ShopMenu from "@/components/ShopMenu";
 import CarrelloIcona from "@/components/carrello/CarrelloIcona";
@@ -159,25 +159,7 @@ export default function Header({ categorie }: { categorie: ShopCategory[] }) {
           resta solo la firma.
         */}
         <div className="shell relative flex flex-col items-center py-4 md:py-5">
-          {/*
-            Il logotipo è la sua scrittura, scansionata e ritagliata: non c'è
-            un carattere che lo componga. Va con alt vuoto di proposito —il
-            nome accessibile lo dà già l'aria-label del link, e ripeterlo
-            sull'immagine lo farebbe annunciare due volte.
-            width/height sono quelli del file, perché lo spazio sia riservato
-            prima del caricamento e l'header non salti.
-          */}
-          <Link href="/" className="block" aria-label={`${site.signature} — archivio`}>
-            <Image
-              src="/benedetta-zibetti-wordmark.png"
-              alt=""
-              width={602}
-              height={375}
-              priority
-              sizes="(min-width: 768px) 136px, 100px"
-              className="h-auto w-[100px] md:w-[136px]"
-            />
-          </Link>
+          <FirmaLogo />
 
           {/*
             Lo stacco è piccolo ed è misurato dal bordo del logotipo: il
