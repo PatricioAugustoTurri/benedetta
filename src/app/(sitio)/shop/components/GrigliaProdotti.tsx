@@ -1,5 +1,7 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import ImmagineCopertina from "@/components/ImmagineCopertina";
 import VideoOpera from "@/components/VideoOpera";
 import { prezzo, prezzoMinimo, prodottoHref } from "@/data/shop";
 import { site } from "@/data/site";
@@ -32,6 +34,12 @@ import { esVideo } from "@/lib/video";
  * didascalia ma uno stato: chi sceglie con gli occhi deve sapere, prima di
  * aprirla, che quella copertina non si può comprare. Sta in un angolo, su un
  * ritaglio di carta, e la copertina resta intera.
+ *
+ * **Mentre la copertina carica, la cella è il suo scheletro**: lo stesso
+ * ritaglio 4:5 in carta più scura, con una luce che la attraversa e passa
+ * da una cella all'altra in diagonale (`--i`). Chi apre una categoria vede
+ * subito quante stampe ci sono e dove andranno. La regia è in globals.css
+ * (`.copertina-attesa`).
  */
 export default function GrigliaProdotti({
   prodotti,
@@ -58,7 +66,10 @@ export default function GrigliaProdotti({
               }
               className="stampa-cella group block focus-visible:outline-none"
             >
-              <span className="relative block overflow-hidden bg-paper-deep group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-[3px] group-focus-visible:outline-accent">
+              <span
+                style={{ "--i": i % 6 } as CSSProperties}
+                className="copertina-attesa relative block overflow-hidden bg-paper-deep group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-[3px] group-focus-visible:outline-accent"
+              >
                 {portada &&
                   (esVideo(portada) ? (
                     <VideoOpera
@@ -69,7 +80,7 @@ export default function GrigliaProdotti({
                       className="aspect-[4/5] w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
                     />
                   ) : (
-                    <Image
+                    <ImmagineCopertina
                       src={portada.url}
                       alt={`${p.title} — ${site.signature}`}
                       width={portada.width}
@@ -77,7 +88,7 @@ export default function GrigliaProdotti({
                       sizes="(max-width: 1024px) 50vw, 33vw"
                       priority={i < eager}
                       loading={i < eager ? undefined : "lazy"}
-                      className="aspect-[4/5] w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                      className="aspect-[4/5] w-full object-cover group-hover:scale-[1.03]"
                     />
                   ))}
                 {p.mockup && (

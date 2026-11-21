@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fotogramma, videoLeggero } from "@/lib/video";
 
 /**
@@ -24,6 +24,10 @@ import { fotogramma, videoLeggero } from "@/lib/video";
  *
  * Il fotogramma è sempre lì come `poster`: è quello che si vede mentre il
  * file carica, e quello che resta se non parte.
+ *
+ * Quando ha il primo fotogramma segna `data-caricata`, come
+ * `ImmagineCopertina`: nella griglia delle stampe è il segnale che spegne
+ * lo scheletro della cella.
  */
 export default function VideoOpera({
   src,
@@ -41,6 +45,14 @@ export default function VideoOpera({
   className?: string;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const [caricato, setCaricato] = useState(false);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    // Può aver già caricato prima che React si svegliasse.
+    if (video.readyState >= 2) setCaricato(true);
+  }, []);
 
   useEffect(() => {
     const video = ref.current;
@@ -81,6 +93,9 @@ export default function VideoOpera({
       loop
       playsInline
       preload="metadata"
+      onLoadedData={() => setCaricato(true)}
+      onError={() => setCaricato(true)}
+      data-caricata={caricato || undefined}
       controls={controlli}
       // Senza testo alternativo il video è decorazione —come la copertina
       // nella griglia, che nomina già il link—, e si nasconde ai lettori di
