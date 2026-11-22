@@ -1,9 +1,7 @@
 "use client";
 
 import Image from "@/components/Immagine";
-import Link from "next/link";
 import { startTransition, useActionState, useId, useState } from "react";
-import { ArrowRight } from "@/components/Icon";
 import { Stella } from "@/components/Stelle";
 import { CONTROL, LABEL } from "@/components/campo";
 import { inviaRecensioni, type EsitoRecensione } from "../actions";
@@ -20,7 +18,8 @@ const PAROLE = ["", "Non mi è piaciuto", "Così così", "Bello", "Molto bello",
 /**
  * Il modulo delle recensioni di un ordine: il nome con cui firmare, una
  * volta sola, e per ogni prodotto le stelle e due righe. Si può recensire
- * solo una parte dell'ordine: un prodotto lasciato vuoto si salta.
+ * solo una parte dell'ordine: un prodotto lasciato vuoto si salta, e non
+ * torna, perché il link vale per un invio solo.
  *
  * Si invia da `onSubmit` e non con `action`: con `action` React svuota il
  * modulo dopo ogni invio, anche quando torna un errore, e chi ha dato le
@@ -42,6 +41,12 @@ export default function ModuloRecensioni({
   const base = useId();
   const campi = esito.campi ?? {};
 
+  /*
+    Di solito non si vede: l'azione rifà la pagina, che col link ormai
+    usato mostra il grazie con le recensioni. Resta per il caso in cui la
+    pagina non si rifaccia, perché il modulo non rimanga lì come se l'invio
+    non fosse andato.
+  */
   if (esito.fatto) {
     return (
       <div role="status" className="border-t border-line pt-10">
@@ -51,16 +56,6 @@ export default function ModuloRecensioni({
         <p className="prose-measure mt-5 text-lg leading-relaxed text-ink-soft">
           Mi aiuta tantissimo sapere com’è arrivato e dove l’hai messo.
         </p>
-        <ul className="mt-8 space-y-2">
-          {prodotti.map((p) => (
-            <li key={p.id}>
-              <Link href={p.href} className="group inline-flex items-center gap-1.5 text-ink transition-colors hover:text-accent">
-                <span className="link-underline">{p.title}</span>
-                <ArrowRight size={14} className="shrink-0" />
-              </Link>
-            </li>
-          ))}
-        </ul>
       </div>
     );
   }

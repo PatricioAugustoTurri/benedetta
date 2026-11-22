@@ -30,6 +30,12 @@ const RECENSIONI = [
      CONSTRAINT recensioni_una_per_prodotto UNIQUE (ordine, prodotto)
    )`,
   `CREATE INDEX IF NOT EXISTS recensioni_prodotto ON recensioni (prodotto, created_at DESC)`,
+  // 021: il link si usa una volta sola. Vedi db/migrations/021-recensione-usata.sql.
+  `ALTER TABLE ordini ADD COLUMN IF NOT EXISTS recensione_usata_at timestamptz`,
+  `UPDATE ordini o
+      SET recensione_usata_at = (SELECT min(r.created_at) FROM recensioni r WHERE r.ordine = o.id)
+    WHERE o.recensione_usata_at IS NULL
+      AND EXISTS (SELECT 1 FROM recensioni r WHERE r.ordine = o.id)`,
 ];
 
 /**
@@ -64,8 +70,9 @@ export async function statoMigrazioneRecensioni(): Promise<{ pronte: boolean; er
   const rows = await query<{ tabella: string | null; colonna: number }>(
     `SELECT to_regclass('recensioni')::text AS tabella,
             (SELECT count(*)::int FROM information_schema.columns
-              WHERE table_name = 'ordini' AND column_name = 'recensione_chiave') AS colonna`,
+              WHERE table_name = 'ordini'
+                AND column_name IN ('recensione_chiave', 'recensione_usata_at')) AS colonna`,
   ).catch(() => []);
   const r = rows[0];
-  return { pronte: Boolean(r?.tabella) && r?.colonna === 1, errore: stato.erroreMigrazione020 ?? null };
+  return { pronte: Boolean(r?.tabella) && r?.colonna === 2, errore: stato.erroreMigrazione020 ?? null };
 }

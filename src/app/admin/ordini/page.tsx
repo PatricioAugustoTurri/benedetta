@@ -333,6 +333,7 @@ function Voce({
       nome={nomeProprio(o.nome)}
       link={linkRecensione(site.url, recensione.chiave)}
       chiesta={recensione.chiesta?.toISOString() ?? null}
+      usata={recensione.usata}
       lasciate={recensione.lasciate}
       prodotti={new Set(o.righe.map((r) => r.slug)).size}
       correoAttivo={correoAttivo}

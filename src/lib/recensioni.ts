@@ -7,8 +7,11 @@ import { prodottiPerSlug, type Prodotto } from "@/lib/prodotti";
  * Senza account: la porta è la chiave dell'ordine, nel link
  * /recensione/<chiave> che arriva solo a chi ha pagato —nella mail di
  * spedizione, o in quella che lei manda dall'ordine—. Si recensiscono i
- * prodotti di quell'ordine, uno per uno e una volta sola, e solo quando il
- * pacco è partito o è stato ritirato: prima non c'è niente da raccontare.
+ * prodotti di quell'ordine, e solo quando il pacco è partito o è stato
+ * ritirato: prima non c'è niente da raccontare.
+ *
+ * Il link vale per un invio solo: quello che si lascia vuoto quella volta
+ * non si recensisce più (vedi la 021).
  *
  * Le opere dell'archivio non si recensiscono: non si comprano.
  *
@@ -40,7 +43,14 @@ export type OrdineDaRecensire =
   /** Pagato ma non ancora partito o ritirato. */
   | { stato: "presto"; id: number; nome: string | null }
   | { stato: "rimborsato"; id: number }
-  | { stato: "aperto"; id: number; nome: string | null; prodotti: ProdottoDaRecensire[] };
+  | {
+      stato: "aperto";
+      id: number;
+      nome: string | null;
+      prodotti: ProdottoDaRecensire[];
+      /** Il link è già stato usato: non si scrive più niente. */
+      usata: boolean;
+    };
 
 function hydrate(r: Record<string, unknown>): Recensione {
   return {
@@ -64,7 +74,7 @@ export const nomeProprio = (nome: string | null) => nome?.trim().split(/\s+/)[0]
 export async function ordinePerChiave(chiave: string): Promise<OrdineDaRecensire> {
   if (!chiaveValida(chiave)) return { stato: "nessuno" };
   const rows = await query<Record<string, unknown>>(
-    `SELECT id, nome, stato, righe FROM ordini WHERE recensione_chiave = $1`,
+    `SELECT id, nome, stato, righe, recensione_usata_at FROM ordini WHERE recensione_chiave = $1`,
     [chiave],
   );
   const o = rows[0];
@@ -96,6 +106,7 @@ export async function ordinePerChiave(chiave: string): Promise<OrdineDaRecensire
     id,
     nome,
     prodotti: inOrdine.map((p) => ({ prodotto: p, recensione: perProdotto.get(p.id) ?? null })),
+    usata: o.recensione_usata_at != null,
   };
 }
 
@@ -103,13 +114,18 @@ export type VoceRecensione = { prodotto: number; voto: number; testo: string };
 
 export type EsitoScrittura =
   | { ok: true; scritte: number }
-  | { ok: false; motivo: "chiave" | "presto" | "rimborsato" | "niente" };
+  | { ok: false; motivo: "chiave" | "presto" | "rimborsato" | "usata" | "niente" };
 
 /**
  * Scrive le recensioni di un ordine. La chiave si ricontrolla qui, non solo
  * nella pagina: un'azione si può chiamare anche senza passare dal modulo.
- * Un prodotto che non è nell'ordine si ignora, e uno già recensito non si
- * riscrive (ON CONFLICT): così un doppio invio non fa due recensioni.
+ * Un prodotto che non è nell'ordine si ignora.
+ *
+ * Segnare il link come usato e scrivere le recensioni è una frase SQL sola:
+ * l'UPDATE prende la riga dell'ordine solo se il link è ancora libero, e
+ * l'INSERT scrive solo se l'UPDATE l'ha presa. Due invii nello stesso
+ * istante —due schede, un doppio clic— si mettono in fila sul lock della
+ * riga, e il secondo trova il link già usato e non scrive niente.
  */
 export async function scriviRecensioni(
   chiave: string,
@@ -120,19 +136,26 @@ export async function scriviRecensioni(
   if (ordine.stato === "nessuno") return { ok: false, motivo: "chiave" };
   if (ordine.stato === "presto") return { ok: false, motivo: "presto" };
   if (ordine.stato === "rimborsato") return { ok: false, motivo: "rimborsato" };
+  if (ordine.usata) return { ok: false, motivo: "usata" };
 
   const ammessi = new Set(ordine.prodotti.filter((p) => !p.recensione).map((p) => p.prodotto.id));
   const valide = voci.filter((v) => ammessi.has(v.prodotto));
   if (valide.length === 0) return { ok: false, motivo: "niente" };
 
   const rows = await query<{ id: number }>(
-    `INSERT INTO recensioni (ordine, prodotto, voto, testo, autore)
-     SELECT $1, v.prodotto, v.voto, v.testo, $2
-       FROM jsonb_to_recordset($3::jsonb) AS v(prodotto integer, voto smallint, testo text)
+    `WITH presa AS (
+       UPDATE ordini SET recensione_usata_at = now()
+        WHERE id = $1 AND recensione_usata_at IS NULL
+       RETURNING id
+     )
+     INSERT INTO recensioni (ordine, prodotto, voto, testo, autore)
+     SELECT presa.id, v.prodotto, v.voto, v.testo, $2
+       FROM presa, jsonb_to_recordset($3::jsonb) AS v(prodotto integer, voto smallint, testo text)
      ON CONFLICT (ordine, prodotto) DO NOTHING
      RETURNING id`,
     [ordine.id, autore, JSON.stringify(valide)],
   );
+  if (rows.length === 0) return { ok: false, motivo: "usata" };
   return { ok: true, scritte: rows.length };
 }
 
@@ -174,12 +197,15 @@ export async function cancellaRecensione(id: number): Promise<void> {
   await query(`DELETE FROM recensioni WHERE id = $1`, [id]);
 }
 
-/** Per ogni ordine: la chiave, quando lei ha chiesto la recensione e quante ne ha lasciate. */
-export type StatoRecensioneOrdine = { chiave: string; chiesta: Date | null; lasciate: number };
+/**
+ * Per ogni ordine: la chiave, quando lei ha chiesto la recensione, se il link
+ * è già stato usato e quante recensioni ne sono uscite.
+ */
+export type StatoRecensioneOrdine = { chiave: string; chiesta: Date | null; usata: boolean; lasciate: number };
 
 export async function statoRecensioniOrdini(): Promise<Map<number, StatoRecensioneOrdine>> {
   const rows = await query<Record<string, unknown>>(
-    `SELECT o.id, o.recensione_chiave, o.recensione_chiesta_at,
+    `SELECT o.id, o.recensione_chiave, o.recensione_chiesta_at, o.recensione_usata_at,
             (SELECT count(*) FROM recensioni r WHERE r.ordine = o.id)::int AS lasciate
        FROM ordini o`,
   ).catch(() => []);
@@ -189,6 +215,7 @@ export async function statoRecensioniOrdini(): Promise<Map<number, StatoRecensio
       {
         chiave: String(r.recensione_chiave),
         chiesta: r.recensione_chiesta_at ? new Date(String(r.recensione_chiesta_at)) : null,
+        usata: r.recensione_usata_at != null,
         lasciate: Number(r.lasciate),
       },
     ]),
@@ -210,7 +237,7 @@ export async function segnaRecensioneChiesta(ordine: number): Promise<void> {
 
 /**
  * Gli ordini a cui chiedere la recensione tutti insieme: consegnati, mai
- * chiesta, senza recensioni. Uno per persona —il più recente— perché chi ha
+ * chiesta, con il link ancora da usare. Uno per persona —il più recente— perché chi ha
  * comprato tre volte non riceva tre mail uguali; `fratelli` sono gli altri
  * suoi ordini nella stessa situazione, da segnare come chiesti con lui.
  */
@@ -220,7 +247,7 @@ export async function ordiniDaChiedere(): Promise<DaChiedere[]> {
   const rows = await query<{ id: number; email: string }>(
     `SELECT o.id, lower(o.email) AS email FROM ordini o
       WHERE o.stato = 'spedito' AND o.recensione_chiesta_at IS NULL
-        AND NOT EXISTS (SELECT 1 FROM recensioni r WHERE r.ordine = o.id)
+        AND o.recensione_usata_at IS NULL
       ORDER BY o.created_at DESC`,
   ).catch(() => []);
   const perEmail = new Map<string, DaChiedere>();

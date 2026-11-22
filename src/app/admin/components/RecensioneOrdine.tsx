@@ -28,6 +28,7 @@ export default function RecensioneOrdine({
   id,
   link,
   chiesta,
+  usata,
   lasciate,
   prodotti,
   correoAttivo,
@@ -42,6 +43,8 @@ export default function RecensioneOrdine({
   link: string;
   /** ISO, quando lei l'ha chiesta per mail. */
   chiesta: string | null;
+  /** Il link è già stato usato: vale una volta sola. */
+  usata: boolean;
   lasciate: number;
   /** Quanti prodotti diversi ha l'ordine. */
   prodotti: number;
@@ -86,7 +89,7 @@ export default function RecensioneOrdine({
       </div>
     );
   }
-  const tutte = lasciate >= prodotti && prodotti > 0;
+
 
   async function copia() {
     try {
@@ -102,13 +105,16 @@ export default function RecensioneOrdine({
     <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-ink-faint">
       <span>
         Recensione:{" "}
-        {lasciate === 0 ? (
-          "non ancora"
+        {usata ? (
+          <span className="text-ink">
+            lasciata{lasciate > 0 && lasciate < prodotti ? ` (${lasciate} su ${prodotti} prodotti)` : ""}
+          </span>
         ) : (
-          <span className="text-ink">{tutte ? "lasciata" : `${lasciate} su ${prodotti}`}</span>
+          "non ancora"
         )}
       </span>
-      {!tutte && (
+      {/* Il link vale per un invio solo: usato, non c'è più niente da mandare. */}
+      {!usata && (
         <>
           {scaricaQr}
           <button type="button" onClick={copia} className="link-underline transition-colors hover:text-ink">

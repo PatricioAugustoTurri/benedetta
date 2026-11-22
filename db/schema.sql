@@ -454,11 +454,13 @@ CREATE TABLE ordini (
   pronto_at         timestamptz,
   rimborsato_at     timestamptz,
 
-  -- La chiave del link /recensione/<chiave>, e quando lei ha chiesto la
-  -- recensione per mail. Vedi la 020.
+  -- La chiave del link /recensione/<chiave>, quando lei ha chiesto la
+  -- recensione per mail e quando il link è stato usato: vale una volta
+  -- sola. Vedi la 020 e la 021.
   recensione_chiave text        NOT NULL DEFAULT replace(gen_random_uuid()::text, '-', '')
                     CONSTRAINT ordini_recensione_chiave_key UNIQUE,
   recensione_chiesta_at timestamptz,
+  recensione_usata_at   timestamptz,
 
   created_at        timestamptz NOT NULL DEFAULT now(),
   updated_at        timestamptz NOT NULL DEFAULT now()

@@ -44,6 +44,7 @@ export async function inviaRecensioni(_previo: EsitoRecensione, formData: FormDa
           chiave: "Questo link non è valido.",
           presto: "Potrai lasciare la recensione quando il pacco sarà partito.",
           rimborsato: "Quest’ordine è stato rimborsato: non si può recensire.",
+          usata: "Hai già lasciato la tua recensione per quest’ordine. Grazie!",
           niente: "Questi prodotti hanno già la loro recensione. Grazie!",
         }[esito.motivo],
       };

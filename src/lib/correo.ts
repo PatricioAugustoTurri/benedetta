@@ -919,7 +919,7 @@ export async function chiediRecensione(o: Ordine, link: string): Promise<void> {
   const cosa =
     o.righe.length === 1 && o.righe[0].quantita === 1 ? `«${o.righe[0].title}»` : "quello che hai preso";
   const domanda = `${o.consegna === "ritiro" ? "spero che" : "spero che sia arrivato bene e che"} ${cosa} ti stia piacendo. Ti va di raccontarmi com’è? Due righe e qualche stella: escono nella pagina dello Shop e aiutano chi ancora non mi conosce a scegliere.`;
-  const nota = "Non serve nessun account: il link è solo tuo e vale per i prodotti di quest’ordine.";
+  const nota = "Non serve nessun account: il link è solo tuo, vale per i prodotti di quest’ordine e si usa una volta sola.";
 
   const voci = o.righe
     .map((r) =>
