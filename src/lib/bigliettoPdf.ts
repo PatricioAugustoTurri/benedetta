@@ -35,19 +35,19 @@ export type DatiBiglietto = {
   instagram?: string;
 };
 
-const DPI = 300;
-const MM = DPI / 25.4;
-const A4 = { w: 210, h: 297 };
-const CARTA = { w: A4.w / 2, h: A4.h / 2 };
-const PT = DPI / 72;
+export const DPI = 300;
+export const MM = DPI / 25.4;
+export const A4 = { w: 210, h: 297 };
+export const CARTA = { w: A4.w / 2, h: A4.h / 2 };
+export const PT = DPI / 72;
 
-const INK = "#1c1a16";
-const INK_SOFT = "#55504a";
-const INK_FAINT = "#6f6861";
+export const INK = "#1c1a16";
+export const INK_SOFT = "#55504a";
+export const INK_FAINT = "#6f6861";
 /** Lo sconto in lilla (cliente, 2026-11-06). Numero e «%» hanno una tinta ciascuno, se un giorno li vuole diversi. */
 const TINTA_NUMERO = "#9b7fc7";
 const TINTA_PERCENTO = "#9b7fc7";
-const SEGNO = "#b9b0a4";
+export const SEGNO = "#b9b0a4";
 
 const euro = (c: number) =>
   new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: c % 100 ? 2 : 0 }).format(
@@ -61,12 +61,12 @@ function giorno(iso: string): string {
 }
 
 /** La famiglia vera che next/font ha dato al carattere: un nome con hash. */
-function famiglia(variabile: string, riserva: string): string {
+export function famiglia(variabile: string, riserva: string): string {
   const v = getComputedStyle(document.documentElement).getPropertyValue(variabile).trim();
   return v ? `${v}, ${riserva}` : riserva;
 }
 
-function carica(src: string): Promise<HTMLImageElement> {
+export function carica(src: string): Promise<HTMLImageElement> {
   return new Promise((ok, ko) => {
     const img = new Image();
     img.onload = () => ok(img);
@@ -89,7 +89,7 @@ function scriviSpaziato(ctx: CanvasRenderingContext2D, testo: string, x: number,
 }
 
 /** Va a capo a parole dentro `max`; restituisce le righe. */
-function aCapo(ctx: CanvasRenderingContext2D, testo: string, max: number): string[] {
+export function aCapo(ctx: CanvasRenderingContext2D, testo: string, max: number): string[] {
   const righe: string[] = [];
   let riga = "";
   for (const parola of testo.split(" ")) {
@@ -223,7 +223,7 @@ function disegnaBiglietto(
 }
 
 /** Le tacche di taglio sulle linee che dividono il foglio, sui bordi e al centro. */
-function tacche(ctx: CanvasRenderingContext2D, quattro: boolean) {
+export function tacche(ctx: CanvasRenderingContext2D, quattro: boolean) {
   ctx.strokeStyle = SEGNO;
   ctx.lineWidth = Math.max(1, 0.5 * PT);
   const cx = (A4.w / 2) * MM;

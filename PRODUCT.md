@@ -171,8 +171,12 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   un comentario sobre los productos de su pedido, **sin cuenta**. La llave es
   un link por pedido (`/recensione/<chiave>`, migración 020) que llega en el
   mail de envío; desde `/admin/ordini` ella lo copia o lo pide por mail
-  («Com’è arrivato?») cuando cree que el paquete llegó, o después de un
-  retiro. Sólo se abre con el pedido entregado. Las reseñas salen al
+  («Com’è andata?») cuando cree que el paquete llegó, o después de un
+  retiro. Además, desde que entra el pedido, «Scarica il QR per il pacco»
+  baja una cartolina A6 para imprimir y meter en el paquete (cliente,
+  2026-11-22): «Com’è andata?», el nombre, el QR al link de ese pedido y la
+  firma, hermana del biglietto (`src/lib/cartolinaRecensione.ts`). Sólo se
+  abre con el pedido entregado. Las reseñas salen al
   instante al pie de la página del producto y en sus datos estructurados
   (estrellas en Google); ella las borra desde el admin, no las reescribe.
   **Sólo productos del Shop**: las obras del archivio no se reseñan. La

@@ -11,6 +11,7 @@ import { listOrdini, ultimoCorriere, type Ordine } from "@/lib/prodotti";
 import {
   linkRecensione,
   listRecensioni,
+  nomeProprio,
   statoRecensioniOrdini,
   type StatoRecensioneOrdine,
 } from "@/lib/recensioni";
@@ -321,10 +322,12 @@ function Voce({
   const rimborso = (
     <RimborsaOrdine id={o.id} importo={prezzo(o.totale)} email={o.email} sumupAttivo={sumupAttivo} />
   );
-  // Si recensisce quello che è arrivato: un ordine spedito o ritirato.
-  const rigaRecensione = spedito && recensione && (
+  // Il QR per il pacco c'è da subito; il resto quando l'ordine è arrivato.
+  const rigaRecensione = !rimborsato && recensione && (
     <RecensioneOrdine
       id={o.id}
+      consegnato={spedito}
+      nome={nomeProprio(o.nome)}
       link={linkRecensione(site.url, recensione.chiave)}
       chiesta={recensione.chiesta?.toISOString() ?? null}
       lasciate={recensione.lasciate}
@@ -467,6 +470,7 @@ function Voce({
             </div>
           )}
           <RitiroOrdine id={o.id} nome={o.nome ?? o.email} email={o.email} pronto={Boolean(o.pronto)} />
+          {rigaRecensione}
           {rimborso}
         </>
       ) : spedito ? (
@@ -512,6 +516,7 @@ function Voce({
       ) : (
         <>
           <SpedisciOrdine id={o.id} corriere={corriere} email={o.email} />
+          {rigaRecensione}
           {rimborso}
         </>
       )}

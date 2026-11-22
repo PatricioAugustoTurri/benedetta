@@ -69,7 +69,7 @@ export default async function RecensionePage({ params }: Params) {
     <section className="shell pt-12 pb-8 md:pt-20">
       <p className="label">Ordine #{ordine.id}</p>
       <h1 className="display-h1 mt-5 max-w-[20ch] text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance">
-        {daFare.length === 0 ? "Hai già detto tutto. Grazie!" : `${saluto(ordine.nome)} com’è arrivato?`}
+        {daFare.length === 0 ? "Hai già detto tutto. Grazie!" : `${saluto(ordine.nome)} com’è andata?`}
       </h1>
       {daFare.length > 0 && (
         <p className="prose-measure mt-6 text-lg leading-relaxed text-ink-soft">
