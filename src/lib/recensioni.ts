@@ -208,4 +208,32 @@ export async function segnaRecensioneChiesta(ordine: number): Promise<void> {
   await query(`UPDATE ordini SET recensione_chiesta_at = now() WHERE id = $1`, [ordine]);
 }
 
+/**
+ * Gli ordini a cui chiedere la recensione tutti insieme: consegnati, mai
+ * chiesta, senza recensioni. Uno per persona —il più recente— perché chi ha
+ * comprato tre volte non riceva tre mail uguali; `fratelli` sono gli altri
+ * suoi ordini nella stessa situazione, da segnare come chiesti con lui.
+ */
+export type DaChiedere = { id: number; email: string; fratelli: number[] };
+
+export async function ordiniDaChiedere(): Promise<DaChiedere[]> {
+  const rows = await query<{ id: number; email: string }>(
+    `SELECT o.id, lower(o.email) AS email FROM ordini o
+      WHERE o.stato = 'spedito' AND o.recensione_chiesta_at IS NULL
+        AND NOT EXISTS (SELECT 1 FROM recensioni r WHERE r.ordine = o.id)
+      ORDER BY o.created_at DESC`,
+  ).catch(() => []);
+  const perEmail = new Map<string, DaChiedere>();
+  for (const r of rows) {
+    const c = perEmail.get(r.email);
+    if (c) c.fratelli.push(Number(r.id));
+    else perEmail.set(r.email, { id: Number(r.id), email: r.email, fratelli: [] });
+  }
+  return [...perEmail.values()];
+}
+
+export async function segnaRecensioniChieste(ordini: number[]): Promise<void> {
+  await query(`UPDATE ordini SET recensione_chiesta_at = now() WHERE id = ANY($1::int[])`, [ordini]);
+}
+
 export const linkRecensione = (origine: string, chiave: string) => `${origine}/recensione/${chiave}`;

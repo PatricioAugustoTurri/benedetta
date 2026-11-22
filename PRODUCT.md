@@ -175,7 +175,11 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   retiro. Además, desde que entra el pedido, «Scarica il QR per il pacco»
   baja una cartolina A6 para imprimir y meter en el paquete (cliente,
   2026-11-22): «Com’è andata?», el nombre, el QR al link de ese pedido y la
-  firma, hermana del biglietto (`src/lib/cartolinaRecensione.ts`). Sólo se
+  firma, hermana del biglietto (`src/lib/cartolinaRecensione.ts`). Para los
+  pedidos que ya salieron sin QR, «Chiedi la recensione a tutti» (en la
+  sección Recensioni del admin, con confirmación) manda «Com’è andata?» a
+  quien ya recibió su pedido y no reseñó ni recibió el pedido: un mail por
+  persona, por su pedido más reciente. Sólo se
   abre con el pedido entregado. Las reseñas salen al
   instante al pie de la página del producto y en sus datos estructurados
   (estrellas en Google); ella las borra desde el admin, no las reescribe.
