@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import Link from "next/link";
 import { startTransition, useActionState, useId, useState } from "react";
 import { ArrowRight } from "@/components/Icon";

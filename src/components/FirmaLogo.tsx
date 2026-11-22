@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import Link from "next/link";
 import { useState, type SyntheticEvent } from "react";
 import { site } from "@/data/site";

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import { useEffect, useRef } from "react";
 import { studioFilm } from "@/data/studio";
 import { videoLeggero } from "@/lib/video";

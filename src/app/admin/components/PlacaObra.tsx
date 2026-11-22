@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import { contarPezzi, immagineFerma } from "@/lib/video";
 import { Work } from "@/lib/works";
 

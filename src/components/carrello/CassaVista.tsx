@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { vaiAlPagamento, verificaCodice } from "@/app/(sitio)/carrello/actions";

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import VideoOpera from "@/components/VideoOpera";
 import { esVideo, immagineFerma } from "@/lib/video";

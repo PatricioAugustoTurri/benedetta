@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import Link from "next/link";
 import { site } from "@/data/site";
 import VideoOpera from "@/components/VideoOpera";

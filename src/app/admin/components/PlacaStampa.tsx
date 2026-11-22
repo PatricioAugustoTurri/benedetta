@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import { prezzo, prezzoMinimo } from "@/data/shop";
 import type { Prodotto } from "@/lib/prodotti";
 import { immagineFerma } from "@/lib/video";

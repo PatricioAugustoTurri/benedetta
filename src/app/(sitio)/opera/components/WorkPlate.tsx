@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import type { CSSProperties } from "react";
 import VideoOpera from "@/components/VideoOpera";
 import { site } from "@/data/site";

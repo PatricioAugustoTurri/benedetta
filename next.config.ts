@@ -16,10 +16,13 @@ const nextConfig: NextConfig = {
       gli account di altri, resta fuori.
     */
     /*
-      AVIF prima, WebP per chi non lo legge. Misurato sulle opere caricate, a
-      parità di qualità AVIF pesa il 40% in meno del WebP che usciva prima.
-      Costa qualche decimo di secondo in più a chi apre per primo
-      un'immagine a una certa misura; poi resta nella cache.
+      AVIF prima, WebP per chi non lo legge. Vale solo per le immagini di
+      `public/`: quelle di Cloudinary le rimpicciolisce Cloudinary stesso
+      (vedi `src/lib/caricatoreCloudinary.ts`), perché codificarle qui in
+      AVIF costava più di un secondo a immagine con la cache vuota.
+
+      `remotePatterns` resta per chi usasse ancora `next/image` direttamente
+      con un indirizzo di Cloudinary: senza, l'immagine si romperebbe.
     */
     formats: ["image/avif", "image/webp"],
 

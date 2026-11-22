@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import { MINIMO_SCONTI, prezzo, prezzoMinimo, prezzoScontato, prodottoHref } from "@/data/shop";

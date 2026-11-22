@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import Link from "next/link";
 import ImmagineCopertina from "@/components/ImmagineCopertina";
 import VideoOpera from "@/components/VideoOpera";

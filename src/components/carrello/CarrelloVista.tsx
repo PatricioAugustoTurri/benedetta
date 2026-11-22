@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import Link from "next/link";
 import { AZIONE } from "@/components/azione";
 import { ArrowRight, Meno, Plus } from "@/components/Icon";

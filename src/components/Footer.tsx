@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/Immagine";
 import Link from "next/link";
 import { ArrowUp, ArrowUpRight, Mail } from "@/components/Icon";
 import NewsletterForm from "@/components/NewsletterForm";
