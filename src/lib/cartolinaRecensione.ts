@@ -44,7 +44,7 @@ async function disegnaCartolina(d: DatiCartolina, firmaSrc: string, laminaSrc: s
   // Se un carattere non carica —capita con quelli di riserva su un sistema
   // senza Arial— la cartolina si disegna lo stesso con quello che c'è.
   await Promise.all([
-    document.fonts.load(`400 40px ${titolo}`, "Com’è arrivato?").catch(() => []),
+    document.fonts.load(`400 40px ${titolo}`, "Com’è andata?").catch(() => []),
     document.fonts.load(`400 40px ${testo}`).catch(() => []),
   ]);
   const [firma, lamina] = await Promise.all([carica(firmaSrc), carica(laminaSrc)]);
@@ -83,7 +83,7 @@ async function disegnaCartolina(d: DatiCartolina, firmaSrc: string, laminaSrc: s
   ctx.fillStyle = INK;
   ctx.font = `400 ${26 * PT}px ${titolo}`;
   const passo = 30 * PT;
-  for (const r of aCapo(ctx, "Com’è arrivato?", accanto)) {
+  for (const r of aCapo(ctx, "Com’è andata?", accanto)) {
     cy += passo;
     ctx.fillText(r, sx, cy);
   }

@@ -174,7 +174,7 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   («Com’è arrivato?») cuando cree que el paquete llegó, o después de un
   retiro. Además, desde que entra el pedido, «Scarica il QR per il pacco»
   baja una cartolina A6 para imprimir y meter en el paquete (cliente,
-  2026-11-22): «Com’è arrivato?», el nombre, el QR al link de ese pedido y la
+  2026-11-22): «Com’è andata?», el nombre, el QR al link de ese pedido y la
   firma, hermana del biglietto (`src/lib/cartolinaRecensione.ts`). Sólo se
   abre con el pedido entregado. Las reseñas salen al
   instante al pie de la página del producto y en sus datos estructurados
