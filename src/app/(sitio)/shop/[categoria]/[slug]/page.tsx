@@ -9,6 +9,7 @@ import { tariffeSpedizione } from "@/lib/spedizione";
 import { site } from "@/data/site";
 import { mockupComeStampa } from "@/lib/mockup";
 import { esaurito, getPubblicato, listPubblicati } from "@/lib/prodotti";
+import { recensioniDelProdotto, riepilogo } from "@/lib/recensioni";
 import { immagineFerma } from "@/lib/video";
 import { getWork } from "@/lib/works";
 import Visore from "../../../opera/components/Visore";
@@ -16,6 +17,7 @@ import WorkPlate, { WorkPlates } from "../../../opera/components/WorkPlate";
 import WorkTitle from "../../../opera/components/WorkTitle";
 import CaroselloStampa from "../../components/CaroselloStampa";
 import ProdottoScheda from "../../components/ProdottoScheda";
+import RecensioniProdotto from "../../components/RecensioniProdotto";
 
 type Params = { params: Promise<{ categoria: string; slug: string }> };
 
@@ -79,11 +81,13 @@ export default async function ProdottoPage({ params }: Params) {
   if (!trovato) notFound();
   const { c, p } = trovato;
 
-  const [opera, sconti, fratelli] = await Promise.all([
+  const [opera, sconti, fratelli, recensioni] = await Promise.all([
     p.operaSlug ? getWork(p.operaSlug) : null,
     scontiInCorso().catch(() => new Map()),
     listPubblicati(c.slug),
+    recensioniDelProdotto(p.id),
   ]);
+  const voti = riepilogo(recensioni);
   const sconto = sconti.get(p.id) ?? null;
   const portada = p.image[0];
 
@@ -153,6 +157,24 @@ export default async function ProdottoPage({ params }: Params) {
       },
     })),
     url,
+    // Le recensioni vere di chi l'ha comprata, se ce ne sono: sono quelle
+    // che Google mostra come stelle sotto il risultato.
+    ...(voti.numero > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: voti.media.toFixed(1),
+        reviewCount: voti.numero,
+        bestRating: 5,
+        worstRating: 1,
+      },
+      review: recensioni.slice(0, 10).map((r) => ({
+        "@type": "Review",
+        reviewRating: { "@type": "Rating", ratingValue: r.voto, bestRating: 5, worstRating: 1 },
+        author: { "@type": "Person", name: r.autore },
+        reviewBody: r.testo,
+        datePublished: r.creata.toISOString().slice(0, 10),
+      })),
+    }),
   };
 
   return (
@@ -188,6 +210,8 @@ export default async function ProdottoPage({ params }: Params) {
           />
         </div>
       </Visore>
+
+      <RecensioniProdotto recensioni={recensioni} />
     </article>
   );
 }
