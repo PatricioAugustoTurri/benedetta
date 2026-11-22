@@ -33,7 +33,7 @@ function rivalida() {
 }
 
 /**
- * Scrive o corregge una vendita in contanti, con bonifico o con SumUp.
+ * Scrive o corregge una vendita in contanti, con bonifico, con SumUp o con PayPal.
  *
  * «Pagata» e «consegnata» arrivano come una spunta e un giorno: senza giorno
  * vale quello della vendita, che è il caso di tutti i giorni —al mercato si
@@ -63,7 +63,7 @@ export async function salvaVenditaAzione(_previo: EsitoVendita, formData: FormDa
   if (!cosa) return { error: "Scrivi cosa ha comprato." };
   if (cosa.length > 500) return { error: "La descrizione è troppo lunga: al massimo 500 caratteri." };
   if (importo === null) return { error: "L’importo non si è capito: scrivilo così, 12,50." };
-  if (!eCanale(canale)) return { error: "Scegli come ha pagato: contanti, bonifico o SumUp." };
+  if (!eCanale(canale)) return { error: "Scegli come ha pagato: contanti, bonifico, SumUp o PayPal." };
   if (consegna !== "mano" && consegna !== "spedizione") return { error: "Scegli se va spedita o data a mano." };
 
   const quando = (spunta: string, campo: string) => {

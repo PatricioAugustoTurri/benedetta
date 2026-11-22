@@ -306,6 +306,7 @@ export default function VenditaForm({
               ["contanti", "Contanti"],
               ["bonifico", "Bonifico"],
               ["sumup", "SumUp"],
+              ["paypal", "PayPal"],
             ]}
           />
           <Campo id={id("giorno")} etichetta="Giorno">

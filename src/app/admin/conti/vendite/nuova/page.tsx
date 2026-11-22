@@ -15,7 +15,7 @@ export default async function NuovaVenditaPage() {
       <IndietroAiConti />
       <h1 className="display-lead font-display text-[clamp(1.5rem,3vw,2.125rem)] leading-[1.15]">Nuova vendita</h1>
       <p className="mt-2 mb-10 max-w-[60ch] text-sm text-ink-soft">
-        In contanti, con bonifico o con SumUp. Quelle del sito non si scrivono: entrano da sole dagli ordini.
+        In contanti, con bonifico, con SumUp o con PayPal. Quelle del sito non si scrivono: entrano da sole dagli ordini.
       </p>
       <VenditaForm oggi={oggiInItalia()} clienti={clienti} stampe={stampe} />
     </section>

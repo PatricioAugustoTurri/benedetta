@@ -7,7 +7,7 @@ export { importoScritto, leggiImporto } from "@/lib/importi";
 /**
  * I conti di lei: il registro di tutto quello che vende e quello che spende.
  *
- * Le vendite entrano da due parti. Contanti, bonifici e SumUp al banco li
+ * Le vendite entrano da due parti. Contanti, bonifici, PayPal e SumUp al banco li
  * scrive lei, con il cliente, cosa ha comprato, se ha pagato e se l'ha
  * ricevuto (tabella `vendite`). Quelle del sito no: si leggono dagli ordini
  * pagati, con gli stessi campi, così il registro è uno solo e non c'è niente
@@ -20,9 +20,9 @@ export { importoScritto, leggiImporto } from "@/lib/importi";
  * Come tutto il negozio, in centesimi e con l'ora italiana.
  */
 
-export type Canale = "contanti" | "bonifico" | "sumup";
-export const CANALI: Canale[] = ["contanti", "bonifico", "sumup"];
-export const NOME_CANALE: Record<Canale, string> = { contanti: "Contanti", bonifico: "Bonifico", sumup: "SumUp" };
+export type Canale = "contanti" | "bonifico" | "sumup" | "paypal";
+export const CANALI: Canale[] = ["contanti", "bonifico", "sumup", "paypal"];
+export const NOME_CANALE: Record<Canale, string> = { contanti: "Contanti", bonifico: "Bonifico", sumup: "SumUp", paypal: "PayPal" };
 export const eCanale = (c: string): c is Canale => (CANALI as string[]).includes(c);
 
 /** Una copia tolta dal magazzino con una vendita. `tolte` è quante c'erano davvero da togliere. */
@@ -76,12 +76,14 @@ export type ContoMese = {
   bonifico: number;
   /** Il lettore al banco e gli ordini del sito. */
   sumup: number;
+  /** Senza commissione: nei conti PayPal non trattiene niente, per ora. */
+  paypal: number;
   spese: number;
   /** Quello che SumUp trattiene sulle vendite SumUp del mese. */
   commissioni: number;
 };
 
-export const venditeDi = (c: ContoMese) => c.contanti + c.bonifico + c.sumup;
+export const venditeDi = (c: ContoMese) => c.contanti + c.bonifico + c.sumup + c.paypal;
 export const nettoDi = (c: ContoMese) => venditeDi(c) - c.spese - c.commissioni;
 
 /**
@@ -387,10 +389,11 @@ export async function contiAnno(anno: number): Promise<ContoMese[]> {
     ),
   ]);
 
-  const mesi: ContoMese[] = Array.from({ length: 12 }, (_, i) => ({ mese: i + 1, contanti: 0, bonifico: 0, sumup: 0, spese: 0, commissioni: 0 }));
+  const mesi: ContoMese[] = Array.from({ length: 12 }, (_, i) => ({ mese: i + 1, contanti: 0, bonifico: 0, sumup: 0, paypal: 0, spese: 0, commissioni: 0 }));
   for (const r of vendite) {
     const m = mesi[Number(r.mese) - 1];
     if (r.canale === "bonifico") m.bonifico += Number(r.somma);
+    else if (r.canale === "paypal") m.paypal += Number(r.somma);
     else if (r.canale === "sumup") {
       m.sumup += Number(r.somma);
       m.commissioni += Number(r.commissioni);

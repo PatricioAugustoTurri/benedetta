@@ -60,7 +60,7 @@ const giornoBreve = (iso: string) =>
 /**
  * I conti. Dall'alto:
  *
- * - **Il mese**: contanti, bonifico, SumUp —il lettore e il sito—, il totale,
+ * - **Il mese**: contanti, bonifico, SumUp —il lettore e il sito—, PayPal, il totale,
  *   le spese, quello che trattiene SumUp e il netto, e
  *   quello che aspetta —da incassare, da spedire, da consegnare— in
  *   terracotta, che porta dritto alle righe da fare.
@@ -146,10 +146,11 @@ export default async function ContiPage({ searchParams }: Props) {
       contanti: t.contanti + c.contanti,
       bonifico: t.bonifico + c.bonifico,
       sumup: t.sumup + c.sumup,
+      paypal: t.paypal + c.paypal,
       spese: t.spese + c.spese,
       commissioni: t.commissioni + c.commissioni,
     }),
-    { mese: 0, contanti: 0, bonifico: 0, sumup: 0, spese: 0, commissioni: 0 },
+    { mese: 0, contanti: 0, bonifico: 0, sumup: 0, paypal: 0, spese: 0, commissioni: 0 },
   );
 
   const [annoPrima, mesePrima] = sposta(anno, mese, -1);
@@ -185,10 +186,11 @@ export default async function ContiPage({ searchParams }: Props) {
             </nav>
           }
         >
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-5 border-t border-line pt-5 sm:grid-cols-3 lg:-mt-4 lg:grid-cols-7 lg:border-t-0 lg:pt-0">
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-5 border-t border-line pt-5 sm:grid-cols-3 lg:-mt-4 lg:grid-cols-8 lg:border-t-0 lg:pt-0">
             <Cifra nome="Contanti" valore={prezzo(questo.contanti)} />
             <Cifra nome="Bonifico" valore={prezzo(questo.bonifico)} />
             <Cifra nome="SumUp" valore={prezzo(questo.sumup)} />
+            <Cifra nome="PayPal" valore={prezzo(questo.paypal)} />
             <Cifra nome="Vendite" valore={prezzo(venditeDi(questo))} forte />
             <Cifra nome="Spese" valore={prezzo(questo.spese)} />
             <Cifra nome="Commissioni SumUp" valore={prezzo(questo.commissioni)} />
@@ -385,13 +387,13 @@ export default async function ContiPage({ searchParams }: Props) {
           }
         >
           <div className="-mx-4 overflow-x-auto px-4 lg:-mt-4">
-            <table className="figures w-full min-w-[46rem] border-collapse text-sm">
+            <table className="figures w-full min-w-[52rem] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-line text-left text-xs text-ink-faint">
                   <th scope="col" className="py-2 pr-4 font-normal">
                     Mese
                   </th>
-                  {["Contanti", "Bonifico", "SumUp", "Vendite", "Spese", "Commissioni", "Netto"].map((t) => (
+                  {["Contanti", "Bonifico", "SumUp", "PayPal", "Vendite", "Spese", "Commissioni", "Netto"].map((t) => (
                     <th key={t} scope="col" className="py-2 pl-4 text-right font-normal">
                       {t}
                     </th>
@@ -415,6 +417,7 @@ export default async function ContiPage({ searchParams }: Props) {
                       <Cella c={c.contanti} />
                       <Cella c={c.bonifico} />
                       <Cella c={c.sumup} />
+                      <Cella c={c.paypal} />
                       <Cella c={venditeDi(c)} forte />
                       <Cella c={c.spese} />
                       <Cella c={c.commissioni} />
@@ -431,6 +434,7 @@ export default async function ContiPage({ searchParams }: Props) {
                   <Cella c={totaleAnno.contanti} forte />
                   <Cella c={totaleAnno.bonifico} forte />
                   <Cella c={totaleAnno.sumup} forte />
+                  <Cella c={totaleAnno.paypal} forte />
                   <Cella c={venditeDi(totaleAnno)} forte />
                   <Cella c={totaleAnno.spese} forte />
                   <Cella c={totaleAnno.commissioni} forte />

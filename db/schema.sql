@@ -677,7 +677,7 @@ CREATE TABLE vendite (
   telefono    text        CONSTRAINT vendite_telefono_misura CHECK (telefono IS NULL OR length(telefono) <= 40),
   cosa        text        NOT NULL CONSTRAINT vendite_cosa_misura CHECK (length(trim(cosa)) BETWEEN 1 AND 500),
   importo     integer     NOT NULL CONSTRAINT vendite_importo_positivo CHECK (importo > 0),
-  canale      text        NOT NULL CONSTRAINT vendite_canale_valido CHECK (canale IN ('contanti', 'bonifico', 'sumup')),
+  canale      text        NOT NULL CONSTRAINT vendite_canale_valido CHECK (canale IN ('contanti', 'bonifico', 'sumup', 'paypal')),
   -- Il giorno in cui è arrivato il denaro. Vuoto: da incassare.
   pagato_il   date,
   consegna    text        NOT NULL CONSTRAINT vendite_consegna_valida CHECK (consegna IN ('mano', 'spedizione')),
