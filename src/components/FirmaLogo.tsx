@@ -10,9 +10,11 @@ import { site } from "@/data/site";
  *
  * Quando il mouse ci si appoggia, una penna d'inchiostro color terra (il
  * colore d'accento del sito) riscrive il nome sopra la scansione: prima
- * «Benedetta», da sinistra a destra, poi «Zibetti», sotto. Appena finisce,
- * l'inchiostro si asciuga e torna nero. È la sua scrittura a muoversi, non
- * l'interfaccia: il logotipo non salta, non cresce, non cambia posto.
+ * «Benedetta», da sinistra a destra, poi «Zibetti», sotto, e senza staccare
+ * la penna una stella dopo la «i», come la stella che tiene in mano la
+ * ragazza dell'apertura. Poi l'inchiostro si asciuga, la firma torna nera e
+ * la stella se ne va. È la sua scrittura a muoversi, non l'interfaccia: il
+ * logotipo non salta, non cresce, non cambia posto.
  *
  * Il ripasso è una copia della firma in colore d'accento, ritagliata con la
  * firma stessa come maschera (`.firma-ripasso` in globals.css). Una seconda
@@ -64,6 +66,19 @@ export default function FirmaLogo() {
       />
       <span aria-hidden="true" className="firma-ripasso firma-ripasso--sopra" />
       <span aria-hidden="true" className="firma-ripasso firma-ripasso--sotto" />
+      {/*
+        La stella con cui la penna chiude la firma: un tratto solo, a mano,
+        cinque linee che si incrociano come la si disegna su un quaderno. I
+        lati sono appena curvi e l'ultimo non chiude preciso sul primo:
+        una stella col righello sarebbe un'icona, non un gesto.
+        `pathLength="1"` permette al CSS di scoprire il tratto per frazioni.
+      */}
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="firma-stella">
+        <path
+          pathLength={1}
+          d="M5.4 21.2Q8.3 11.5 11.9 2.1Q15.5 11.4 18.4 20.9Q10.4 14.6 2.1 9.3Q12 8.6 22 9Q14.2 15.2 5.9 20.7"
+        />
+      </svg>
     </Link>
   );
 }

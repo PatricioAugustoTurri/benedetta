@@ -515,9 +515,11 @@ code {
    «Zibetti» parte prima che «Benedetta» finisca, come la mano che scende
    già alla riga dopo.
 
-   Poi l'inchiostro si asciuga: le copie sfumano e resta il nero della
-   scansione. In tutto due secondi, che non fanno aspettare nessuno perché
-   il logotipo resta leggibile e cliccabile per tutto il tempo.
+   Finito «Zibetti», la penna disegna una stella (`.firma-stella`, più
+   sotto), e solo dopo l'inchiostro si asciuga: le copie sfumano e resta il
+   nero della scansione. In tutto due secondi e mezzo, che non fanno
+   aspettare nessuno perché il logotipo resta leggibile e cliccabile per
+   tutto il tempo.
 
    La maschera della firma è dichiarata sempre, anche da ferma, così il
    file è già arrivato quando il mouse ci si appoggia per la prima volta.
@@ -555,13 +557,103 @@ code {
 .firma[data-ripassa] .firma-ripasso--sopra {
   animation:
     firma-scrivi 0.62s cubic-bezier(0.45, 0.05, 0.4, 1) both,
-    firma-asciuga 0.8s var(--ease-out-soft) 1.2s forwards;
+    firma-asciuga 0.8s var(--ease-out-soft) 1.75s forwards;
 }
 
 .firma[data-ripassa] .firma-ripasso--sotto {
   animation:
     firma-scrivi 0.56s cubic-bezier(0.45, 0.05, 0.4, 1) 0.5s both,
-    firma-asciuga 0.8s var(--ease-out-soft) 1.2s forwards;
+    firma-asciuga 0.8s var(--ease-out-soft) 1.75s forwards;
+}
+
+/*
+  La stella che chiude la firma.
+
+  Sta a destra di «Zibetti», all'altezza della «i»: le misure sono in
+  percentuale del logotipo, prese dalla scansione (la firma finisce al 90%
+  della larghezza, e lì a destra non c'è inchiostro). Sporge appena oltre
+  il bordo: è assoluta, quindi l'header non si sposta di un pixel.
+
+  Il tratto ha lo spessore della penna della firma, un filo più sottile
+  perché in una stella così piccola le cinque linee non chiudano il centro.
+
+  Il tempo continua quello della firma: parte quando la penna arriva in
+  fondo a «Zibetti» (0,98 s), si disegna con la stessa curva di una mano che
+  scrive, e appena chiusa batte una volta —come una stella che si accende—
+  e si posa. Poi si asciuga insieme alla firma e sparisce: nella scansione
+  non c'è, e il logotipo torna com'era.
+*/
+.firma-stella {
+  position: absolute;
+  left: 90.6%;
+  top: 52.5%;
+  width: 13.6%;
+  aspect-ratio: 1;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+  color: var(--color-accent);
+  transform: rotate(-6deg);
+}
+
+.firma-stella path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.firma[data-ripassa] .firma-stella {
+  animation:
+    firma-stella-appare 0.01s linear 0.98s both,
+    firma-stella-batte 0.5s var(--ease-out-soft) 1.44s both,
+    firma-stella-asciuga 0.8s var(--ease-out-soft) 1.75s forwards;
+}
+
+.firma[data-ripassa] .firma-stella path {
+  animation: firma-stella-traccia 0.48s cubic-bezier(0.45, 0.05, 0.4, 1) 0.98s both;
+}
+
+@keyframes firma-stella-traccia {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes firma-stella-appare {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes firma-stella-batte {
+  0% {
+    transform: rotate(-6deg) scale(1);
+  }
+  35% {
+    transform: rotate(4deg) scale(1.16);
+  }
+  100% {
+    transform: rotate(-6deg) scale(1);
+  }
+}
+
+@keyframes firma-stella-asciuga {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes firma-scrivi {
@@ -612,6 +704,25 @@ code {
 
   .firma:hover .firma-ripasso,
   .firma:focus-visible .firma-ripasso {
+    opacity: 1;
+  }
+
+  /* La stella c'è già intera, e arriva con lo stesso cambio di colore. */
+  .firma-stella {
+    transition: opacity 0.4s var(--ease-out-soft);
+  }
+
+  .firma-stella path {
+    stroke-dashoffset: 0;
+  }
+
+  .firma[data-ripassa] .firma-stella,
+  .firma[data-ripassa] .firma-stella path {
+    animation: none;
+  }
+
+  .firma:hover .firma-stella,
+  .firma:focus-visible .firma-stella {
     opacity: 1;
   }
 }
