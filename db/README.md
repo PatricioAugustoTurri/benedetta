@@ -219,7 +219,9 @@ del descuento la muestran el carrito y los mails del pedido. El pedido guarda
 ## Le recensioni: `recensioni` e la chiave dell'ordine
 
 Chi compra lascia stelle e due righe sui prodotti del suo ordine, senza
-account (migrazione 020). La porta è `ordini.recensione_chiave`: 32 caratteri
+account (migrazione 020). La 020 non si corre a mano: il sito la applica da
+solo quando parte (`src/instrumentation.ts`), ed è scritta per potersi
+ripetere senza cambiare niente. La porta è `ordini.recensione_chiave`: 32 caratteri
 casuali, uno per ordine, che vanno nel link `/recensione/<chiave>`. Il link
 parte nella mail di spedizione e lei lo può mandare di nuovo dall'ordine
 («Chiedila per mail», che scrive `recensione_chiesta_at`) o copiarlo.
