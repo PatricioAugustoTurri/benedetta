@@ -28,6 +28,7 @@ import {
   linkRecensione,
   segnaRecensioneChiesta,
 } from "@/lib/recensioni";
+import { applicaMigrazioni } from "@/lib/migrazioni";
 import { rimborsaCheckout, sumupConfigurato } from "@/lib/sumup";
 
 export type EsitoSpedizione = { error?: string; fatto?: string };
@@ -286,4 +287,14 @@ export async function cancellaRecensioneAzione(formData: FormData): Promise<void
   await cancellaRecensione(id);
   revalidatePath("/admin/ordini");
   revalidatePath("/shop", "layout");
+}
+
+export type EsitoAttivazione = { error?: string };
+
+/** Riprova a preparare il database per le recensioni, e dice perché se non riesce. */
+export async function attivaRecensioniAzione(): Promise<EsitoAttivazione> {
+  await requireSession();
+  const errore = await applicaMigrazioni();
+  revalidatePath("/admin/ordini");
+  return errore ? { error: errore } : {};
 }
