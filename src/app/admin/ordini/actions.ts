@@ -26,7 +26,9 @@ import {
   cancellaRecensione,
   chiaveRecensione,
   linkRecensione,
+  ordiniDaChiedere,
   segnaRecensioneChiesta,
+  segnaRecensioniChieste,
 } from "@/lib/recensioni";
 import { applicaMigrazioni } from "@/lib/migrazioni";
 import { rimborsaCheckout, sumupConfigurato } from "@/lib/sumup";
@@ -297,4 +299,37 @@ export async function attivaRecensioniAzione(): Promise<EsitoAttivazione> {
   const errore = await applicaMigrazioni();
   revalidatePath("/admin/ordini");
   return errore ? { error: errore } : {};
+}
+
+export type EsitoATutti = { error?: string; inviate?: number; fallite?: number };
+
+/**
+ * Chiede la recensione a chi ha già ricevuto un ordine e non l'ha ancora
+ * lasciata né ricevuto la richiesta: gli ordini arrivati prima che ci fosse
+ * il QR nel pacco (cliente, 2026-11-22). Una mail per persona, una dopo
+ * l'altra con una pausa —Resend accetta poche mail al secondo—, e ognuna
+ * segnata appena parte: se il giro si interrompe, ripremere manda solo
+ * quelle che mancano.
+ */
+export async function chiediATuttiAzione(): Promise<EsitoATutti> {
+  await requireSession();
+  if (!correoConfigurado()) return { error: "La posta non è configurata: da qui non parte nessuna mail." };
+  const lista = await ordiniDaChiedere();
+  let inviate = 0;
+  let fallite = 0;
+  for (const d of lista) {
+    try {
+      const [ordine, chiave] = await Promise.all([getOrdine(d.id), chiaveRecensione(d.id)]);
+      if (!ordine || !chiave || ordine.stato !== "spedito") continue;
+      await chiediRecensione(ordine, linkRecensione(site.url, chiave));
+      await segnaRecensioniChieste([d.id, ...d.fratelli]);
+      inviate++;
+    } catch (e) {
+      console.error(`Ordini: la richiesta di recensione dell'ordine ${d.id} non è partita.`, e);
+      fallite++;
+    }
+    await new Promise((r) => setTimeout(r, 600));
+  }
+  revalidatePath("/admin/ordini");
+  return { inviate, fallite };
 }

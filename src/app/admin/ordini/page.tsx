@@ -12,6 +12,7 @@ import {
   linkRecensione,
   listRecensioni,
   nomeProprio,
+  ordiniDaChiedere,
   statoRecensioniOrdini,
   type StatoRecensioneOrdine,
 } from "@/lib/recensioni";
@@ -21,6 +22,7 @@ import { pingDb } from "@/lib/works";
 import BigliettoOrdine from "../components/BigliettoOrdine";
 import RimborsaOrdine from "../components/RimborsaOrdine";
 import AttivaRecensioni from "../components/AttivaRecensioni";
+import ChiediATutti from "../components/ChiediATutti";
 import RecensioneOrdine from "../components/RecensioneOrdine";
 import RitiroOrdine from "../components/RitiroOrdine";
 import Sezione from "../components/Sezione";
@@ -70,7 +72,7 @@ export default async function OrdiniPage() {
     listRecensioni(),
     statoRecensioniOrdini(),
   ]);
-  const migrazione = await statoMigrazioneRecensioni();
+  const [migrazione, daChiedere] = await Promise.all([statoMigrazioneRecensioni(), ordiniDaChiedere()]);
   const oggi = oggiInItalia();
   const daSpedire = ordini.filter((o) => o.stato === "pagato" && o.consegna === "spedizione");
   const daRitirare = ordini.filter((o) => o.stato === "pagato" && o.consegna === "ritiro");
@@ -163,6 +165,7 @@ export default async function OrdiniPage() {
         <Sezione
           id="ord-recensioni"
           titolo="Recensioni"
+          azione={migrazione.pronte && correoConfigurado() ? <ChiediATutti persone={daChiedere.length} /> : undefined}
           accanto={recensioni.length === 1 ? "1 recensione" : `${recensioni.length} recensioni`}
           testo={
             <>
