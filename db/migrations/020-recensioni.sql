@@ -5,6 +5,11 @@
 --
 -- Un database nuovo non ne ha bisogno: db/schema.sql ha già tutto.
 --
+-- Non serve nemmeno correrla a mano: il sito la applica da solo quando
+-- parte (src/instrumentation.ts → src/lib/migrazioni.ts), perché chi
+-- pubblica lo fa dal telefono. Per questo è scritta per potersi ripetere:
+-- con tutto già al suo posto, non cambia niente.
+--
 -- Chi compra nello Shop può lasciare stelle e due righe sui prodotti del suo
 -- ordine, senza account (cliente, 2026-11-22). Non c'è login: c'è la chiave
 -- dell'ordine, un link che arriva solo a chi ha pagato. Le opere
@@ -19,17 +24,17 @@ BEGIN;
 -- ricevono la loro, tutte diverse.
 -- --------------------------------------------------------------------------
 ALTER TABLE ordini
-  ADD COLUMN recensione_chiave text NOT NULL DEFAULT replace(gen_random_uuid()::text, '-', '')
+  ADD COLUMN IF NOT EXISTS recensione_chiave text NOT NULL DEFAULT replace(gen_random_uuid()::text, '-', '')
     CONSTRAINT ordini_recensione_chiave_key UNIQUE,
   -- Quando lei ha mandato la mail che chiede la recensione. Vuoto: mai.
-  ADD COLUMN recensione_chiesta_at timestamptz;
+  ADD COLUMN IF NOT EXISTS recensione_chiesta_at timestamptz;
 
 -- --------------------------------------------------------------------------
 -- recensioni — una per prodotto per ordine. Escono nella pagina del
 -- prodotto appena arrivano; lei le può cancellare dall'admin, non
 -- riscriverle: sono parole di chi ha comprato, non sue.
 -- --------------------------------------------------------------------------
-CREATE TABLE recensioni (
+CREATE TABLE IF NOT EXISTS recensioni (
   id         integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   ordine     integer     NOT NULL REFERENCES ordini (id) ON DELETE CASCADE,
   -- Per id e non per slug: lo slug di un prodotto si può cambiare, la
@@ -46,6 +51,6 @@ CREATE TABLE recensioni (
   CONSTRAINT recensioni_una_per_prodotto UNIQUE (ordine, prodotto)
 );
 
-CREATE INDEX recensioni_prodotto ON recensioni (prodotto, created_at DESC);
+CREATE INDEX IF NOT EXISTS recensioni_prodotto ON recensioni (prodotto, created_at DESC);
 
 COMMIT;
