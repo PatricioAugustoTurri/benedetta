@@ -454,6 +454,12 @@ CREATE TABLE ordini (
   pronto_at         timestamptz,
   rimborsato_at     timestamptz,
 
+  -- La chiave del link /recensione/<chiave>, e quando lei ha chiesto la
+  -- recensione per mail. Vedi la 020.
+  recensione_chiave text        NOT NULL DEFAULT replace(gen_random_uuid()::text, '-', '')
+                    CONSTRAINT ordini_recensione_chiave_key UNIQUE,
+  recensione_chiesta_at timestamptz,
+
   created_at        timestamptz NOT NULL DEFAULT now(),
   updated_at        timestamptz NOT NULL DEFAULT now()
 );
@@ -699,6 +705,23 @@ CREATE TABLE spese (
 );
 
 CREATE INDEX spese_giorno ON spese (giorno);
+
+-- --------------------------------------------------------------------------
+-- recensioni — le stelle e le parole di chi ha comprato, una per prodotto
+-- per ordine. Vedi la migrazione 020.
+-- --------------------------------------------------------------------------
+CREATE TABLE recensioni (
+  id         integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  ordine     integer     NOT NULL REFERENCES ordini (id) ON DELETE CASCADE,
+  prodotto   integer     NOT NULL REFERENCES prodotti (id) ON DELETE CASCADE,
+  voto       smallint    NOT NULL CONSTRAINT recensioni_voto_valido CHECK (voto BETWEEN 1 AND 5),
+  testo      text        NOT NULL CONSTRAINT recensioni_testo_misura CHECK (length(trim(testo)) BETWEEN 1 AND 1200),
+  autore     text        NOT NULL CONSTRAINT recensioni_autore_misura CHECK (length(trim(autore)) BETWEEN 1 AND 60),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT recensioni_una_per_prodotto UNIQUE (ordine, prodotto)
+);
+
+CREATE INDEX recensioni_prodotto ON recensioni (prodotto, created_at DESC);
 
 INSERT INTO codici (codice, percentuale) VALUES ('BENZIBET98', 15);
 

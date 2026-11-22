@@ -1,18 +1,28 @@
 import type { ReactNode } from "react";
 import { prezzo, variante } from "@/data/shop";
+import { site } from "@/data/site";
+import Stelle from "@/components/Stelle";
+import { correoConfigurado } from "@/lib/correo";
 import { richiediAccesso } from "@/lib/auth";
 import { bigliettiPerOrdine, type Codice } from "@/lib/codici";
 import { oggiInItalia } from "@/lib/oggi";
 import { listOrdini, ultimoCorriere, type Ordine } from "@/lib/prodotti";
+import {
+  linkRecensione,
+  listRecensioni,
+  statoRecensioniOrdini,
+  type StatoRecensioneOrdine,
+} from "@/lib/recensioni";
 import { indirizzoNegozio, nomePaese } from "@/lib/spedizione";
 import { sumupConfigurato, sumupInProva } from "@/lib/sumup";
 import { pingDb } from "@/lib/works";
 import BigliettoOrdine from "../components/BigliettoOrdine";
 import RimborsaOrdine from "../components/RimborsaOrdine";
+import RecensioneOrdine from "../components/RecensioneOrdine";
 import RitiroOrdine from "../components/RitiroOrdine";
 import Sezione from "../components/Sezione";
 import SpedisciOrdine from "../components/SpedisciOrdine";
-import { riavvisaAzione, rimettiDaSpedireAzione } from "./actions";
+import { cancellaRecensioneAzione, riavvisaAzione, rimettiDaSpedireAzione } from "./actions";
 
 export const metadata = { title: "Ordini" };
 
@@ -50,10 +60,12 @@ export default async function OrdiniPage() {
     );
   }
 
-  const [ordini, corriere, biglietti] = await Promise.all([
+  const [ordini, corriere, biglietti, recensioni, statoRecensioni] = await Promise.all([
     listOrdini(),
     ultimoCorriere(),
     bigliettiPerOrdine(),
+    listRecensioni(),
+    statoRecensioniOrdini(),
   ]);
   const oggi = oggiInItalia();
   const daSpedire = ordini.filter((o) => o.stato === "pagato" && o.consegna === "spedizione");
@@ -64,7 +76,7 @@ export default async function OrdiniPage() {
   const sumupAttivo = sumupConfigurato();
 
   const statoSumup = !sumupAttivo ? "spento" : sumupInProva() ? "prova" : "attivo";
-  const gruppo = { corriere: null, biglietti, oggi, sumupAttivo };
+  const gruppo = { corriere: null, biglietti, oggi, sumupAttivo, statoRecensioni, correoAttivo: correoConfigurado() };
 
   return (
     <section className="shell pt-8 pb-24 md:pt-12">
@@ -145,6 +157,55 @@ export default async function OrdiniPage() {
         )}
 
         <Sezione
+          id="ord-recensioni"
+          titolo="Recensioni"
+          accanto={recensioni.length === 1 ? "1 recensione" : `${recensioni.length} recensioni`}
+          testo={
+            <>
+              <p>
+                Le lasciano i clienti dal link del loro ordine, senza account, ed escono subito nella
+                pagina del prodotto.
+              </p>
+              <p>
+                Il link parte con la mail di spedizione. Quando pensi che il pacco sia arrivato, o
+                dopo un ritiro, puoi chiederla dall&apos;ordine.
+              </p>
+              <p>Se ne cancelli una, chi l&apos;ha scritta può lasciarne un&apos;altra dallo stesso link.</p>
+            </>
+          }
+        >
+          {recensioni.length === 0 ? (
+            <p className="prose-measure text-sm text-ink-faint">Non è ancora arrivata nessuna recensione.</p>
+          ) : (
+            <ul className="border-t border-line lg:-mt-6 lg:border-t-0">
+              {recensioni.map((r) => (
+                <li key={r.id} className="flex gap-4 border-b border-line py-5">
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                      <Stelle voto={r.voto} />
+                      <span>{r.titolo}</span>
+                    </p>
+                    <p className="prose-measure mt-2 text-sm leading-relaxed whitespace-pre-line text-ink">{r.testo}</p>
+                    <p className="figures mt-1.5 text-xs text-ink-faint">
+                      {r.autore} · ordine #{r.ordine} · {data(r.creata)}
+                    </p>
+                  </div>
+                  <form action={cancellaRecensioneAzione}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <button
+                      type="submit"
+                      className="link-underline text-xs text-ink-faint transition-colors hover:text-accent"
+                    >
+                      Cancella<span className="sr-only"> la recensione di {r.autore}</span>
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Sezione>
+
+        <Sezione
           id="ord-pagamenti"
           titolo="Pagamenti"
           accanto={statoSumup === "spento" ? "SumUp non collegato" : statoSumup === "prova" ? "SumUp in prova" : "SumUp attivo"}
@@ -186,6 +247,8 @@ function Gruppo({
   biglietti,
   oggi,
   sumupAttivo,
+  statoRecensioni,
+  correoAttivo,
 }: {
   id: string;
   titolo: string;
@@ -196,6 +259,8 @@ function Gruppo({
   biglietti: Map<number, Codice>;
   oggi: string;
   sumupAttivo: boolean;
+  statoRecensioni: Map<number, StatoRecensioneOrdine>;
+  correoAttivo: boolean;
 }) {
   return (
     <Sezione
@@ -216,6 +281,8 @@ function Gruppo({
               biglietto={biglietti.get(o.id) ?? null}
               oggi={oggi}
               sumupAttivo={sumupAttivo}
+              recensione={statoRecensioni.get(o.id) ?? null}
+              correoAttivo={correoAttivo}
             />
           ))}
         </ul>
@@ -230,12 +297,17 @@ function Voce({
   biglietto,
   oggi,
   sumupAttivo,
+  recensione,
+  correoAttivo,
 }: {
   ordine: Ordine;
   corriere: string | null;
   biglietto: Codice | null;
   oggi: string;
   sumupAttivo: boolean;
+  /** Null prima della migrazione 020. */
+  recensione: StatoRecensioneOrdine | null;
+  correoAttivo: boolean;
 }) {
   const a = o.indirizzo;
   const ritiro = o.consegna === "ritiro";
@@ -243,6 +315,17 @@ function Voce({
   const rimborsato = o.stato === "rimborsato";
   const rimborso = (
     <RimborsaOrdine id={o.id} importo={prezzo(o.totale)} email={o.email} sumupAttivo={sumupAttivo} />
+  );
+  // Si recensisce quello che è arrivato: un ordine spedito o ritirato.
+  const rigaRecensione = spedito && recensione && (
+    <RecensioneOrdine
+      id={o.id}
+      link={linkRecensione(site.url, recensione.chiave)}
+      chiesta={recensione.chiesta?.toISOString() ?? null}
+      lasciate={recensione.lasciate}
+      prodotti={new Set(o.righe.map((r) => r.slug)).size}
+      correoAttivo={correoAttivo}
+    />
   );
 
   return (
@@ -357,6 +440,7 @@ function Voce({
               </button>
             </form>
           </div>
+          {rigaRecensione}
           {rimborso}
         </>
       ) : ritiro ? (
@@ -417,6 +501,7 @@ function Voce({
               </button>
             </form>
           </div>
+          {rigaRecensione}
           {rimborso}
         </>
       ) : (

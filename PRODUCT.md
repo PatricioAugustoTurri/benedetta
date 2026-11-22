@@ -167,6 +167,17 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
      falta el número.
   3. **Condizioni di vendita, diritto di recesso (14 días, ley UE) y privacy.** Los
      textos tienen que venir de ella o de su contador.
+- **Recensioni** (cliente, 2026-11-22): quien compra deja estrellas (1 a 5) y
+  un comentario sobre los productos de su pedido, **sin cuenta**. La llave es
+  un link por pedido (`/recensione/<chiave>`, migración 020) que llega en el
+  mail de envío; desde `/admin/ordini` ella lo copia o lo pide por mail
+  («Com’è arrivato?») cuando cree que el paquete llegó, o después de un
+  retiro. Sólo se abre con el pedido entregado. Las reseñas salen al
+  instante al pie de la página del producto y en sus datos estructurados
+  (estrellas en Google); ella las borra desde el admin, no las reescribe.
+  **Sólo productos del Shop**: las obras del archivio no se reseñan. La
+  grilla del Shop sigue sin palabras (decisión del 2026-10-07): las estrellas
+  viven en la página de cada producto.
 - **Notas por categoría.** Si quiere una línea de material o formato bajo cada
   categoría, el componente ya la dibuja (`note` en `ShopCategory`), pero la
   tabla `categorie` todavía no tiene la columna. No inventarla.

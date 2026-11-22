@@ -75,6 +75,10 @@ psql -d illustrando -f db/migrations/013-categorie.sql
 psql -d illustrando -f db/migrations/014-colori.sql
 psql -d illustrando -f db/migrations/015-ritiro.sql
 psql -d illustrando -f db/migrations/016-scorte.sql
+psql -d illustrando -f db/migrations/017-magazzino-conti.sql
+psql -d illustrando -f db/migrations/018-vendite-spese.sql
+psql -d illustrando -f db/migrations/019-vendite-sumup.sql
+psql -d illustrando -f db/migrations/020-recensioni.sql
 ```
 
 `db/dati/` no son migraciones: son cargas de contenido hechas a mano en
@@ -211,3 +215,19 @@ las stampe que no están ya rebajadas, y nunca sobre el envío. El servidor lo
 vuelve a verificar al pagar y SumUp cobra el total ya descontado: la línea
 del descuento la muestran el carrito y los mails del pedido. El pedido guarda
 `sconto` (centavos) y `codice`.
+
+## Le recensioni: `recensioni` e la chiave dell'ordine
+
+Chi compra lascia stelle e due righe sui prodotti del suo ordine, senza
+account (migrazione 020). La porta è `ordini.recensione_chiave`: 32 caratteri
+casuali, uno per ordine, che vanno nel link `/recensione/<chiave>`. Il link
+parte nella mail di spedizione e lei lo può mandare di nuovo dall'ordine
+(«Chiedila per mail», che scrive `recensione_chiesta_at`) o copiarlo.
+
+Si recensisce solo un ordine consegnato (`stato = 'spedito'`, che per un
+ritiro vuol dire ritirato), un prodotto alla volta e una volta sola
+(`UNIQUE (ordine, prodotto)`). `prodotto` è l'id e non lo slug, perché lo
+slug si può cambiare. Le opere dell'archivio non si recensiscono.
+
+Lei le cancella da `/admin/ordini`; cancellata una recensione, quel cliente
+può lasciarne un'altra dallo stesso link.

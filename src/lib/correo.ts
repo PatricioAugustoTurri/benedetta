@@ -721,7 +721,12 @@ const eLink = (s: string) => /^https?:\/\//i.test(s);
  * partito, cosa c'è dentro, dove arriva e come seguirlo. Ha la forma delle
  * lettere della newsletter, perché è lei che scrive, non un magazzino.
  */
-export async function avvisaSpedizione(o: Ordine, biglietto: Codice | null = null): Promise<void> {
+export async function avvisaSpedizione(
+  o: Ordine,
+  biglietto: Codice | null = null,
+  /** Il link /recensione/<chiave> dell'ordine: quando arriva, si può raccontare com'è. */
+  recensione: string | null = null,
+): Promise<void> {
   const nome = o.nome?.split(" ")[0] ?? null;
   /*
     Il codice del biglietto, se vale ancora: lo stesso che lei ha scritto a
@@ -779,6 +784,11 @@ ${
 </td></tr>
 <tr><td class="px" style="padding:20px 40px 40px;">
 ${paragrafo("Se arriva rovinata o c’è qualcosa che non va, rispondi a questa mail: ci penso io.").replace("margin:18px 0 0", "margin:0")}
+${
+  recensione
+    ? `<p style="margin:14px 0 0;font-family:${SERIF};font-size:18px;line-height:1.65;color:${C.inkSoft};">E quando sarà arrivata, se ti va, <a href="${esc(recensione)}" style="color:${C.accent};text-decoration:underline;">raccontami com’è</a>: due righe e qualche stella, senza bisogno di account.</p>`
+    : ""
+}
 ${firma()}
 </td></tr>${
   regalo
@@ -808,6 +818,9 @@ ${firma()}
       ...indirizzoInRighe(o),
       "",
       "Se arriva rovinata o c’è qualcosa che non va, rispondi a questa mail: ci penso io.",
+      ...(recensione
+        ? ["", "E quando sarà arrivata, se ti va, raccontami com’è (due righe e qualche stella, senza account):", recensione]
+        : []),
       "",
       "Benedetta",
       ...(regalo
@@ -891,6 +904,55 @@ ${firma()}
     ].join("\n"),
   });
   if (error) throw new Error(`Resend (pronto da ritirare): ${error.message}`);
+}
+
+/* ----------------------------------------------------------- recensione */
+
+/**
+ * La mail che chiede la recensione, quando lei pensa che il pacco sia
+ * arrivato —o quando qualcuno è passato a ritirarlo—. Corta, una domanda
+ * sola e un pulsante: chi la riceve ha già comprato, non va convinto di
+ * niente. La manda lei dall'ordine, una volta: non parte da sola.
+ */
+export async function chiediRecensione(o: Ordine, link: string): Promise<void> {
+  const nome = o.nome?.split(" ")[0] ?? null;
+  const cosa =
+    o.righe.length === 1 && o.righe[0].quantita === 1 ? `«${o.righe[0].title}»` : "quello che hai preso";
+  const domanda = `${o.consegna === "ritiro" ? "spero che" : "spero che sia arrivato bene e che"} ${cosa} ti stia piacendo. Ti va di raccontarmi com’è? Due righe e qualche stella: escono nella pagina dello Shop e aiutano chi ancora non mi conosce a scegliere.`;
+  const nota = "Non serve nessun account: il link è solo tuo e vale per i prodotti di quest’ordine.";
+
+  const voci = o.righe
+    .map((r) =>
+      riga(`${r.quantita} ×`, `${esc(r.title)} <span style="color:${C.inkFaint};">— ${esc(variante(r))}</span>`),
+    )
+    .join("");
+
+  const { error } = await cliente().emails.send({
+    from: desde(),
+    to: o.email,
+    replyTo: para(),
+    subject: `Com’è arrivato? — ordine #${o.id}`,
+    html: lettera(
+      "Due righe e qualche stella, se ti va.",
+      `<tr><td class="px" style="padding:36px 40px 8px;">
+<p style="margin:0;font-family:${DISPLAY};font-size:28px;line-height:1.2;color:${C.ink};">${esc(saluto(nome))}</p>
+${paragrafo(domanda)}
+</td></tr>
+<tr><td class="px" style="padding:20px 40px 8px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${C.line};">${voci}</table>
+</td></tr>
+<tr><td class="px" style="padding:26px 40px 8px;">${pulsante(link, "Lascia la recensione")}
+<p style="margin:12px 0 0;font-family:${FONT};font-size:13px;line-height:1.5;color:${C.inkFaint};">${esc(nota)}</p>
+</td></tr>
+<tr><td class="px" style="padding:20px 40px 40px;">
+${paragrafo("Grazie davvero.").replace("margin:18px 0 0", "margin:0")}
+${firma()}
+</td></tr>`,
+      null,
+    ),
+    text: [saluto(nome), "", domanda, "", link, "", nota, "", "Grazie davvero.", "", "Benedetta"].join("\n"),
+  });
+  if (error) throw new Error(`Resend (recensione): ${error.message}`);
 }
 
 /* ------------------------------------------------------------- utilità */

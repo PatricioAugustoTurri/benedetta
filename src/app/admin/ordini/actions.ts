@@ -10,7 +10,8 @@ import {
   fissaScadenza,
   normalizzaCodice,
 } from "@/lib/codici";
-import { avvisaPronto, avvisaSpedizione, correoConfigurado } from "@/lib/correo";
+import { avvisaPronto, avvisaSpedizione, chiediRecensione, correoConfigurado } from "@/lib/correo";
+import { site } from "@/data/site";
 import {
   getOrdine,
   rimettiDaSpedire,
@@ -21,6 +22,12 @@ import {
   segnaSpedito,
   type Ordine,
 } from "@/lib/prodotti";
+import {
+  cancellaRecensione,
+  chiaveRecensione,
+  linkRecensione,
+  segnaRecensioneChiesta,
+} from "@/lib/recensioni";
 import { rimborsaCheckout, sumupConfigurato } from "@/lib/sumup";
 
 export type EsitoSpedizione = { error?: string; fatto?: string };
@@ -119,8 +126,12 @@ async function avvisa(ordine: Ordine): Promise<boolean> {
   try {
     // Il codice del biglietto va anche nella mail, se vale ancora: un
     // biglietto si perde, una mail si ritrova.
-    const biglietto = await bigliettoDi(ordine.id).catch(() => null);
-    await avvisaSpedizione(ordine, biglietto);
+    const [biglietto, chiave] = await Promise.all([
+      bigliettoDi(ordine.id).catch(() => null),
+      chiaveRecensione(ordine.id),
+    ]);
+    // E il link della recensione, per quando arriva. Senza la 020, niente.
+    await avvisaSpedizione(ordine, biglietto, chiave ? linkRecensione(site.url, chiave) : null);
     await segnaAvvisato(ordine.id);
     return true;
   } catch (e) {
@@ -240,4 +251,39 @@ export async function creaBigliettoAzione(formData: FormData): Promise<void> {
   await creaBiglietto(id);
   if (ordine.stato === "spedito") await fissaScadenza(id);
   revalidatePath("/admin/ordini");
+}
+
+export type EsitoRichiesta = { error?: string; fatto?: string };
+
+/**
+ * Chiede la recensione per mail a chi ha comprato. Solo per un ordine
+ * consegnato —spedito o ritirato—: prima non c'è niente da raccontare.
+ */
+export async function chiediRecensioneAzione(_previo: EsitoRichiesta, formData: FormData): Promise<EsitoRichiesta> {
+  await requireSession();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return { error: "Ordine non valido." };
+  if (!correoConfigurado()) return { error: "La posta non è configurata: copia il link e mandalo tu." };
+  const [ordine, chiave] = await Promise.all([getOrdine(id), chiaveRecensione(id)]);
+  if (!ordine || !chiave) return { error: "Quest'ordine non c'è più." };
+  if (ordine.stato !== "spedito") return { error: "Si chiede quando l'ordine è consegnato." };
+  try {
+    await chiediRecensione(ordine, linkRecensione(site.url, chiave));
+    await segnaRecensioneChiesta(id);
+  } catch (e) {
+    console.error(`Ordini: la mail della recensione dell'ordine ${id} non è partita.`, e);
+    return { error: "La mail non è partita. Riprova, o copia il link e mandalo tu." };
+  }
+  revalidatePath("/admin/ordini");
+  return { fatto: `Mail partita a ${ordine.email}.` };
+}
+
+/** Toglie una recensione dallo Shop. Non si riscrive: è di chi l'ha lasciata. */
+export async function cancellaRecensioneAzione(formData: FormData): Promise<void> {
+  await requireSession();
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id)) return;
+  await cancellaRecensione(id);
+  revalidatePath("/admin/ordini");
+  revalidatePath("/shop", "layout");
 }
