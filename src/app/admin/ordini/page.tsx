@@ -3,6 +3,7 @@ import { prezzo, variante } from "@/data/shop";
 import { site } from "@/data/site";
 import Stelle from "@/components/Stelle";
 import { correoConfigurado } from "@/lib/correo";
+import { statoMigrazioneRecensioni } from "@/lib/migrazioni";
 import { richiediAccesso } from "@/lib/auth";
 import { bigliettiPerOrdine, type Codice } from "@/lib/codici";
 import { oggiInItalia } from "@/lib/oggi";
@@ -18,6 +19,7 @@ import { sumupConfigurato, sumupInProva } from "@/lib/sumup";
 import { pingDb } from "@/lib/works";
 import BigliettoOrdine from "../components/BigliettoOrdine";
 import RimborsaOrdine from "../components/RimborsaOrdine";
+import AttivaRecensioni from "../components/AttivaRecensioni";
 import RecensioneOrdine from "../components/RecensioneOrdine";
 import RitiroOrdine from "../components/RitiroOrdine";
 import Sezione from "../components/Sezione";
@@ -67,6 +69,7 @@ export default async function OrdiniPage() {
     listRecensioni(),
     statoRecensioniOrdini(),
   ]);
+  const migrazione = await statoMigrazioneRecensioni();
   const oggi = oggiInItalia();
   const daSpedire = ordini.filter((o) => o.stato === "pagato" && o.consegna === "spedizione");
   const daRitirare = ordini.filter((o) => o.stato === "pagato" && o.consegna === "ritiro");
@@ -174,7 +177,9 @@ export default async function OrdiniPage() {
             </>
           }
         >
-          {recensioni.length === 0 ? (
+          {!migrazione.pronte ? (
+            <AttivaRecensioni errore={migrazione.errore} />
+          ) : recensioni.length === 0 ? (
             <p className="prose-measure text-sm text-ink-faint">Non è ancora arrivata nessuna recensione.</p>
           ) : (
             <ul className="border-t border-line lg:-mt-6 lg:border-t-0">
