@@ -931,7 +931,7 @@ export async function chiediRecensione(o: Ordine, link: string): Promise<void> {
     from: desde(),
     to: o.email,
     replyTo: para(),
-    subject: `Com’è arrivato? — ordine #${o.id}`,
+    subject: `Com’è andata? — ordine #${o.id}`,
     html: lettera(
       "Due righe e qualche stella, se ti va.",
       `<tr><td class="px" style="padding:36px 40px 8px;">
