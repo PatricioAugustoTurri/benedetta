@@ -25,9 +25,13 @@ npx tsc --noEmit                 # chequeo de tipos
 | `/ilustraciones` | Obra completa, con filtro por categoría y visor ampliado   |
 | `/sobre-mi`      | Bio, cómo trabaja, clientes                                |
 | `/contacto`      | Mail, redes, ubicación                                     |
+| `/resena/<código>` | Formulario para que un comprador deje su reseña          |
+| `/resena`        | Para tipear el código a mano (si vino en una tarjeta)      |
+| `/admin`         | Panel privado: generar links y moderar reseñas             |
 
-Las cuatro páginas se generan estáticas, así que el sitio se puede publicar en
-cualquier hosting (Vercel, Netlify, Cloudflare Pages) sin configuración extra.
+Inicio e Ilustraciones se arman en cada visita para mostrar las reseñas al día;
+el resto es estático. Ver [Reseñas de compradores](#reseñas-de-compradores) para
+lo que hay que configurar en el hosting.
 
 ## Cómo cambiar el contenido
 
@@ -75,6 +79,51 @@ grilla. Para poner las reales:
    junto con `public/retrato.svg`.
 
 Lo mismo con `public/retrato.svg`: reemplazalo por la foto real.
+
+## Reseñas de compradores
+
+Quien compra una obra puede dejar estrellas (1 a 5) y un comentario **sin crear
+ninguna cuenta**. Para que sólo opinen compradores reales, cada venta lleva un
+link único que sirve para una sola reseña.
+
+### Cómo se usa
+
+1. Entrá a `/admin` con tu contraseña.
+2. En **Nuevo link para un comprador** elegí la obra vendida y, si querés, el
+   nombre del comprador y una nota privada (n.º de pedido, canal de venta).
+3. Tocá **Generar link** y mandalo como prefieras:
+   - **Enviar por WhatsApp** abre WhatsApp con un mensaje ya escrito.
+   - **Copiar link** / **Copiar mensaje** para mail, Instagram, etc.
+   - O imprimí el **código** (ej. `abcde-fghjk`) en una tarjeta dentro del
+     paquete: se ingresa en `tusitio.com/resena`.
+4. Cuando el comprador la envía, la reseña se publica al instante: aparece con
+   estrellas en la tarjeta de la obra, en el visor ampliado ("4,5 · 2 reseñas")
+   y las tres más nuevas en la portada.
+5. Desde el panel podés **anular** links sin usar y **borrar** reseñas. Borrar
+   una reseña no rehabilita su link.
+
+### Configuración (una sola vez, en Vercel)
+
+Hacen falta dos cosas: una base de datos donde guardar las reseñas y la
+contraseña del panel.
+
+1. **Base de datos.** En el proyecto de Vercel: *Storage → Create Database →
+   Upstash for Redis* (el plan gratis alcanza de sobra) y conectala al
+   proyecto. Vercel crea solas las variables `KV_REST_API_URL` y
+   `KV_REST_API_TOKEN`. (Si creás la base directo en upstash.com, cargá
+   `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN`.)
+2. **Contraseña.** En *Settings → Environment Variables* agregá
+   `ADMIN_PASSWORD` con una contraseña larga (8 caracteres o más).
+3. Volvé a publicar (*Deployments → Redeploy*).
+
+Si la base no está configurada el sitio sigue funcionando normal, sólo que sin
+reseñas.
+
+### Probarlo en tu compu
+
+Copiá `.env.example` como `.env.local` y completá `ADMIN_PASSWORD`. Sin las
+variables de Redis, en `npm run dev` las reseñas se guardan en
+`.data/store.json` (ignorado por git).
 
 ## Decisiones de diseño
 

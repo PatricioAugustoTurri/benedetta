@@ -1,10 +1,19 @@
 import Link from "next/link";
 import Gallery from "@/components/Gallery";
 import Reveal from "@/components/Reveal";
+import Stars, { formatAverage } from "@/components/Stars";
 import { featured } from "@/data/illustrations";
 import { site } from "@/data/site";
+import { getPublicReviews, illustrationBySlug, summarize } from "@/lib/reviews";
 
-export default function Home() {
+export default async function Home() {
+  const reviews = await getPublicReviews();
+  const all = Object.values(reviews)
+    .flat()
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const total = summarize(all);
+  const latest = all.slice(0, 3);
+
   return (
     <>
       {/* Portada: poco texto, mucho aire. La obra aparece enseguida. */}
@@ -53,8 +62,46 @@ export default function Home() {
           </div>
         </Reveal>
 
-        <Gallery items={featured} />
+        <Gallery items={featured} reviews={reviews} />
       </section>
+
+      {latest.length > 0 && (
+        <section className="shell mt-28" aria-labelledby="resenas">
+          <Reveal>
+            <div className="mb-10 flex flex-wrap items-baseline justify-between gap-4 border-b border-line pb-5">
+              <h2 id="resenas" className="eyebrow">
+                Lo que dicen quienes compraron
+              </h2>
+              <p className="flex items-center gap-2 text-sm text-ink-soft">
+                <Stars value={total.average} />
+                <span className="tabular-nums">
+                  {formatAverage(total.average)} · {total.count}{" "}
+                  {total.count === 1 ? "reseña" : "reseñas"}
+                </span>
+              </p>
+            </div>
+          </Reveal>
+
+          <ul className="grid gap-12 md:grid-cols-3 md:gap-10">
+            {latest.map((r, i) => (
+              <li key={r.id}>
+                <Reveal delay={i * 90}>
+                  <figure>
+                    <Stars value={r.rating} className="text-sm" />
+                    <blockquote className="mt-4 font-display text-xl leading-snug tracking-[-0.01em]">
+                      “{r.comment.length > 220 ? `${r.comment.slice(0, 220).trimEnd()}…` : r.comment}”
+                    </blockquote>
+                    <figcaption className="mt-4 text-sm text-ink-soft">
+                      {r.name}
+                      <span className="text-ink-faint"> · sobre {illustrationBySlug(r.slug)?.title}</span>
+                    </figcaption>
+                  </figure>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Cierre: una sola invitación clara. */}
       <section className="shell mt-28">

@@ -3,16 +3,20 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import Lightbox from "@/components/Lightbox";
+import Stars from "@/components/Stars";
 import type { Category, Illustration } from "@/data/illustrations";
+import type { PublicReview } from "@/lib/review-types";
 
 type Props = {
   items: Illustration[];
   /** Muestra los botones para filtrar por categoría. */
   filterable?: boolean;
   categories?: Category[];
+  /** Reseñas de compradores, por slug de obra. */
+  reviews?: Record<string, PublicReview[]>;
 };
 
-export default function Gallery({ items, filterable = false, categories = [] }: Props) {
+export default function Gallery({ items, filterable = false, categories = [], reviews = {} }: Props) {
   const [active, setActive] = useState<Category | "Todo">("Todo");
   const [open, setOpen] = useState<number | null>(null);
 
@@ -77,6 +81,7 @@ export default function Gallery({ items, filterable = false, categories = [] }: 
               <span className="mt-0.5 block text-xs text-ink-soft">
                 {item.client ?? item.category} · {item.medium}
               </span>
+              <RatingLine reviews={reviews[item.slug]} />
             </button>
           </li>
         ))}
@@ -85,11 +90,25 @@ export default function Gallery({ items, filterable = false, categories = [] }: 
       {open !== null && (
         <Lightbox
           items={shown}
+          reviews={reviews}
           index={open}
           onClose={() => setOpen(null)}
           onNavigate={setOpen}
         />
       )}
     </>
+  );
+}
+
+function RatingLine({ reviews }: { reviews?: PublicReview[] }) {
+  if (!reviews?.length) return null;
+  const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+  return (
+    <span className="mt-1.5 flex items-center gap-2 text-[0.8125rem]">
+      <Stars value={avg} />
+      <span className="text-xs tabular-nums text-ink-faint">
+        {reviews.length} {reviews.length === 1 ? "reseña" : "reseñas"}
+      </span>
+    </span>
   );
 }

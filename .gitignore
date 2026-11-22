@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# datos locales de reseñas (sólo desarrollo)
+/.data/
+
+# ejemplo de variables, sí se versiona
+!.env.example
