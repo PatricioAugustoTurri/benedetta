@@ -503,7 +503,7 @@ code {
 /* ---------------------------------------------------------------
    La firma che si ripassa (FirmaLogo)
 
-   Sopra la scansione ci sono due copie della firma in colore d'accento,
+   Sopra la scansione ci sono due copie della firma in giallo oro,
    invisibili. Ognuna ha due maschere che si intersecano: la firma stessa,
    ferma, che le dà la forma dell'inchiostro, e una sfumatura larga due volte
    e mezzo il logotipo che scorre da destra a sinistra e scopre l'inchiostro
@@ -523,13 +523,23 @@ code {
 
    La maschera della firma è dichiarata sempre, anche da ferma, così il
    file è già arrivato quando il mouse ci si appoggia per la prima volta.
+
+   L'inchiostro del ripasso è giallo oro, non terracotta (cliente,
+   2026-11-22): il giallo della stella a pastello. È l'unico posto del sito
+   dove compare, e vive qui sotto, in `--firma-inchiostro`. Oro e non
+   limone: un giallo chiaro sulla carta crema sparirebbe, e la firma deve
+   restare leggibile mentre si ripassa.
 */
+.firma {
+  --firma-inchiostro: #eaa62a;
+}
+
 .firma-ripasso {
   position: absolute;
   inset: 0;
   pointer-events: none;
   opacity: 0;
-  background-color: var(--color-accent);
+  background-color: var(--firma-inchiostro);
   -webkit-mask-image:
     url("/benedetta-zibetti-wordmark.png"),
     linear-gradient(90deg, #000 45%, transparent 55%);
@@ -574,32 +584,46 @@ code {
   della larghezza, e lì a destra non c'è inchiostro). Sporge appena oltre
   il bordo: è assoluta, quindi l'header non si sposta di un pixel.
 
-  Il tratto ha lo spessore della penna della firma, un filo più sottile
-  perché in una stella così piccola le cinque linee non chiudano il centro.
+  È una stella a pastello: il pieno in giallo oro e, sopra, i segni chiari
+  del pastello, che a questa misura non si contano ma tolgono al colore la
+  piattezza di un'icona.
 
-  Il tempo continua quello della firma: parte quando la penna arriva in
-  fondo a «Zibetti» (0,98 s), si disegna con la stessa curva di una mano che
-  scrive, e appena chiusa batte una volta —come una stella che si accende—
-  e si posa. Poi si asciuga insieme alla firma e sparisce: nella scansione
-  non c'è, e il logotipo torna com'era.
+  Il tempo continua quello della firma: quando la penna arriva in fondo a
+  «Zibetti» (0,98 s) la mano la colora, andata e ritorno dall'alto in basso
+  (la maschera `.firma-stella-gesto` che si scopre), con la stessa curva di
+  una mano che scrive. Appena piena batte una volta —come una stella che si
+  accende— e si posa. Poi si asciuga insieme alla firma e sparisce: nella
+  scansione non c'è, e il logotipo torna com'era.
 */
 .firma-stella {
   position: absolute;
-  left: 90.6%;
-  top: 52.5%;
-  width: 13.6%;
+  left: 88.6%;
+  top: 45%;
+  width: 19%;
   aspect-ratio: 1;
   overflow: visible;
   pointer-events: none;
   opacity: 0;
-  color: var(--color-accent);
+  color: var(--firma-inchiostro);
   transform: rotate(-6deg);
 }
 
-.firma-stella path {
+.firma-stella-pieno {
+  fill: currentColor;
+}
+
+.firma-stella-pastello {
   fill: none;
-  stroke: currentColor;
-  stroke-width: 2.7;
+  stroke: color-mix(in srgb, var(--firma-inchiostro) 55%, #fff);
+  stroke-width: 0.32;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+.firma-stella-gesto {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 11;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 1;
@@ -609,12 +633,12 @@ code {
 .firma[data-ripassa] .firma-stella {
   animation:
     firma-stella-appare 0.01s linear 0.98s both,
-    firma-stella-batte 0.5s var(--ease-out-soft) 1.44s both,
+    firma-stella-batte 0.5s var(--ease-out-soft) 1.5s both,
     firma-stella-asciuga 0.8s var(--ease-out-soft) 1.75s forwards;
 }
 
-.firma[data-ripassa] .firma-stella path {
-  animation: firma-stella-traccia 0.48s cubic-bezier(0.45, 0.05, 0.4, 1) 0.98s both;
+.firma[data-ripassa] .firma-stella-gesto {
+  animation: firma-stella-traccia 0.55s cubic-bezier(0.45, 0.05, 0.4, 1) 0.98s both;
 }
 
 @keyframes firma-stella-traccia {
@@ -683,7 +707,7 @@ code {
 }
 
 /*
-  Senza movimento la penna non corre: la firma prende il colore d'accento
+  Senza movimento la penna non corre: la firma prende il giallo oro
   tutta insieme, piano, finché il mouse ci resta, e torna nera quando esce.
   Il cambio di colore resta perché è la risposta al passaggio. È una
   transizione di opacità e non un'animazione: la regola generale per chi
@@ -712,12 +736,12 @@ code {
     transition: opacity 0.4s var(--ease-out-soft);
   }
 
-  .firma-stella path {
+  .firma-stella-gesto {
     stroke-dashoffset: 0;
   }
 
   .firma[data-ripassa] .firma-stella,
-  .firma[data-ripassa] .firma-stella path {
+  .firma[data-ripassa] .firma-stella-gesto {
     animation: none;
   }
 
