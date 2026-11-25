@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
-import { commissioneDi, NOME_CANALE, registroPeriodo } from "@/lib/conti";
+import { commissioneDi, conForfettario, forfettarioDi, NOME_CANALE, registroPeriodo } from "@/lib/conti";
 
 /**
  * I conti di un mese o di un anno in un foglio di calcolo, per il
@@ -10,7 +10,8 @@ import { commissioneDi, NOME_CANALE, registroPeriodo } from "@/lib/conti";
  * Numbers aprono da soli in Italia: punto e virgola, decimali con la virgola,
  * BOM in testa. Vendite e spese stanno nello stesso foglio, una per riga e in
  * ordine di data, con le entrate e le uscite in due colonne: così una somma
- * per colonna dà le vendite e le spese, e la differenza il netto.
+ * per colonna dà le vendite e le spese, e la differenza il netto. Il
+ * forfettario è una colonna di riferimento: non entra in quella differenza.
  */
 export async function GET(request: NextRequest) {
   if (!(await isAuthenticated())) return new Response("Accedi di nuovo.", { status: 401 });
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
 
   const intestazione = [
     "Tipo", "Numero", "Data", "Canale", "Cliente", "Email", "Telefono", "Descrizione",
-    "Entrata €", "Uscita €", "Commissione SumUp €", "Pagato il", "Consegna", "Consegnato il",
+    "Entrata €", "Uscita €", "Commissione SumUp €", "Forfettario € (rif.)", "Pagato il", "Consegna", "Consegnato il",
   ];
   const righe = [
     ...vendite.map((v) => ({
@@ -48,6 +49,7 @@ export async function GET(request: NextRequest) {
         euro(v.importo),
         "",
         v.canale === "sumup" ? euro(commissioneDi(v)) : "",
+        conForfettario(v.canale) ? euro(forfettarioDi(v)) : "",
         v.pagatoIl ? data(v.pagatoIl) : "Da incassare",
         v.consegna === "spedizione" ? "Spedizione" : "A mano",
         v.consegnatoIl ? data(v.consegnatoIl) : "Da fare",
@@ -55,7 +57,7 @@ export async function GET(request: NextRequest) {
     })),
     ...spese.map((s) => ({
       giorno: s.giorno,
-      celle: ["Spesa", "", data(s.giorno), "", "", "", "", s.descrizione, "", euro(s.importo), "", "", "", ""],
+      celle: ["Spesa", "", data(s.giorno), "", "", "", "", s.descrizione, "", euro(s.importo), "", "", "", "", ""],
     })),
   ].sort((a, b) => a.giorno.localeCompare(b.giorno));
 

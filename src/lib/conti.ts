@@ -81,6 +81,8 @@ export type ContoMese = {
   spese: number;
   /** Quello che SumUp trattiene sulle vendite SumUp del mese. */
   commissioni: number;
+  /** Di riferimento, non si toglie da niente: vedi `forfettarioDi`. */
+  forfettario: number;
 };
 
 export const venditeDi = (c: ContoMese) => c.contanti + c.bonifico + c.sumup + c.paypal;
@@ -97,7 +99,22 @@ export const COMMISSIONE_SUMUP = 0.025;
 export const commissioneDi = (v: { canale: Canale; importo: number }) =>
   v.canale === "sumup" ? Math.round(v.importo * COMMISSIONE_SUMUP) : 0;
 
-export const numeroVendita = (anno: number, numero: number) => `V-${anno}-${String(numero).padStart(3, "0")}`;
+/**
+ * Quanto mettere da parte per la partita IVA forfettaria: il 31 % del 78 %
+ * di ogni vendita con bonifico o SumUp (anche quelle del sito), cioè il
+ * 24,18 % del prezzo (cliente, 2026-11-25). È solo un riferimento: non si
+ * toglie dalle vendite né dal netto. Contanti e PayPal non ne hanno. Come la
+ * commissione, si calcola vendita per vendita e si arrotonda al centesimo.
+ * In interi —per cento e per cento— perché 0,78 × 0,31 in virgola mobile non
+ * dà 0,2418 esatto.
+ */
+export const COEFFICIENTE_FORFETTARIO = 78;
+export const ALIQUOTA_FORFETTARIO = 31;
+export const conForfettario = (c: Canale) => c === "bonifico" || c === "sumup";
+export const forfettarioDi = (v: { canale: Canale; importo: number }) =>
+  conForfettario(v.canale) ? Math.round((v.importo * COEFFICIENTE_FORFETTARIO * ALIQUOTA_FORFETTARIO) / 10000) : 0;
+
+export const numeroVendita =(anno: number, numero: number) => `V-${anno}-${String(numero).padStart(3, "0")}`;
 
 const giornoItaliano = (d: Date) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Rome" }).format(d);
 
@@ -362,23 +379,25 @@ export async function cancellaSpesa(id: number): Promise<void> {
 /** Le dodici righe di un anno, anche quelle vuote. Una vendita conta nel mese in cui si è fatta, pagata o no. */
 export async function contiAnno(anno: number): Promise<ContoMese[]> {
   const [vendite, ordini, spese] = await Promise.all([
-    query<{ mese: number; canale: string; somma: string; commissioni: string }>(
+    query<{ mese: number; canale: string; somma: string; commissioni: string; forfettario: string }>(
       `SELECT extract(month FROM giorno)::int AS mese, canale, sum(importo)::bigint AS somma,
-              sum(round(importo * $2::numeric))::bigint AS commissioni
+              sum(round(importo * $2::numeric))::bigint AS commissioni,
+              sum(round(importo * $3::numeric / 10000))::bigint AS forfettario
          FROM vendite
         WHERE giorno >= make_date($1, 1, 1) AND giorno < make_date($1 + 1, 1, 1)
         GROUP BY 1, 2`,
-      [anno, COMMISSIONE_SUMUP],
+      [anno, COMMISSIONE_SUMUP, COEFFICIENTE_FORFETTARIO * ALIQUOTA_FORFETTARIO],
     ),
-    query<{ mese: number; somma: string; commissioni: string }>(
+    query<{ mese: number; somma: string; commissioni: string; forfettario: string }>(
       `SELECT extract(month FROM created_at AT TIME ZONE 'Europe/Rome')::int AS mese, sum(totale)::bigint AS somma,
-              sum(round(totale * $2::numeric))::bigint AS commissioni
+              sum(round(totale * $2::numeric))::bigint AS commissioni,
+              sum(round(totale * $3::numeric / 10000))::bigint AS forfettario
          FROM ordini
         WHERE stato <> 'rimborsato'
           AND created_at AT TIME ZONE 'Europe/Rome' >= make_date($1, 1, 1)
           AND created_at AT TIME ZONE 'Europe/Rome' < make_date($1 + 1, 1, 1)
         GROUP BY 1`,
-      [anno, COMMISSIONE_SUMUP],
+      [anno, COMMISSIONE_SUMUP, COEFFICIENTE_FORFETTARIO * ALIQUOTA_FORFETTARIO],
     ),
     query<{ mese: number; somma: string }>(
       `SELECT extract(month FROM giorno)::int AS mese, sum(importo)::bigint AS somma
@@ -389,21 +408,34 @@ export async function contiAnno(anno: number): Promise<ContoMese[]> {
     ),
   ]);
 
-  const mesi: ContoMese[] = Array.from({ length: 12 }, (_, i) => ({ mese: i + 1, contanti: 0, bonifico: 0, sumup: 0, paypal: 0, spese: 0, commissioni: 0 }));
+  const mesi: ContoMese[] = Array.from({ length: 12 }, (_, i) => ({
+    mese: i + 1,
+    contanti: 0,
+    bonifico: 0,
+    sumup: 0,
+    paypal: 0,
+    spese: 0,
+    commissioni: 0,
+    forfettario: 0,
+  }));
   for (const r of vendite) {
     const m = mesi[Number(r.mese) - 1];
-    if (r.canale === "bonifico") m.bonifico += Number(r.somma);
-    else if (r.canale === "paypal") m.paypal += Number(r.somma);
+    if (r.canale === "bonifico") {
+      m.bonifico += Number(r.somma);
+      m.forfettario += Number(r.forfettario);
+    } else if (r.canale === "paypal") m.paypal += Number(r.somma);
     else if (r.canale === "sumup") {
       m.sumup += Number(r.somma);
       m.commissioni += Number(r.commissioni);
+      m.forfettario += Number(r.forfettario);
     } else m.contanti += Number(r.somma);
   }
-  // Il sito incassa con SumUp: paga la stessa commissione.
+  // Il sito incassa con SumUp: paga la stessa commissione e conta per il forfettario.
   for (const r of ordini) {
     const m = mesi[Number(r.mese) - 1];
     m.sumup += Number(r.somma);
     m.commissioni += Number(r.commissioni);
+    m.forfettario += Number(r.forfettario);
   }
   for (const r of spese) mesi[Number(r.mese) - 1].spese = Number(r.somma);
   return mesi;

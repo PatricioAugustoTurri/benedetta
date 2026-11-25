@@ -61,7 +61,8 @@ const giornoBreve = (iso: string) =>
  * I conti. Dall'alto:
  *
  * - **Il mese**: contanti, bonifico, SumUp —il lettore e il sito—, PayPal, il totale,
- *   le spese, quello che trattiene SumUp e il netto, e
+ *   le spese, quello che trattiene SumUp e il netto; sotto, a parte, il
+ *   forfettario da mettere da parte, che non si toglie da niente; e
  *   quello che aspetta —da incassare, da spedire, da consegnare— in
  *   terracotta, che porta dritto alle righe da fare.
  * - **Il registro delle vendite**, a tutta larghezza perché è una tabella da
@@ -149,8 +150,9 @@ export default async function ContiPage({ searchParams }: Props) {
       paypal: t.paypal + c.paypal,
       spese: t.spese + c.spese,
       commissioni: t.commissioni + c.commissioni,
+      forfettario: t.forfettario + c.forfettario,
     }),
-    { mese: 0, contanti: 0, bonifico: 0, sumup: 0, paypal: 0, spese: 0, commissioni: 0 },
+    { mese: 0, contanti: 0, bonifico: 0, sumup: 0, paypal: 0, spese: 0, commissioni: 0, forfettario: 0 },
   );
 
   const [annoPrima, mesePrima] = sposta(anno, mese, -1);
@@ -196,6 +198,8 @@ export default async function ContiPage({ searchParams }: Props) {
             <Cifra nome="Commissioni SumUp" valore={prezzo(questo.commissioni)} />
             <Cifra nome="Netto" valore={firmato(nettoDi(questo))} forte />
           </dl>
+
+          <Forfettario cifra={questo.forfettario} />
 
           {pendenti.length > 0 && (
             <p className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-4 text-sm">
@@ -387,7 +391,7 @@ export default async function ContiPage({ searchParams }: Props) {
           }
         >
           <div className="-mx-4 overflow-x-auto px-4 lg:-mt-4">
-            <table className="figures w-full min-w-[52rem] border-collapse text-sm">
+            <table className="figures w-full min-w-[58rem] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-line text-left text-xs text-ink-faint">
                   <th scope="col" className="py-2 pr-4 font-normal">
@@ -398,6 +402,11 @@ export default async function ContiPage({ searchParams }: Props) {
                       {t}
                     </th>
                   ))}
+                  <th scope="col" className="border-l border-line py-2 pl-4 text-right font-normal">
+                    <abbr title="Di riferimento, non tolto dal netto" className="no-underline">
+                      Forfettario
+                    </abbr>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -422,6 +431,7 @@ export default async function ContiPage({ searchParams }: Props) {
                       <Cella c={c.spese} />
                       <Cella c={c.commissioni} />
                       <Cella c={nettoDi(c)} forte netto />
+                      <Cella c={c.forfettario} riferimento />
                     </tr>
                   );
                 })}
@@ -439,6 +449,7 @@ export default async function ContiPage({ searchParams }: Props) {
                   <Cella c={totaleAnno.spese} forte />
                   <Cella c={totaleAnno.commissioni} forte />
                   <Cella c={nettoDi(totaleAnno)} forte netto />
+                  <Cella c={totaleAnno.forfettario} riferimento />
                 </tr>
               </tfoot>
             </table>
@@ -627,12 +638,40 @@ function Cifra({ nome, valore, forte = false }: { nome: string; valore: string; 
   );
 }
 
+/**
+ * Il forfettario del mese: quanto mettere da parte per la partita IVA, il
+ * 31 % del 78 % di bonifico e SumUp. Sta fuori dalle cifre, sotto una riga,
+ * perché non entra nel netto: è solo da sapere.
+ */
+function Forfettario({ cifra }: { cifra: number }) {
+  return (
+    <p className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-t border-dashed border-line pt-4 text-sm">
+      <span className="text-ink-faint">Forfettario, di riferimento</span>
+      <span className="figures text-ink-soft">{prezzo(cifra)}</span>
+      <span className="text-xs text-ink-faint">
+        31 % del 78 % di bonifico e SumUp · non è tolto dal netto
+      </span>
+    </p>
+  );
+}
+
 /** Lo zero è un trattino pallido: in una colonna di mesi vuoti, si leggono solo quelli pieni. */
-function Cella({ c, forte = false, netto = false }: { c: number; forte?: boolean; netto?: boolean }) {
+function Cella({
+  c,
+  forte = false,
+  netto = false,
+  riferimento = false,
+}: {
+  c: number;
+  forte?: boolean;
+  netto?: boolean;
+  /** Una cifra da sapere che non entra nei conti: separata da una riga e più pallida. */
+  riferimento?: boolean;
+}) {
   return (
     <td
-      className={`py-2.5 pl-4 text-right whitespace-nowrap ${
-        c === 0 ? "text-ink-faint" : netto && c < 0 ? "text-accent" : forte ? "text-ink" : "text-ink-soft"
+      className={`py-2.5 pl-4 text-right whitespace-nowrap ${riferimento ? "border-l border-line" : ""} ${
+        c === 0 || riferimento ? "text-ink-faint" : netto && c < 0 ? "text-accent" : forte ? "text-ink" : "text-ink-soft"
       }`}
     >
       {c === 0 ? "—" : netto ? firmato(c) : prezzo(c)}
