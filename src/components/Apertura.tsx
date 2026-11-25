@@ -13,8 +13,9 @@ import { dipingi } from "./pennello";
  *   attesa  → arriva dal server: solo il fondo prugna dell'opera, l'immagine
  *             ancora invisibile. Niente parte finché l'immagine non è pronta,
  *             così non si vede mai un'opera che si carica a strisce.
- *   scena   → il pennello la stende sul fondo prugna (vedi `pennello.ts`),
- *             cominciando dalla stella e dal viso; quando ha finito, il
+ *   scena   → il pennello la stende sul fondo prugna (vedi `pennello.ts`):
+ *             prima le masse a colore pieno, poi il disegno, poi i ritocchi,
+ *             cominciando ogni volta dalla stella e dal viso; quando ha finito, il
  *             colore «si chiude»: l'immagine vera sale sopra le pennellate e
  *             copre le righe rimaste scoperte.
  *   uscita  → il telo sale e scopre la pagina; a fine corsa il nodo si toglie.
@@ -27,8 +28,9 @@ import { dipingi } from "./pennello";
 // stesso colore, così prima che l'immagine arrivi c'è già il suo spazio.
 const FONDO = "#533938";
 
-// Quanto dura la pittura, dalla prima all'ultima pennellata.
-const PITTURA_MS = 1600;
+// Quanto dura la pittura, dalla prima all'ultima pennellata: abbozzo,
+// stesura e ritocchi (vedi `pennello.ts`).
+const PITTURA_MS = 1900;
 // Quanto resta l'opera finita prima di alzarsi.
 const SOSTA_MS = 1100;
 // Con il movimento ridotto non si dipinge: compare e resta.

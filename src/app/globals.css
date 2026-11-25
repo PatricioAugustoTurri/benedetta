@@ -1092,9 +1092,11 @@ code {
    L'apertura della home — la muove <Apertura/>.
 
    Un gesto solo: l'opera si dipinge, resta, e si alza come un telo
-   sopra l'archivio. La pittura la fa un canvas (components/pennello.ts):
-   il pennello porta l'immagine stessa e la scopre a pennellate sul fondo
-   prugna, che è il colore del suo fondo. Finite le pennellate, l'immagine
+   sopra l'archivio. La pittura la fa un canvas (components/pennello.ts),
+   in tre passate che seguono la forma del disegno: le masse a colore
+   pieno, poi il pennello che porta l'immagine stessa e la scopre, poi i
+   ritocchi fini su viso e stella. Il fondo prugna non si dipinge: è il
+   colore del suo fondo. Finite le pennellate, l'immagine
    vera sale sopra e chiude le righe rimaste scoperte. Il bordo che sale porta il filetto terracotta,
    lo stesso che apre ogni sezione: l'apertura finisce disegnando la
    prima riga del sistema, non un effetto a parte.
