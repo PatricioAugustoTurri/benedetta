@@ -515,9 +515,9 @@ code {
    «Zibetti» parte prima che «Benedetta» finisca, come la mano che scende
    già alla riga dopo.
 
-   Finito «Zibetti», la penna disegna una stella (`.firma-stella`, più
-   sotto), e solo dopo l'inchiostro si asciuga: le copie sfumano e resta il
-   nero della scansione. In tutto due secondi e mezzo, che non fanno
+   Finito «Zibetti», la penna esce dalla «i» e disegna una stella
+   (`.firma-tratti`, più sotto), e solo dopo l'inchiostro si asciuga: le
+   copie sfumano e resta il nero della scansione. In tutto tre secondi, che non fanno
    aspettare nessuno perché il logotipo resta leggibile e cliccabile per
    tutto il tempo.
 
@@ -567,45 +567,90 @@ code {
 .firma[data-ripassa] .firma-ripasso--sopra {
   animation:
     firma-scrivi 0.62s cubic-bezier(0.45, 0.05, 0.4, 1) both,
-    firma-asciuga 0.8s var(--ease-out-soft) 1.75s forwards;
+    firma-asciuga 0.75s var(--ease-out-soft) 2.2s forwards;
 }
 
 .firma[data-ripassa] .firma-ripasso--sotto {
   animation:
     firma-scrivi 0.56s cubic-bezier(0.45, 0.05, 0.4, 1) 0.5s both,
-    firma-asciuga 0.8s var(--ease-out-soft) 1.75s forwards;
+    firma-asciuga 0.75s var(--ease-out-soft) 2.2s forwards;
 }
 
 /*
-  La stella che chiude la firma.
+  Dopo la firma (`.firma-tratti`).
 
-  Sta a destra di «Zibetti», all'altezza della «i»: le misure sono in
-  percentuale del logotipo, prese dalla scansione (la firma finisce al 90%
-  della larghezza, e lì a destra non c'è inchiostro). Sporge appena oltre
-  il bordo: è assoluta, quindi l'header non si sposta di un pixel.
+  Quando la penna arriva in fondo a «Zibetti» non si stacca: esce dalla
+  coda della «i» con uno svolazzo veloce —accelera, come una mano che
+  scatta— e sale alla punta in basso della stella. Da lì ne disegna il
+  contorno in un giro solo, con lo stesso inchiostro della firma, e mentre
+  lo chiude la riempie a pastello, andata e ritorno dall'alto in basso (la
+  maschera `.firma-stella-gesto`). Il pastello è un giallo più chiaro
+  dell'inchiostro e lascia vedere la carta (il filtro `#firma-stella-grana`
+  nel componente): è un altro strumento, e si deve capire.
 
-  È una stella a pastello: il pieno in giallo oro e, sopra, i segni chiari
-  del pastello, che a questa misura non si contano ma tolgono al colore la
-  piattezza di un'icona.
+  Piena, la stella si accende: un battito solo, il giallo che schiarisce e
+  torna, e quattro trattini che la penna tira fuori fra le punte e che se
+  ne vanno subito. Poi resta un attimo ferma e si asciuga con la firma:
+  nella scansione non c'è, e il logotipo torna com'era.
 
-  Il tempo continua quello della firma: quando la penna arriva in fondo a
-  «Zibetti» (0,98 s) la mano la colora, andata e ritorno dall'alto in basso
-  (la maschera `.firma-stella-gesto` che si scopre), con la stessa curva di
-  una mano che scrive. Appena piena batte una volta —come una stella che si
-  accende— e si posa. Poi si asciuga insieme alla firma e sparisce: nella
-  scansione non c'è, e il logotipo torna com'era.
+  Il tempo, in secondi dall'entrata del mouse:
+    0      «Benedetta»
+    0,5    «Zibetti»
+    1      lo svolazzo (0,16)
+    1,12   il contorno (0,42)
+    1,32   il pastello (0,5)
+    1,8    si accende (0,6), i luccichii (0,55)
+    2,2    si asciuga tutto insieme (0,75): finito a 2,95.
+
+  Tutto è assoluto sopra il logotipo, quindi l'header non si sposta di un
+  pixel; la stella e i luccichii sporgono a destra, dove non c'è niente.
+
+  I tratti partono da uno scarto di 1,02 su un passo di 3 (`1 2`), non da 1
+  su 2: un trattino lungo zero col capo tondo disegna comunque un puntino,
+  e prima del suo turno ogni tratto deve essere invisibile.
 */
-.firma-stella {
+.firma {
+  --firma-pastello: #f2bb43;
+  --firma-scintilla: #ffd978;
+}
+
+.firma-tratti {
   position: absolute;
-  left: 88.6%;
-  top: 45%;
-  width: 19%;
-  aspect-ratio: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   overflow: visible;
   pointer-events: none;
   opacity: 0;
-  color: var(--firma-inchiostro);
-  transform: rotate(-6deg);
+}
+
+.firma-svolazzo,
+.firma-stella-contorno,
+.firma-stella-luccichio,
+.firma-stella-gesto {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.02;
+}
+
+.firma-svolazzo,
+.firma-stella-contorno,
+.firma-stella-luccichio {
+  stroke: var(--firma-inchiostro);
+}
+
+/* In misure della scansione: più sottile delle lettere, perché è uno scatto. */
+.firma-svolazzo {
+  stroke-width: 7;
+}
+
+/* Da qui in giù, misure della stella (il suo quadrato di 40). */
+.firma-stella {
+  color: var(--firma-pastello);
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
 }
 
 .firma-stella-pieno {
@@ -614,43 +659,108 @@ code {
 
 .firma-stella-pastello {
   fill: none;
-  stroke: color-mix(in srgb, var(--firma-inchiostro) 55%, #fff);
-  stroke-width: 0.32;
+  stroke: color-mix(in srgb, currentColor 45%, #fff);
+  stroke-width: 0.36;
   stroke-linecap: round;
-  opacity: 0.75;
+  opacity: 0.8;
+}
+
+.firma-stella-contorno {
+  stroke-width: 1.7;
+}
+
+.firma-stella-luccichio {
+  stroke-width: 1.5;
+  opacity: 0;
 }
 
 .firma-stella-gesto {
-  fill: none;
   stroke: #fff;
   stroke-width: 11;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
 }
 
-.firma[data-ripassa] .firma-stella {
+.firma[data-ripassa] .firma-tratti {
   animation:
-    firma-stella-appare 0.01s linear 0.98s both,
-    firma-stella-batte 0.5s var(--ease-out-soft) 1.5s both,
-    firma-stella-asciuga 0.8s var(--ease-out-soft) 1.75s forwards;
+    firma-tratti-appare 0.01s linear 1s both,
+    firma-tratti-asciuga 0.75s var(--ease-out-soft) 2.2s forwards;
+}
+
+.firma[data-ripassa] .firma-svolazzo {
+  animation: firma-traccia 0.16s cubic-bezier(0.5, 0, 0.85, 0.55) 1s both;
+}
+
+.firma[data-ripassa] .firma-stella-contorno {
+  animation: firma-traccia 0.42s cubic-bezier(0.45, 0.05, 0.4, 1) 1.12s both;
 }
 
 .firma[data-ripassa] .firma-stella-gesto {
-  animation: firma-stella-traccia 0.55s cubic-bezier(0.45, 0.05, 0.4, 1) 0.98s both;
+  animation: firma-traccia 0.5s cubic-bezier(0.45, 0.05, 0.4, 1) 1.32s both;
 }
 
-@keyframes firma-stella-traccia {
+.firma[data-ripassa] .firma-stella {
+  animation: firma-stella-accende 0.6s linear 1.8s both;
+}
+
+/* Quattro trattini, ma non tutti insieme: la mano non è una macchina. */
+.firma[data-ripassa] .firma-stella-luccichio {
+  animation: firma-luccica 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) 1.82s forwards;
+}
+
+.firma[data-ripassa] .firma-stella-luccichio:nth-of-type(2) {
+  animation-delay: 1.88s;
+}
+
+.firma[data-ripassa] .firma-stella-luccichio:nth-of-type(3) {
+  animation-delay: 1.85s;
+}
+
+.firma[data-ripassa] .firma-stella-luccichio:nth-of-type(4) {
+  animation-delay: 1.91s;
+}
+
+@keyframes firma-traccia {
   from {
-    stroke-dashoffset: 1;
+    stroke-dashoffset: 1.02;
   }
   to {
     stroke-dashoffset: 0;
   }
 }
 
-@keyframes firma-stella-appare {
+@keyframes firma-stella-accende {
+  0% {
+    transform: none;
+    color: var(--firma-pastello);
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  28% {
+    transform: scale(1.2) rotate(9deg);
+    color: var(--firma-scintilla);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  100% {
+    transform: none;
+    color: var(--firma-pastello);
+  }
+}
+
+/* Il trattino esce dalla punta, arriva in fondo, e se ne va da quella parte. */
+@keyframes firma-luccica {
+  0% {
+    opacity: 1;
+    stroke-dashoffset: 1.02;
+  }
+  45% {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    opacity: 0;
+    stroke-dashoffset: -1;
+  }
+}
+
+@keyframes firma-tratti-appare {
   from {
     opacity: 0;
   }
@@ -659,19 +769,7 @@ code {
   }
 }
 
-@keyframes firma-stella-batte {
-  0% {
-    transform: rotate(-6deg) scale(1);
-  }
-  35% {
-    transform: rotate(4deg) scale(1.16);
-  }
-  100% {
-    transform: rotate(-6deg) scale(1);
-  }
-}
-
-@keyframes firma-stella-asciuga {
+@keyframes firma-tratti-asciuga {
   from {
     opacity: 1;
   }
@@ -731,22 +829,31 @@ code {
     opacity: 1;
   }
 
-  /* La stella c'è già intera, e arriva con lo stesso cambio di colore. */
-  .firma-stella {
+  /*
+    Lo svolazzo e la stella ci sono già interi, senza battito né
+    luccichii, e arrivano con lo stesso cambio di colore della firma.
+  */
+  .firma-tratti {
     transition: opacity 0.4s var(--ease-out-soft);
   }
 
+  .firma-svolazzo,
+  .firma-stella-contorno,
   .firma-stella-gesto {
     stroke-dashoffset: 0;
   }
 
+  .firma[data-ripassa] .firma-tratti,
+  .firma[data-ripassa] .firma-svolazzo,
   .firma[data-ripassa] .firma-stella,
-  .firma[data-ripassa] .firma-stella-gesto {
+  .firma[data-ripassa] .firma-stella-contorno,
+  .firma[data-ripassa] .firma-stella-gesto,
+  .firma[data-ripassa] .firma-stella-luccichio {
     animation: none;
   }
 
-  .firma:hover .firma-stella,
-  .firma:focus-visible .firma-stella {
+  .firma:hover .firma-tratti,
+  .firma:focus-visible .firma-tratti {
     opacity: 1;
   }
 }
