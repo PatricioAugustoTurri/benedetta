@@ -14,9 +14,10 @@
  * piedi sotto un albero in un campo arato, su un ponticello sopra un canale,
  * con le braccia alzate in mezzo all'erba alta, al volano di una chiusa, e
  * alla fine i suoi piedi in calzini contro il cielo. Si guarda come
- * un'immagine che si muove: senza audio, in loop, e parte da solo. Il file ha
- * una traccia audio, ma la pagina la tiene muta: un video che parte da solo
- * con l'audio è un'imboscata.
+ * un'immagine che si muove: senza audio, in loop, e parte da solo. La versione
+ * disegnata non ha traccia audio; se un giorno tornasse un file con l'audio,
+ * la pagina lo terrebbe muto lo stesso: un video che parte da solo con
+ * l'audio è un'imboscata.
  *
  * Il `poster` è il primo fotogramma del video, estratto a 1600px: quello che
  * si vede mentre il file carica, e quello che resta a chi ha chiesto meno
@@ -32,15 +33,23 @@ export const studioFilm = {
     Il filmato e il suo fotogramma stanno su Cloudinary e non in /public:
     da lì arrivano compressi (il video da 15 MB scende a meno di 3, vedi
     `videoLeggero`). Gli originali restano interi nell'account.
+
+    Dal 2026-11-25 è la versione disegnata (cliente): lo stesso montaggio,
+    con sopra i disegni a pastello e matita colorata —il sole e le foglie
+    dell'albero, i cerchi sull'acqua e la farfalla, gli uccelli che si
+    alzano dall'erba, gli archi sul volano, le stelle della firma intorno ai
+    calzini—. Il sorgente è in `about-mixed/`, fuori da git. Il video di
+    prima resta nell'account: `illustrando/studio/bebi-about.mp4`, con il
+    suo `bebi-about-poster.jpg`.
   */
-  src: "https://res.cloudinary.com/dvmsjdcqi/video/upload/v1791461913/illustrando/studio/bebi-about.mp4" as
+  src: "https://res.cloudinary.com/dvmsjdcqi/video/upload/v1795601636/illustrando/studio/bebi-about-disegni-30fps.mp4" as
     | string
     | null,
   poster:
-    "https://res.cloudinary.com/dvmsjdcqi/image/upload/q_auto,c_limit,w_1600/v1791461916/illustrando/studio/bebi-about-poster.jpg",
+    "https://res.cloudinary.com/dvmsjdcqi/image/upload/q_auto,c_limit,w_1600/v1795601639/illustrando/studio/bebi-about-disegni-30fps-poster.jpg",
   width: 1920,
   height: 1080,
-  alt: "Benedetta in campagna: sotto un albero in un campo arato, su un ponticello sopra un canale, con le braccia alzate nell'erba alta, al volano di una chiusa, e i suoi piedi in calzini contro il cielo.",
+  alt: "Benedetta in campagna: sotto un albero in un campo arato, su un ponticello sopra un canale, con le braccia alzate nell'erba alta, al volano di una chiusa, e i suoi piedi in calzini contro il cielo. Sopra, disegni a pastello che si muovono: un sole, foglie che cadono, uccelli, stelle.",
 };
 
 /**
