@@ -6,7 +6,7 @@ import { Close, Qr } from "@/components/Icon";
 import { site } from "@/data/site";
 import { scaricaCartoline } from "@/lib/cartolinaRecensione";
 import type { ContoInviti } from "@/lib/recensioni";
-import { creaInvitiAzione, invitoUsatoAzione } from "../shop/actions";
+import { creaInvitiAzione, creaInvitiServizioAzione, invitoUsatoAzione } from "../shop/actions";
 
 const SITO = new URL(site.url).host;
 const INSTAGRAM = (() => {
@@ -26,6 +26,7 @@ type Codice =
   | { fase: "errore"; messaggio: string };
 
 type Prodotto = { id: number; title: string; slug: string };
+type Servizio = { slug: string; title: string };
 
 /**
  * Il QR per chi ha comprato fuori dal sito —al mercato, in negozio— e vuole
@@ -46,16 +47,26 @@ type Prodotto = { id: number; title: string; slug: string };
  * Due aspetti: l'icona nella griglia dello Shop, accanto alla matita, e il
  * riquadro nella scheda del prodotto, con il conto dei QR dati e il foglio
  * da quattro cartoline per chi li stampa a casa.
+ *
+ * Serve anche ai due servizi (cliente, 2026-11-27): lo stesso QR, dato a chi
+ * ha ricevuto un ritratto o un'illustrazione, porta alla sua testimonianza
+ * invece che a una recensione. Cambiano solo le parole e dove esce.
  */
 export default function QrRecensione({
-  prodotto: p,
+  prodotto,
+  servizio,
   aspetto,
   conto: contoIniziale = null,
-}: {
-  prodotto: Prodotto;
+}: (
+  | { prodotto: Prodotto; servizio?: never }
+  | { servizio: Servizio; prodotto?: never }
+) & {
   aspetto: "icona" | "scheda";
   conto?: ContoInviti | null;
 }) {
+  const p = (prodotto ?? servizio)!;
+  const idProdotto = prodotto?.id;
+  const slugServizio = servizio?.slug;
   const dialog = useRef<HTMLDialogElement>(null);
   const tasto = useRef<HTMLButtonElement>(null);
   const [aperto, setAperto] = useState(false);
@@ -65,16 +76,22 @@ export default function QrRecensione({
   const [cartolina, setCartolina] = useState<"fermo" | "lavora" | "errore">("fermo");
   const [copiato, setCopiato] = useState(false);
 
+  const crea = useCallback(
+    (quanti: number) =>
+      idProdotto != null ? creaInvitiAzione(idProdotto, quanti) : creaInvitiServizioAzione(slugServizio!, quanti),
+    [idProdotto, slugServizio],
+  );
+
   const nuovo = useCallback(async () => {
     setCodice({ fase: "lavora" });
-    const esito = await creaInvitiAzione(p.id, 1).catch(() => ({ error: "Il QR non è venuto. Riprova." }));
+    const esito = await crea(1).catch(() => ({ error: "Il QR non è venuto. Riprova." }));
     if ("error" in esito) {
       setCodice({ fase: "errore", messaggio: esito.error });
       return;
     }
     setCodice({ fase: "pronto", link: esito.links[0], usato: false });
     setConto(esito.conto);
-  }, [p.id]);
+  }, [crea]);
 
   function apri() {
     dialog.current?.showModal();
@@ -133,7 +150,7 @@ export default function QrRecensione({
 
   async function scaricaFoglio() {
     setFoglio("lavora");
-    const esito = await creaInvitiAzione(p.id, 4).catch(() => ({ error: "Le cartoline non sono venute. Riprova." }));
+    const esito = await crea(4).catch(() => ({ error: "Le cartoline non sono venute. Riprova." }));
     if ("error" in esito) {
       setFoglio({ errore: esito.error });
       return;
@@ -165,10 +182,11 @@ export default function QrRecensione({
   }
 
   const pronto = codice.fase === "pronto" && !codice.usato;
+  const cosa = servizio ? "testimonianza" : "recensione";
   const arrivata = codice.fase === "pronto" && codice.usato;
 
   const finestra = (
-    <dialog ref={dialog} className="visore" aria-label={`QR per una recensione di ${p.title}`}>
+    <dialog ref={dialog} className="visore" aria-label={`QR per una ${cosa} di ${p.title}`}>
       {aperto && (
         <div className="visore__telaio">
           <header className="visore__testa">
@@ -202,7 +220,9 @@ export default function QrRecensione({
               {arrivata && (
                 <span className="flex h-full w-full flex-col items-center justify-center gap-6 bg-paper-deep px-6">
                   <span className="max-w-[24ch] text-sm leading-relaxed text-ink-soft">
-                    La recensione è già nella pagina del prodotto. Questo QR ha fatto il suo lavoro.
+                    {servizio
+                      ? "Le sue parole sono già nella pagina del servizio. Questo QR ha fatto il suo lavoro."
+                      : "La recensione è già nella pagina del prodotto. Questo QR ha fatto il suo lavoro."}
                   </span>
                   <button
                     type="button"
@@ -218,13 +238,15 @@ export default function QrRecensione({
             <p className="mt-6 max-w-[34ch] leading-relaxed text-ink-soft">
               {arrivata
                 ? "Per un altro cliente serve un QR nuovo: ognuno vale una volta."
-                : "Inquadra il codice con il telefono: qualche stella e due righe, senza bisogno di account."}
+                : servizio
+                  ? "Inquadra il codice con il telefono e raccontami com’è andata: qualche stella e due righe, senza bisogno di account."
+                  : "Inquadra il codice con il telefono: qualche stella e due righe, senza bisogno di account."}
             </p>
           </div>
 
           {/* Le cose sue, piccole, sotto un filetto: chi inquadra non le deve leggere. */}
           <footer className="visore__piede flex-wrap gap-x-5 gap-y-2 border-t border-line py-3 text-xs text-ink-faint">
-            <span>Vale per una recensione sola</span>
+            <span>Vale per una {cosa} sola</span>
             <button
               type="button"
               onClick={nuovo}
@@ -281,10 +303,11 @@ export default function QrRecensione({
 
   return (
     <div>
-      <h2 className="label">Recensione dal vivo</h2>
+      <h2 className="label">{servizio ? "Testimonianza dal QR" : "Recensione dal vivo"}</h2>
       <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-        Per chi l’ha comprato fuori dal sito, al mercato o in negozio: un QR da fargli inquadrare. Ognuno
-        vale per una recensione.
+        {servizio
+          ? "Per chi ti ha commissionato un lavoro: un QR da fargli inquadrare alla consegna, da mettere nel pacco o da mandare come link. Le sue parole escono nella pagina del servizio, fra le testimonianze. Ognuno vale una volta."
+          : "Per chi l’ha comprato fuori dal sito, al mercato o in negozio: un QR da fargli inquadrare. Ognuno vale per una recensione."}
       </p>
       <button
         ref={tasto}
@@ -316,10 +339,10 @@ export default function QrRecensione({
         <p className="figures mt-4 text-xs text-ink-faint">
           {conto.dati === 1 ? "1 QR dato" : `${conto.dati} QR dati`} ·{" "}
           {conto.usati === 0
-            ? "ancora nessuna recensione"
+            ? `ancora nessuna ${cosa}`
             : conto.usati === 1
-              ? "1 tornato come recensione"
-              : `${conto.usati} tornati come recensione`}
+              ? `1 tornato come ${cosa}`
+              : `${conto.usati} tornati come ${cosa}`}
         </p>
       )}
       {finestra}

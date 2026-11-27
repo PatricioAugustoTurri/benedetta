@@ -570,6 +570,10 @@ CREATE TABLE testimonianze (
   autore     text        NOT NULL CONSTRAINT testimonianze_autore_misura CHECK (length(trim(autore)) BETWEEN 1 AND 80),
   -- Una riga di contesto facoltativa: «ritratto di famiglia, 2025».
   dettaglio  text        CONSTRAINT testimonianze_dettaglio_misura CHECK (dettaglio IS NULL OR length(dettaglio) <= 80),
+  -- Le stelle, solo quando la scrive chi ha commissionato, dal QR. Vedi la 024.
+  voto       smallint    CONSTRAINT testimonianze_voto_valido CHECK (voto IS NULL OR voto BETWEEN 1 AND 5),
+  -- L'invito da cui è arrivata; vuoto se l'ha copiata lei a mano.
+  invito     integer     CONSTRAINT testimonianze_invito_key UNIQUE,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -742,6 +746,25 @@ CREATE TABLE recensioni (
 );
 
 CREATE INDEX recensioni_prodotto ON recensioni (prodotto, created_at DESC);
+
+-- --------------------------------------------------------------------------
+-- inviti_testimonianza — il QR per chi ha commissionato un ritratto o
+-- un'illustrazione: un servizio, un invio solo. Vedi la migrazione 024.
+-- --------------------------------------------------------------------------
+CREATE TABLE inviti_testimonianza (
+  id         integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  chiave     text        NOT NULL DEFAULT replace(gen_random_uuid()::text, '-', '')
+             CONSTRAINT inviti_testimonianza_chiave_key UNIQUE,
+  servizio   text        NOT NULL REFERENCES servizi (slug) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  usato_at   timestamptz
+);
+
+CREATE INDEX inviti_testimonianza_servizio ON inviti_testimonianza (servizio);
+
+ALTER TABLE testimonianze
+  ADD CONSTRAINT testimonianze_invito_fkey
+  FOREIGN KEY (invito) REFERENCES inviti_testimonianza (id) ON DELETE SET NULL;
 
 INSERT INTO codici (codice, percentuale) VALUES ('BENZIBET98', 15);
 

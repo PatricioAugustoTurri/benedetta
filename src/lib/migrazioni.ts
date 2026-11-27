@@ -57,6 +57,23 @@ const RECENSIONI = [
        ALTER TABLE recensioni ADD CONSTRAINT recensioni_una_fonte CHECK (num_nonnulls(ordine, invito) = 1);
      END IF;
    END $$`,
+  // 024: il QR per le testimonianze dei servizi. Vedi db/migrations/024-inviti-testimonianza.sql.
+  `CREATE TABLE IF NOT EXISTS inviti_testimonianza (
+     id         integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+     chiave     text        NOT NULL DEFAULT replace(gen_random_uuid()::text, '-', '')
+                CONSTRAINT inviti_testimonianza_chiave_key UNIQUE,
+     servizio   text        NOT NULL REFERENCES servizi (slug) ON DELETE CASCADE,
+     created_at timestamptz NOT NULL DEFAULT now(),
+     usato_at   timestamptz
+   )`,
+  `CREATE INDEX IF NOT EXISTS inviti_testimonianza_servizio ON inviti_testimonianza (servizio)`,
+  `ALTER TABLE testimonianze
+     ADD COLUMN IF NOT EXISTS voto smallint
+       CONSTRAINT testimonianze_voto_valido CHECK (voto IS NULL OR voto BETWEEN 1 AND 5)`,
+  `ALTER TABLE testimonianze
+     ADD COLUMN IF NOT EXISTS invito integer
+       CONSTRAINT testimonianze_invito_key UNIQUE
+       REFERENCES inviti_testimonianza (id) ON DELETE SET NULL`,
 ];
 
 /**

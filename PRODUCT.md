@@ -190,7 +190,16 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   imprimir (una, o cuatro en un A4). Cada QR vale una reseña sola
   (`inviti_recensione`, migración 023); mientras está abierto, el admin avisa
   cuando la reseña llegó y ofrece el siguiente.
-  **Sólo productos del Shop**: las obras del archivio no se reseñan. La
+  **Los dos servicios también** (cliente, 2026-11-27): Ritratti Illustrati e
+  Illustrazioni Personalizzate tienen el mismo QR en su ficha del admin
+  (`/admin/shop/servizi/<slug>`), para darlo en la entrega, ponerlo en el
+  paquete o mandarlo como link. Quien lo escanea deja estrellas, «com’è
+  andata», firma y, si quiere, «per cosa era»; entra solo como
+  **testimonianza** con estrellas en la página del servicio, al lado de las
+  que ella copia a mano (que no llevan estrellas). Un QR, una testimonianza
+  (`inviti_testimonianza`, migración 024). No van a los datos estructurados:
+  Google no muestra estrellas de reseñas sobre el propio servicio.
+  **Sólo productos del Shop y los dos servicios**: las obras del archivio no se reseñan. La
   grilla del Shop sigue sin palabras (decisión del 2026-10-07): las estrellas
   viven en la página de cada producto.
 - **Notas por categoría.** Si quiere una línea de material o formato bajo cada

@@ -2,9 +2,9 @@
 
 import Image from "@/components/Immagine";
 import { startTransition, useActionState, useId, useState } from "react";
-import { Stella } from "@/components/Stelle";
 import { CONTROL, LABEL } from "@/components/campo";
 import { inviaRecensioni, type EsitoRecensione } from "../actions";
+import SceltaStelle from "./SceltaStelle";
 
 export type ProdottoModulo = {
   id: number;
@@ -12,8 +12,6 @@ export type ProdottoModulo = {
   href: string;
   immagine: { url: string; width: number; height: number; alt: string } | null;
 };
-
-const PAROLE = ["", "Non mi è piaciuto", "Così così", "Bello", "Molto bello", "Bellissimo"];
 
 /**
  * Il modulo delle recensioni di un ordine: il nome con cui firmare, una
@@ -40,6 +38,7 @@ export default function ModuloRecensioni({
   const [autore, setAutore] = useState(nome ?? "");
   const base = useId();
   const campi = esito.campi ?? {};
+
 
   /*
     Di solito non si vede: l'azione rifà la pagina, che col link ormai
@@ -118,10 +117,8 @@ export default function ModuloRecensioni({
 
 function Voce({ prodotto: p, errore, max }: { prodotto: ProdottoModulo; errore?: string; max: number }) {
   const [voto, setVoto] = useState(0);
-  const [sopra, setSopra] = useState(0);
   const [testo, setTesto] = useState("");
   const base = useId();
-  const acceso = sopra || voto;
 
   return (
     <li className="grid gap-6 sm:grid-cols-[7rem_1fr] sm:gap-8">
@@ -142,32 +139,15 @@ function Voce({ prodotto: p, errore, max }: { prodotto: ProdottoModulo; errore?:
       <div className="min-w-0">
         <p className="display-title font-display">{p.title}</p>
 
-        <fieldset className="mt-4" aria-describedby={errore ? `${base}-errore` : undefined}>
-          <legend className="sr-only">Quante stelle a {p.title}</legend>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <div className="flex text-[1.75rem]" onMouseLeave={() => setSopra(0)}>
-              {[1, 2, 3, 4, 5].map((n) => (
-                <label key={n} className="cursor-pointer px-0.5" onMouseEnter={() => setSopra(n)}>
-                  <input
-                    type="radio"
-                    name={`voto-${p.id}`}
-                    value={n}
-                    checked={voto === n}
-                    onChange={() => setVoto(n)}
-                    className="peer sr-only"
-                  />
-                  <span className="sr-only">{n === 1 ? "1 stella" : `${n} stelle`}</span>
-                  <span className="block rounded-sm transition-transform duration-200 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink hover:scale-110">
-                    <Stella pieno={acceso >= n ? 1 : 0} />
-                  </span>
-                </label>
-              ))}
-            </div>
-            <span className="text-sm text-ink-soft" aria-hidden="true">
-              {PAROLE[acceso]}
-            </span>
-          </div>
-        </fieldset>
+        <div className="mt-4">
+          <SceltaStelle
+            name={`voto-${p.id}`}
+            legenda={`Quante stelle a ${p.title}`}
+            voto={voto}
+            onVoto={setVoto}
+            descritta={errore ? `${base}-errore` : undefined}
+          />
+        </div>
 
         <div className="group/campo mt-5">
           <label htmlFor={`${base}-testo`} className={`${LABEL} group-has-[:focus]/campo:text-ink`}>

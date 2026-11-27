@@ -2,6 +2,7 @@
 
 import { useActionState, useId, useRef } from "react";
 import { Trash } from "@/components/Icon";
+import Stelle from "@/components/Stelle";
 import type { Testimonianza } from "@/lib/testimonianze";
 import type { EstadoFormulario } from "../actions";
 import { aggiungiTestimonianzaAzione, cancellaTestimonianzaAzione } from "../shop/actions";
@@ -12,8 +13,19 @@ import { CONTROL, LABEL } from "./campo";
  * il suo cestino, e il modulo per aggiungerne una. Si copiano da quello che le
  * hanno scritto —mail, messaggi, recensioni— con il permesso di chi le ha
  * scritte.
+ *
+ * Accanto, il QR (`qr`): le testimonianze che arrivano da lì entrano nella
+ * lista da sole, con le stelle, e si cancellano allo stesso modo.
  */
-export default function Testimonianze({ servizio, lista }: { servizio: string; lista: Testimonianza[] }) {
+export default function Testimonianze({
+  servizio,
+  lista,
+  qr,
+}: {
+  servizio: string;
+  lista: Testimonianza[];
+  qr?: React.ReactNode;
+}) {
   const modulo = useRef<HTMLFormElement>(null);
   const [esito, azione, inCorso] = useActionState<EstadoFormulario, FormData>(async (p, fd) => {
     const r = await aggiungiTestimonianzaAzione(p, fd);
@@ -37,10 +49,16 @@ export default function Testimonianze({ servizio, lista }: { servizio: string; l
             {lista.map((t) => (
               <li key={t.id} className="flex gap-4 border-b border-line py-4">
                 <div className="min-w-0 flex-1">
+                  {t.voto != null && (
+                    <div className="mb-1.5 text-xs">
+                      <Stelle voto={t.voto} />
+                    </div>
+                  )}
                   <p className="text-sm leading-relaxed text-ink">«{t.testo}»</p>
                   <p className="mt-1.5 text-xs text-ink-faint">
                     {t.autore}
                     {t.dettaglio && ` · ${t.dettaglio}`}
+                    {t.dalQr && " · dal QR"}
                   </p>
                 </div>
                 <form action={cancellaTestimonianzaAzione}>
@@ -102,6 +120,8 @@ export default function Testimonianze({ servizio, lista }: { servizio: string; l
           </div>
         </form>
       </div>
+
+      {qr && <div className="md:col-span-4 md:col-start-9">{qr}</div>}
     </section>
   );
 }

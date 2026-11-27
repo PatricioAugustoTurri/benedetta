@@ -249,3 +249,13 @@ che ne esce ha `invito` al posto di `ordine` (`recensioni_una_fonte`: sempre
 uno dei due). Se il prodotto si cancella, se ne vanno i suoi inviti e le loro
 recensioni. Come la 020, il sito la applica da solo all'avvio
 (`src/lib/migrazioni.ts`).
+
+**Le testimonianze dei servizi dal QR** (migrazione 024, 2026-11-27). Lo
+stesso QR, per Ritratti Illustrati e Illustrazioni Personalizzate: dalla
+scheda del servizio in `/admin/shop/servizi/<slug>` lei crea un invito, una
+riga di `inviti_testimonianza`. `/recensione/<chiave>` cerca fra gli ordini,
+gli inviti dei prodotti e questi; un invito di servizio apre un modulo con
+stelle, testo, firma e un dettaglio facoltativo, e quello che arriva entra in
+`testimonianze` con `voto` e `invito`. Esce subito nella pagina del servizio;
+lei la cancella dall'admin come quelle che copia a mano. Vale per un invio
+solo. Anche la 024 la applica il sito all'avvio.

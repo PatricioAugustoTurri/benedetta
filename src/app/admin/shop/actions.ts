@@ -15,7 +15,14 @@ import {
   spostaCategoria,
 } from "@/lib/categorie";
 import { listLibreria, setCopertina } from "@/lib/copertine";
-import { aggiungiTestimonianza, cancellaTestimonianza } from "@/lib/testimonianze";
+import {
+  aggiungiTestimonianza,
+  cancellaTestimonianza,
+  contaInvitiServizio,
+  creaInvitiServizio,
+  invitoServizioUsato,
+  MAX_INVITI_SERVIZIO,
+} from "@/lib/testimonianze";
 import { cancellaCodice, erroreCodice, normalizzaCodice, salvaCodice } from "@/lib/codici";
 import { cancellaSconto, salvaSconto } from "@/lib/sconti";
 import { armarImagenes, ErrorDeImagenes, quitarImagen } from "@/lib/immaginiModulo";
@@ -721,5 +728,27 @@ export async function creaInvitiAzione(id: number, quanti: number): Promise<Esit
 export async function invitoUsatoAzione(link: string): Promise<boolean | null> {
   await requireSession();
   const chiave = String(link).split("/").pop() ?? "";
-  return invitoUsato(chiave);
+  // Lo stesso QR serve ai prodotti e ai servizi: la chiave è dell'uno o dell'altro.
+  return (await invitoUsato(chiave)) ?? (await invitoServizioUsato(chiave));
+}
+
+/**
+ * Gli inviti per la testimonianza di un servizio: il QR da dare a chi ha
+ * ricevuto il ritratto o l'illustrazione (cliente, 2026-11-27). Stessa
+ * forma di quelli dei prodotti, così la finestra del QR e le cartoline sono
+ * le stesse.
+ */
+export async function creaInvitiServizioAzione(slug: string, quanti: number): Promise<EsitoInviti> {
+  await requireSession();
+  if (!esServizio(slug)) return { error: "Questo servizio non esiste." };
+  if (!Number.isInteger(quanti) || quanti < 1 || quanti > MAX_INVITI_SERVIZIO) {
+    return { error: "Non ho capito quanti QR fare." };
+  }
+  try {
+    const chiavi = await creaInvitiServizio(slug, quanti);
+    return { links: chiavi.map((c) => linkRecensione(site.url, c)), conto: await contaInvitiServizio(slug) };
+  } catch (e) {
+    console.error("Inviti dei servizi: non creati.", e);
+    return { error: "Il QR non è venuto: il database non ha risposto. Riprova." };
+  }
 }

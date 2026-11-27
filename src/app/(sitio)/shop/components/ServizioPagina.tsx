@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AZIONE } from "@/components/azione";
 import { ArrowLeft, Mail } from "@/components/Icon";
 import Reveal from "@/components/Reveal";
+import Stelle from "@/components/Stelle";
 import { site } from "@/data/site";
 import type { Servizio } from "@/lib/servizi";
 import type { Testimonianza } from "@/lib/testimonianze";
@@ -140,9 +141,13 @@ export default function ServizioPagina({
                     <blockquote className="prose-measure -mt-2 text-lg leading-relaxed text-pretty text-ink">
                       {t.testo}
                     </blockquote>
-                    <figcaption className="mt-4 text-sm text-ink-soft">
-                      {t.autore}
-                      {t.dettaglio && <span className="text-ink-faint"> · {t.dettaglio}</span>}
+                    <figcaption className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">
+                      {/* Le stelle solo dove le ha date chi ha scritto: quelle copiate a mano non ne hanno. */}
+                      {t.voto != null && <Stelle voto={t.voto} className="text-xs" />}
+                      <span>
+                        {t.autore}
+                        {t.dettaglio && <span className="text-ink-faint"> · {t.dettaglio}</span>}
+                      </span>
                     </figcaption>
                   </figure>
                 </Reveal>
