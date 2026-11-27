@@ -4,12 +4,14 @@ import ApriDomanda from "@/components/legale/ApriDomanda";
 import PaginaLegale, { type SezioneLegale } from "@/components/legale/PaginaLegale";
 import { domandeFrequenti } from "@/data/domande";
 import { site } from "@/data/site";
+import { openGraphPagina } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Domande frequenti",
   description:
     "Le stampe, il pagamento, la spedizione, i resi e i lavori su commissione: le risposte alle domande che arrivano più spesso.",
   alternates: { canonical: "/domande-frequenti" },
+  openGraph: openGraphPagina({ path: "/domande-frequenti" }),
 };
 
 /**

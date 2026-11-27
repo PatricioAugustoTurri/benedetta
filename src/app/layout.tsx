@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Caprasimo } from "next/font/google";
 import localFont from "next/font/local";
 import { site } from "@/data/site";
+import { ANTEPRIMA } from "@/lib/seo";
 import "./globals.css";
 
 /*
@@ -63,6 +64,7 @@ export const metadata: Metadata = {
     siteName: site.name,
     locale: "it_IT",
     type: "website",
+    images: [ANTEPRIMA],
   },
   twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },

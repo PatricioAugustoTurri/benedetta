@@ -4,6 +4,7 @@ import { stampeDellOpera } from "@/lib/prodotti";
 import { getWork, listSlugs } from "@/lib/works";
 import { site } from "@/data/site";
 import { immagineFerma } from "@/lib/video";
+import { briciole, descrizioneBreve, JsonLd, openGraphPagina } from "@/lib/seo";
 import BackToArchive from "../components/BackToArchive";
 import WorkAside from "../components/WorkAside";
 import WorkPager from "../components/WorkPager";
@@ -31,29 +32,23 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const work = await getWork(slug);
   if (!work) return {};
 
-  const detalle = [work.tecnica, String(work.year)].join(" · ");
-  const portada = work.image[0];
+  // Senza testo, la descrizione dice almeno cos'è e di chi: «Illustrazione
+  // digitale del 2025 di Benedetta Zibetti, illustratrice a Foligno».
+  const detalle = `${work.tecnica} (${work.year}), di ${site.name}, ${site.role.toLowerCase()} a ${site.zona}.`;
+  const description = work.description ? descrizioneBreve(work.description) : detalle;
 
   return {
     title: work.title,
-    description: work.description ?? detalle,
+    description,
     alternates: { canonical: `/opera/${slug}` },
-    openGraph: {
+    // Un'anteprima condivisa è sempre un'immagine: se la copertina è un
+    // video, esce il suo fotogramma (lo fa `anteprimaOpera`).
+    openGraph: openGraphPagina({
+      path: `/opera/${slug}`,
       title: `${work.title} · ${site.name}`,
-      description: work.description ?? detalle,
-      images: portada
-        ? [
-            {
-              // Un'anteprima condivisa è sempre un'immagine: se la copertina
-              // è un video, esce il suo fotogramma.
-              url: immagineFerma(portada),
-              width: portada.width,
-              height: portada.height,
-              alt: portada.alt,
-            },
-          ]
-        : [],
-    },
+      description,
+      immagine: work.image[0],
+    }),
   };
 }
 
@@ -62,7 +57,6 @@ export default async function OperaPage({ params }: Params) {
   const work = await getWork(slug);
   if (!work) notFound();
 
-  const portada = work.image[0];
   // Sin la tabla `prodotti` (base todavía sin migrar) la obra se ve igual,
   // sin el aviso de la stampa.
   const [stampa] = await stampeDellOpera(work.slug).catch(() => []);
@@ -80,7 +74,9 @@ export default async function OperaPage({ params }: Params) {
     "@type": "VisualArtwork",
     name: work.title,
     description: work.description ?? undefined,
-    image: portada ? immagineFerma(portada) : undefined,
+    // Tutte le tavole, non solo la copertina: è da qui che Google Immagini
+    // e Lens risalgono a questa pagina partendo da una qualunque di loro.
+    image: work.image.map(immagineFerma),
     dateCreated: String(work.year),
     artMedium: work.tecnica,
     creator: { "@type": "Person", "@id": `${site.url}/#person`, name: site.signature },
@@ -89,9 +85,14 @@ export default async function OperaPage({ params }: Params) {
 
   return (
     <article className="shell pt-8 pb-12 md:pt-12">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(datiOpera) }}
+      <JsonLd
+        dati={[
+          datiOpera,
+          briciole([
+            { nome: "Opere", path: "/" },
+            { nome: work.title, path: `/opera/${slug}` },
+          ]),
+        ]}
       />
       {/*
         L'ordine della pagina, che è una decisione e non l'ordine in cui sono

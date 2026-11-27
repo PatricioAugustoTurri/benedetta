@@ -6,6 +6,7 @@ import { site } from "@/data/site";
 import type { Servizio } from "@/lib/servizi";
 import type { Testimonianza } from "@/lib/testimonianze";
 import { immagineFerma } from "@/lib/video";
+import { briciole, JsonLd } from "@/lib/seo";
 import Visore from "../../opera/components/Visore";
 import WorkPlate, { WorkPlates } from "../../opera/components/WorkPlate";
 
@@ -34,14 +35,13 @@ export default function ServizioPagina({
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean);
-  const portada = s.image[0];
 
   const dati = {
     "@context": "https://schema.org",
     "@type": "Service",
     name: s.title,
     description: s.description ?? undefined,
-    image: portada ? immagineFerma(portada) : undefined,
+    image: s.image.map(immagineFerma),
     serviceType: s.title,
     // Il `@id` lega il servizio a lei come la descrive `StructuredData`, così
     // Google non deve indovinare che le due voci sono la stessa persona.
@@ -58,7 +58,15 @@ export default function ServizioPagina({
 
   return (
     <article className="shell pt-8 pb-12 md:pt-12">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dati) }} />
+      <JsonLd
+        dati={[
+          dati,
+          briciole([
+            { nome: "Shop", path: "/shop" },
+            { nome: s.title, path: `/shop/${s.slug}` },
+          ]),
+        ]}
+      />
 
       <Link
         href="/shop"

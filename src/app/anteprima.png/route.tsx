@@ -3,10 +3,15 @@ import { site } from "@/data/site";
 
 /**
  * L'anteprima che esce quando si condivide un link del sito —WhatsApp,
- * Instagram, iMessage— per ogni pagina pubblica che non ne genera una
- * propria. Solo `opera/[slug]` la genera propria, dalla copertina
- * dell'opera: qui sotto è il fondo per home, `/studio` e `/contatti`, che
- * altrimenti condividerebbero un link senza nessuna immagine.
+ * Instagram, iMessage— per ogni pagina pubblica che non ne ha una propria:
+ * le opere, le stampe e i servizi usano la loro copertina (vedi
+ * `anteprimaOpera` in `src/lib/seo.tsx`); qui sotto è il fondo per home,
+ * About, Shop, Contatti e le pagine di servizio.
+ *
+ * È una route con un indirizzo fisso, `/anteprima.png`, e non il file
+ * `opengraph-image` di Next: quello esce con un hash nell'indirizzo, e una
+ * pagina che dichiara il proprio `openGraph` lo perde senza poterlo
+ * nominare. Si genera in fase di build e non cambia più.
  *
  * Niente font da caricare: usa il font che porta di serie `next/og`, non
  * Caprasimo né Geist. Farlo con i font veri del sito vorrebbe dire scaricarli
@@ -14,11 +19,11 @@ import { site } from "@/data/site";
  * Geist, che `next/og` non legge. Il colore e la gerarchia restano quelli del
  * sito; il carattere no.
  */
-export const alt = `${site.name} · ${site.role}`;
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+export const dynamic = "force-static";
 
-export default function Image() {
+const size = { width: 1200, height: 630 };
+
+export function GET() {
   return new ImageResponse(
     (
       <div

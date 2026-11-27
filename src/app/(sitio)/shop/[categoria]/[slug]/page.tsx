@@ -11,6 +11,7 @@ import { mockupComeStampa } from "@/lib/mockup";
 import { esaurito, getPubblicato, listPubblicati } from "@/lib/prodotti";
 import { recensioniDelProdotto, riepilogo } from "@/lib/recensioni";
 import { immagineFerma } from "@/lib/video";
+import { briciole, descrizioneBreve, JsonLd, openGraphPagina } from "@/lib/seo";
 import { getWork } from "@/lib/works";
 import Visore from "../../../opera/components/Visore";
 import WorkPlate, { WorkPlates } from "../../../opera/components/WorkPlate";
@@ -42,7 +43,6 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const trovato = await cerca(categoria, slug);
   if (!trovato) return {};
   const { c, p } = trovato;
-  const portada = p.image[0];
 
   // «Stampa» nel titolo: una stampa fatta da un'opera ha lo stesso nome della
   // pagina dell'opera, e due risultati uguali in Google non dicono quale sia
@@ -51,18 +51,22 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   // 2027 — Calendario 2027».
   const tipo = c.slug === "stampe" ? "Stampa" : c.label;
   const titolo = p.title.toLowerCase().includes(tipo.toLowerCase()) ? p.title : `${p.title} — ${tipo}`;
+  // Senza testo, la descrizione dice almeno cos'è, di chi e che si compra
+  // qui: «Stampa di un'illustrazione di Benedetta Zibetti…».
+  const description = p.description
+    ? descrizioneBreve(p.description)
+    : `${c.slug === "stampe" ? `Stampa di un'illustrazione` : c.label} di ${site.name}, ${site.role.toLowerCase()} a ${site.zona}. Da comprare online, con spedizione in Italia e in Europa.`;
   return {
     title: titolo,
-    description: p.description ?? c.label,
+    description,
     alternates: { canonical: prodottoHref(p) },
     robots: c.visibile ? undefined : { index: false, follow: false },
-    openGraph: {
+    openGraph: openGraphPagina({
+      path: prodottoHref(p),
       title: `${titolo} · ${site.name}`,
-      description: p.description ?? c.label,
-      images: portada
-        ? [{ url: immagineFerma(portada), width: portada.width, height: portada.height, alt: portada.alt }]
-        : [],
-    },
+      description,
+      immagine: p.image[0],
+    }),
   };
 }
 
@@ -128,7 +132,9 @@ export default async function ProdottoPage({ params }: Params) {
     description:
       p.description ??
       (c.slug === "stampe" ? `Stampa di un'illustrazione di ${site.name}.` : `${c.label} di ${site.name}.`),
-    image: portada ? immagineFerma(portada) : undefined,
+    // Tutte le foto della stampa, mockup compreso: Google Shopping e Lens
+    // ne usano più di una.
+    image: immagini.map(immagineFerma),
     brand: { "@type": "Brand", name: site.name },
     sku: p.slug,
     offers: p.formati.map((f) => ({
@@ -179,7 +185,16 @@ export default async function ProdottoPage({ params }: Params) {
 
   return (
     <article className="shell pt-8 pb-12 md:pt-12">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dati) }} />
+      <JsonLd
+        dati={[
+          dati,
+          briciole([
+            { nome: "Shop", path: "/shop" },
+            ...(fratelli.length > 1 ? [{ nome: c.label, path: `/shop/${c.slug}` }] : []),
+            { nome: p.title, path: prodottoHref(p) },
+          ]),
+        ]}
+      />
 
       <Link
         href={indietro.href}

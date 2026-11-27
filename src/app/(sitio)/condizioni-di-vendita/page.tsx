@@ -5,11 +5,13 @@ import PaginaLegale, { Dato, type SezioneLegale } from "@/components/legale/Pagi
 import { elencoCorrieri, legale, legaliPronte } from "@/data/legale";
 import { prezzo } from "@/data/shop";
 import { tariffeSpedizione } from "@/lib/spedizione";
+import { openGraphPagina } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Condizioni di vendita",
   description: "Chi vende, prezzi, spedizioni, diritto di recesso e garanzia delle stampe.",
   alternates: { canonical: "/condizioni-di-vendita" },
+  openGraph: openGraphPagina({ path: "/condizioni-di-vendita" }),
 };
 
 /**

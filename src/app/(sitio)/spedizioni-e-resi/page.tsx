@@ -6,11 +6,13 @@ import { elencoCorrieri, legale, misuraFormato, legaliPronte } from "@/data/lega
 import { FORMATI_BASE, prezzo } from "@/data/shop";
 import { listPubblicati } from "@/lib/prodotti";
 import { indirizzoNegozio, tariffeSpedizione } from "@/lib/spedizione";
+import { openGraphPagina } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Spedizioni e resi",
   description: "Come sono fatte le stampe, quando partono, quanto costa spedirle e cosa fare se cambi idea.",
   alternates: { canonical: "/spedizioni-e-resi" },
+  openGraph: openGraphPagina({ path: "/spedizioni-e-resi" }),
 };
 
 // I formati escono da quelli in vendita, che lei cambia dall'admin.
@@ -55,6 +57,8 @@ export default async function SpedizioniPage() {
             <>
               <p>I formati, con le misure del foglio:</p>
               <table className="w-full max-w-sm border-t border-line text-sm">
+                {/* Il nome della tabella per chi la ascolta: la frase sopra lo dice a chi la vede. */}
+                <caption className="sr-only">Formati delle stampe e misure del foglio</caption>
                 <tbody>
                   {formati.map((f) => (
                     <tr key={f} className="border-b border-line">

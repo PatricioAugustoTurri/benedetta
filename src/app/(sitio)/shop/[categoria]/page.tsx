@@ -3,11 +3,12 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "@/components/Icon";
 import { esServizio, prodottoHref } from "@/data/shop";
+import { site } from "@/data/site";
 import { getCategoria } from "@/lib/categorie";
 import { listPubblicati } from "@/lib/prodotti";
 import { getServizio } from "@/lib/servizi";
 import { listTestimonianze } from "@/lib/testimonianze";
-import { immagineFerma } from "@/lib/video";
+import { briciole, descrizioneBreve, JsonLd, openGraphPagina } from "@/lib/seo";
 import ServizioPagina from "../components/ServizioPagina";
 import SezioneCategoria from "../components/SezioneCategoria";
 
@@ -22,28 +23,32 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   if (esServizio(c.slug)) {
     const servizio = await getServizio(c.slug);
-    const portada = servizio?.image[0];
-    const descrizione =
-      servizio?.description?.split(/\n/)[0] ?? `${c.label} su commissione: leggi come funziona e scrivimi.`;
+    // Tutto il testo del servizio, ridotto alla misura di Google: la sola
+    // prima riga a volte è una frase di ottanta caratteri che non dice dove
+    // né come.
+    const descrizione = servizio?.description
+      ? descrizioneBreve(servizio.description)
+      : `${c.label} su commissione: leggi come funziona e scrivimi.`;
     return {
       // «su commissione» è come lo si cerca: un ritratto illustrato si ordina,
       // non si compra già fatto, e il titolo lo dice prima ancora di aprirlo.
       title: `${servizio?.title ?? c.label} su commissione`,
       description: descrizione,
       alternates: { canonical: `/shop/${c.slug}` },
-      openGraph: portada
-        ? { images: [{ url: immagineFerma(portada), width: portada.width, height: portada.height, alt: portada.alt }] }
-        : undefined,
+      openGraph: openGraphPagina({ path: `/shop/${c.slug}`, immagine: servizio?.image[0] }),
     };
   }
 
   return {
-    title: c.label,
+    // «Stampe» da solo è un titolo che non dice di chi né di cosa; «stampe
+    // d'arte» è come le si cerca.
+    title: c.slug === "stampe" ? "Stampe d'arte illustrate" : `${c.label} · Shop`,
     description:
       c.slug === "stampe"
-        ? "Stampe da comprare online, con spedizione in Italia e nell'Unione Europea."
-        : `${c.label}: da comprare online, con spedizione in Italia e nell'Unione Europea.`,
+        ? `Stampe d'arte delle illustrazioni di ${site.name}, ${site.role.toLowerCase()} a Foligno: stampate dopo il tuo ordine e spedite in Italia e in Europa.`
+        : `${c.label} con le illustrazioni di ${site.name}: da comprare online, con spedizione in Italia e nell'Unione Europea.`,
     alternates: { canonical: `/shop/${c.slug}` },
+    openGraph: openGraphPagina({ path: `/shop/${c.slug}` }),
     // Una categoria ancora nascosta si vede solo con l'indirizzo: lei la
     // guarda prima di accenderla, Google no.
     robots: c.visibile ? undefined : { index: false, follow: false },
@@ -76,6 +81,12 @@ export default async function CategoriaPage({ params }: Params) {
 
   return (
     <div className="shell pt-8 pb-8 md:pt-12">
+      <JsonLd
+        dati={briciole([
+          { nome: "Shop", path: "/shop" },
+          { nome: c.label, path: `/shop/${c.slug}` },
+        ])}
+      />
       <Link
         href="/shop"
         className="area-tocco group mb-10 inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink md:mb-14"

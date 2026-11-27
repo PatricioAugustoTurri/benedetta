@@ -9,15 +9,17 @@ import Reveal from "@/components/Reveal";
 import ContactAside from "./components/ContactAside";
 import ContactIntro from "./components/ContactIntro";
 import ContactNote from "./components/ContactNote";
+import { openGraphPagina } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Contatti",
+  title: "Contatti — commissioni e collaborazioni",
   description:
     "Scrivimi per ritratti illustrati, illustrazioni personalizzate, collaborazioni e stampe. Lavoro da Foligno, in Umbria, per clienti in tutta Italia.",
   // Il canonical resta la pagina pulita anche quando arriva `?opera=<slug>`,
   // `?shop=<slug>` o `?servizio=<slug>`:
   // quel parametro precompila l'oggetto, non cambia cosa mostra la pagina.
   alternates: { canonical: "/contatti" },
+  openGraph: openGraphPagina({ path: "/contatti" }),
 };
 
 /**

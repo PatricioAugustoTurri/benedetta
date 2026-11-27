@@ -2,7 +2,10 @@ import type { MetadataRoute } from "next";
 import { prodottoHref } from "@/data/shop";
 import { listCategorieVisibili } from "@/lib/categorie";
 import { listPubblicati } from "@/lib/prodotti";
-import { listSlugs } from "@/lib/works";
+import { getServizio } from "@/lib/servizi";
+import { esServizio } from "@/data/shop";
+import { immagineFerma } from "@/lib/video";
+import { listWorks, type WorkImage } from "@/lib/works";
 import { legaliPronte } from "@/data/legale";
 import { site } from "@/data/site";
 
@@ -10,10 +13,17 @@ import { site } from "@/data/site";
  * Sitemap dinamica: `/`, `/studio`, `/shop`, `/contatti`, una riga per ogni opera
  * e una per ogni categoria e prodotto pubblicato dello Shop.
  *
- * Le opere si prendono da `listSlugs()`, la stessa funzione che alimenta
+ * Le opere si prendono da `listWorks()`, la stessa tabella che alimenta
  * `generateStaticParams` in `opera/[slug]`, così la sitemap non si scorda mai
- * un pezzo pubblicato né ne offre uno cancellato: le due liste vivono della
- * stessa query.
+ * un pezzo pubblicato né ne offre uno cancellato.
+ *
+ * Ogni opera, stampa e servizio porta con sé le sue immagini
+ * (`<image:image>`). Le tavole vivono su Cloudinary, un altro dominio: senza
+ * questa lista Google le trova solo se le incontra scansionando la pagina, e
+ * per un'illustratrice Google Immagini e Lens sono la vetrina più grande.
+ *
+ * Niente `lastmod`: le tabelle non tengono la data dell'ultima modifica, e
+ * una data inventata —oggi per tutte— Google impara presto a ignorarla.
  *
  * `site.url` è l'unico posto da cui dipende il dominio: cambia lì (in
  * `src/data/site.ts`) quando il dominio finale sostituisce il placeholder, e
@@ -22,8 +32,8 @@ import { site } from "@/data/site";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Si las tablas del Shop todavía no existen en esta base —la migración 002
   // va después del deploy—, el sitemap sale igual, sin las stampe.
-  const [slugs, tutti, categorie] = await Promise.all([
-    listSlugs(),
+  const [works, tutti, categorie] = await Promise.all([
+    listWorks(),
     listPubblicati().catch(() => []),
     listCategorieVisibili(),
   ]);
@@ -47,11 +57,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       : []),
   ];
 
-  const opere: MetadataRoute.Sitemap = slugs.map((slug) => ({
-    url: `${site.url}/opera/${slug}`,
+  const opere: MetadataRoute.Sitemap = works.map((w) => ({
+    url: `${site.url}/opera/${w.slug}`,
     changeFrequency: "monthly",
     priority: 0.8,
+    images: immagini(w.image),
   }));
+
+  // I servizi (ritratti, illustrazioni personalizzate) sono categorie con una
+  // pagina sola, fatta delle loro tavole.
+  const servizi = new Map(
+    await Promise.all(
+      categorie
+        .filter((c) => esServizio(c.slug))
+        .map(async (c) => [c.slug, await getServizio(c.slug).catch(() => null)] as const),
+    ),
+  );
 
   // Le categorie e i prodotti pubblicati. Le bozze non escono: listPubblicati
   // non le restituisce.
@@ -65,13 +86,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${site.url}/shop/${c.slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.5,
+      images: immagini(servizi.get(c.slug)?.image ?? []),
     })),
     ...prodotti.map((p) => ({
       url: `${site.url}${prodottoHref(p)}`,
       changeFrequency: "monthly" as const,
       priority: 0.6,
+      images: immagini(p.image),
     })),
   ];
 
   return [...pagine, ...opere, ...shop];
+}
+
+/** Le immagini di una pagina, per la sitemap: di un video, il fotogramma. */
+function immagini(pezzi: WorkImage[]): string[] | undefined {
+  const urls = pezzi.map((p) => {
+    const url = immagineFerma(p);
+    return url.startsWith("/") ? `${site.url}${url}` : url;
+  });
+  return urls.length ? urls : undefined;
 }

@@ -3,12 +3,14 @@ import { listPorte } from "@/lib/copertine";
 import { scontiInCorsoConStampe } from "@/lib/sconti";
 import PorteShop from "./components/PorteShop";
 import ScontiShop from "./components/ScontiShop";
+import { openGraphPagina } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Shop",
+  title: "Shop — stampe e ritratti su commissione",
   description:
-    "Stampe da comprare online e ritratti e illustrazioni personalizzate su richiesta.",
+    "Stampe, quaderni e oggetti illustrati da Benedetta Zibetti, con spedizione in Italia e in Europa. E ritratti e illustrazioni personalizzate su commissione.",
   alternates: { canonical: "/shop" },
+  openGraph: openGraphPagina({ path: "/shop" }),
 };
 
 /**

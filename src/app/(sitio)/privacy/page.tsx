@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import PaginaLegale, { Dato, type SezioneLegale } from "@/components/legale/PaginaLegale";
 import { elencoCorrieri, legale, legaliPronte } from "@/data/legale";
+import { openGraphPagina } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Privacy e cookie",
   description: "Quali dati raccoglie il sito, perché, chi li tratta e come esercitare i tuoi diritti.",
   alternates: { canonical: "/privacy" },
+  openGraph: openGraphPagina({ path: "/privacy" }),
 };
 
 /**

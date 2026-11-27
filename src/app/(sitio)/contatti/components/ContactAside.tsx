@@ -43,10 +43,32 @@ export default function ContactAside() {
           </ul>
         </div>
 
-        {/* "Studio" qui è il laboratorio, non la pagina: introduce il luogo. */}
+        {/*
+          "Studio" qui è il laboratorio, non la pagina: introduce il luogo.
+
+          L'indirizzo intero, e non solo la città: è lo stesso dei dati
+          strutturati (`StructuredData`) e del profilo Google, e Google si
+          fida di un indirizzo solo se lo ritrova scritto nella pagina, uguale
+          ovunque. Viene da `site.negozio`, quindi segue un trasloco da solo.
+        */}
         <div className="mt-10 border-t border-line pt-5">
           <h2 className="label">Studio</h2>
-          <p className="mt-4 text-sm text-ink-soft">{site.location}</p>
+          <address className="mt-4 text-sm not-italic text-ink-soft">
+            {site.negozio.indirizzo}
+            <br />
+            {site.negozio.cap} {site.negozio.citta} ({site.negozio.provincia})
+          </address>
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              `${site.negozio.indirizzo}, ${site.negozio.cap} ${site.negozio.citta}`,
+            )}`}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="mt-2 inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
+          >
+            <span className="link-underline">Apri in Maps</span>
+            <ArrowUpRight className="shrink-0" />
+          </a>
         </div>
       </Reveal>
     </div>
