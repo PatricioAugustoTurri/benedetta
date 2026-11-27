@@ -2,9 +2,11 @@ import { notFound } from "next/navigation";
 import { richiediAccesso } from "@/lib/auth";
 import { listCategorie } from "@/lib/categorie";
 import { getProdottoById } from "@/lib/prodotti";
+import { contaInviti } from "@/lib/recensioni";
 import { listWorks } from "@/lib/works";
 import ProdottoForm from "../../components/ProdottoForm";
 import IndietroAlloShop from "../../components/IndietroAlloShop";
+import QrRecensione from "../../components/QrRecensione";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -20,7 +22,12 @@ export default async function ModificaProdottoPage({ params }: Params) {
   const numero = Number(id);
   if (!Number.isInteger(numero)) notFound();
 
-  const [prodotto, opere, tutte] = await Promise.all([getProdottoById(numero), listWorks(), listCategorie()]);
+  const [prodotto, opere, tutte, inviti] = await Promise.all([
+    getProdottoById(numero),
+    listWorks(),
+    listCategorie(),
+    contaInviti(numero),
+  ]);
   if (!prodotto) notFound();
   const categorie = tutte.filter((c) => c.vendita);
   const categoria = categorie.find((c) => c.slug === prodotto.categoria);
@@ -34,6 +41,23 @@ export default async function ModificaProdottoPage({ params }: Params) {
         categoria={categoria}
         categorie={categorie}
         opere={opere.map((o) => ({ slug: o.slug, title: o.title }))}
+        accanto={
+          prodotto.pubblicato ? (
+            <QrRecensione
+              prodotto={{ id: prodotto.id, title: prodotto.title, slug: prodotto.slug }}
+              aspetto="scheda"
+              conto={inviti}
+            />
+          ) : (
+            <div>
+              <h2 className="label">Recensione dal vivo</h2>
+              <p className="mt-4 text-sm leading-relaxed text-ink-soft">
+                Quando è pubblicato, da qui fai il QR per chi l’ha comprato fuori dal sito: la
+                recensione esce nella sua pagina, e una bozza non ce l’ha.
+              </p>
+            </div>
+          )
+        }
       />
     </section>
   );

@@ -183,6 +183,13 @@ entrega"—, inventada para la maqueta y contraria a lo que ella dice de sí.
   abre con el pedido entregado. Las reseñas salen al
   instante al pie de la página del producto y en sus datos estructurados
   (estrellas en Google); ella las borra desde el admin, no las reescribe.
+  **Quien compra fuera del sitio** (mercado, negozio; cliente, 2026-11-27)
+  también reseña: cada producto publicado tiene en `/admin/shop` un botón QR
+  (y «Mostra il QR» en su ficha) que abre el código a pantalla completa para
+  que el cliente lo escanee con el teléfono de ella, o baja cartoline para
+  imprimir (una, o cuatro en un A4). Cada QR vale una reseña sola
+  (`inviti_recensione`, migración 023); mientras está abierto, el admin avisa
+  cuando la reseña llegó y ofrece el siguiente.
   **Sólo productos del Shop**: las obras del archivio no se reseñan. La
   grilla del Shop sigue sin palabras (decisión del 2026-10-07): las estrellas
   viven en la página de cada producto.

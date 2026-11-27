@@ -233,3 +233,19 @@ slug si può cambiare. Le opere dell'archivio non si recensiscono.
 
 Lei le cancella da `/admin/ordini`; cancellata una recensione, quel cliente
 può lasciarne un'altra dallo stesso link.
+
+## Chi ha comprato fuori dal sito: `inviti_recensione`
+
+Al mercato o in negozio non c'è un ordine, e quindi nemmeno la sua chiave
+(migrazione 023, 2026-11-27). Dall'admin —l'icona QR su ogni prodotto
+pubblicato in `/admin/shop`, o «Mostra il QR» nella sua scheda— lei crea un
+invito: una riga di `inviti_recensione` con la sua chiave, della stessa forma
+di quella degli ordini. `/recensione/<chiave>` cerca prima fra gli ordini e
+poi fra gli inviti; un invito apre il modulo su quel prodotto solo, senza
+nome e senza numero d'ordine.
+
+Vale per un invio solo (`usato_at`), come il link di un ordine. La recensione
+che ne esce ha `invito` al posto di `ordine` (`recensioni_una_fonte`: sempre
+uno dei due). Se il prodotto si cancella, se ne vanno i suoi inviti e le loro
+recensioni. Come la 020, il sito la applica da solo all'avvio
+(`src/lib/migrazioni.ts`).

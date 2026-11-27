@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useId, useMemo, useState } from "react";
+import { useActionState, useId, useMemo, useState, type ReactNode } from "react";
 import { Plus, Trash } from "@/components/Icon";
 import {
   COLORI_CALENDARIO,
@@ -63,7 +63,10 @@ export default function ProdottoForm({
   categoria: iniziale,
   categorie,
   opere,
+  accanto,
 }: {
+  /** Sotto «Dove uscirà», nella colonna di destra: il QR della recensione. */
+  accanto?: ReactNode;
   prodotto?: Prodotto;
   /** Dove entra un prodotto nuovo, o dove sta quello che si modifica. */
   categoria: ShopCategory;
@@ -555,6 +558,7 @@ export default function ProdottoForm({
           </li>
           <li>Con il carrello e il pagamento su SumUp.</li>
         </ul>
+        {accanto && <div className="mt-12 border-t border-line pt-8">{accanto}</div>}
       </div>
     </form>
   );

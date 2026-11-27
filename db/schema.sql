@@ -709,18 +709,36 @@ CREATE TABLE spese (
 CREATE INDEX spese_giorno ON spese (giorno);
 
 -- --------------------------------------------------------------------------
+-- inviti_recensione — il QR per chi ha comprato fuori dal sito: un prodotto,
+-- un invio solo. Vedi la migrazione 023.
+-- --------------------------------------------------------------------------
+CREATE TABLE inviti_recensione (
+  id         integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  chiave     text        NOT NULL DEFAULT replace(gen_random_uuid()::text, '-', '')
+             CONSTRAINT inviti_recensione_chiave_key UNIQUE,
+  prodotto   integer     NOT NULL REFERENCES prodotti (id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  usato_at   timestamptz
+);
+
+CREATE INDEX inviti_recensione_prodotto ON inviti_recensione (prodotto);
+
+-- --------------------------------------------------------------------------
 -- recensioni — le stelle e le parole di chi ha comprato, una per prodotto
--- per ordine. Vedi la migrazione 020.
+-- per ordine, o una per invito. Vedi le migrazioni 020 e 023.
 -- --------------------------------------------------------------------------
 CREATE TABLE recensioni (
   id         integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  ordine     integer     NOT NULL REFERENCES ordini (id) ON DELETE CASCADE,
+  ordine     integer     REFERENCES ordini (id) ON DELETE CASCADE,
+  invito     integer     CONSTRAINT recensioni_invito_key UNIQUE
+                         REFERENCES inviti_recensione (id) ON DELETE CASCADE,
   prodotto   integer     NOT NULL REFERENCES prodotti (id) ON DELETE CASCADE,
   voto       smallint    NOT NULL CONSTRAINT recensioni_voto_valido CHECK (voto BETWEEN 1 AND 5),
   testo      text        NOT NULL CONSTRAINT recensioni_testo_misura CHECK (length(trim(testo)) BETWEEN 1 AND 1200),
   autore     text        NOT NULL CONSTRAINT recensioni_autore_misura CHECK (length(trim(autore)) BETWEEN 1 AND 60),
   created_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT recensioni_una_per_prodotto UNIQUE (ordine, prodotto)
+  CONSTRAINT recensioni_una_per_prodotto UNIQUE (ordine, prodotto),
+  CONSTRAINT recensioni_una_fonte CHECK (num_nonnulls(ordine, invito) = 1)
 );
 
 CREATE INDEX recensioni_prodotto ON recensioni (prodotto, created_at DESC);

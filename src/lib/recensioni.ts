@@ -13,6 +13,11 @@ import { prodottiPerSlug, type Prodotto } from "@/lib/prodotti";
  * Il link vale per un invio solo: quello che si lascia vuoto quella volta
  * non si recensisce più (vedi la 021).
  *
+ * Chi ha comprato fuori dal sito —al mercato, in negozio— non ha un ordine:
+ * lei gli dà un invito, un QR che apre la stessa pagina su un prodotto solo
+ * e vale anche lui per un invio (vedi la 023). La chiave ha la stessa forma
+ * di quella di un ordine, e la pagina cerca prima fra gli ordini.
+ *
  * Le opere dell'archivio non si recensiscono: non si comprano.
  *
  * Escono subito nella pagina del prodotto. Lei le può cancellare dall'admin,
@@ -45,11 +50,14 @@ export type OrdineDaRecensire =
   | { stato: "rimborsato"; id: number }
   | {
       stato: "aperto";
+      /** L'ordine, o l'invito quando `dalVivo`. */
       id: number;
       nome: string | null;
       prodotti: ProdottoDaRecensire[];
       /** Il link è già stato usato: non si scrive più niente. */
       usata: boolean;
+      /** Un invito dato a mano, non un ordine del sito: un prodotto, nessun nome. */
+      dalVivo: boolean;
     };
 
 function hydrate(r: Record<string, unknown>): Recensione {
@@ -78,7 +86,7 @@ export async function ordinePerChiave(chiave: string): Promise<OrdineDaRecensire
     [chiave],
   );
   const o = rows[0];
-  if (!o) return { stato: "nessuno" };
+  if (!o) return invitoPerChiave(chiave);
   const id = Number(o.id);
   const nome = o.nome ? String(o.nome) : null;
   if (o.stato === "rimborsato") return { stato: "rimborsato", id };
@@ -107,6 +115,40 @@ export async function ordinePerChiave(chiave: string): Promise<OrdineDaRecensire
     nome,
     prodotti: inOrdine.map((p) => ({ prodotto: p, recensione: perProdotto.get(p.id) ?? null })),
     usata: o.recensione_usata_at != null,
+    dalVivo: false,
+  };
+}
+
+/**
+ * Un invito: il prodotto per cui è stato fatto, se è ancora nello Shop, e la
+ * recensione se l'ha già lasciata. Prima della 023 la tabella non c'è, e
+ * nessuna chiave porta da nessuna parte.
+ */
+async function invitoPerChiave(chiave: string): Promise<OrdineDaRecensire> {
+  const rows = await query<Record<string, unknown>>(
+    `SELECT i.id, i.usato_at, p.slug
+       FROM inviti_recensione i JOIN prodotti p ON p.id = i.prodotto
+      WHERE i.chiave = $1`,
+    [chiave],
+  ).catch(() => []);
+  const i = rows[0];
+  if (!i) return { stato: "nessuno" };
+  const id = Number(i.id);
+  const [prodotti, fatte] = await Promise.all([
+    prodottiPerSlug([String(i.slug)]),
+    query<Record<string, unknown>>(
+      `SELECT id, prodotto, voto, testo, autore, created_at FROM recensioni WHERE invito = $1`,
+      [id],
+    ),
+  ]);
+  const fatta = fatte[0] ? hydrate(fatte[0]) : null;
+  return {
+    stato: "aperto",
+    id,
+    nome: null,
+    prodotti: prodotti.map((p) => ({ prodotto: p, recensione: fatta?.prodotto === p.id ? fatta : null })),
+    usata: i.usato_at != null,
+    dalVivo: true,
   };
 }
 
@@ -141,6 +183,25 @@ export async function scriviRecensioni(
   const ammessi = new Set(ordine.prodotti.filter((p) => !p.recensione).map((p) => p.prodotto.id));
   const valide = voci.filter((v) => ammessi.has(v.prodotto));
   if (valide.length === 0) return { ok: false, motivo: "niente" };
+
+  // Lo stesso, per un invito: un prodotto solo, nessun ordine.
+  if (ordine.dalVivo) {
+    const [v] = valide;
+    const scritte = await query<{ id: number }>(
+      `WITH presa AS (
+         UPDATE inviti_recensione SET usato_at = now()
+          WHERE id = $1 AND usato_at IS NULL
+         RETURNING id, prodotto
+       )
+       INSERT INTO recensioni (invito, prodotto, voto, testo, autore)
+       SELECT presa.id, presa.prodotto, $2::smallint, $3::text, $4::text FROM presa
+       ON CONFLICT (invito) DO NOTHING
+       RETURNING id`,
+      [ordine.id, v.voto, v.testo, autore],
+    );
+    if (scritte.length === 0) return { ok: false, motivo: "usata" };
+    return { ok: true, scritte: scritte.length };
+  }
 
   const rows = await query<{ id: number }>(
     `WITH presa AS (
@@ -182,7 +243,8 @@ export function riepilogo(lista: { voto: number }[]): Riepilogo {
 
 /* ----------------------------------------------------------------- l'admin */
 
-export type RecensioneAdmin = Recensione & { ordine: number; titolo: string };
+/** `ordine` è vuoto per una recensione lasciata con un invito: chi l'ha scritta ha comprato fuori dal sito. */
+export type RecensioneAdmin = Recensione & { ordine: number | null; titolo: string };
 
 export async function listRecensioni(): Promise<RecensioneAdmin[]> {
   const rows = await query<Record<string, unknown>>(
@@ -190,7 +252,11 @@ export async function listRecensioni(): Promise<RecensioneAdmin[]> {
        FROM recensioni r JOIN prodotti p ON p.id = r.prodotto
       ORDER BY r.created_at DESC`,
   ).catch(() => []);
-  return rows.map((r) => ({ ...hydrate(r), ordine: Number(r.ordine), titolo: String(r.titolo) }));
+  return rows.map((r) => ({
+    ...hydrate(r),
+    ordine: r.ordine == null ? null : Number(r.ordine),
+    titolo: String(r.titolo),
+  }));
 }
 
 export async function cancellaRecensione(id: number): Promise<void> {
@@ -264,3 +330,42 @@ export async function segnaRecensioniChieste(ordini: number[]): Promise<void> {
 }
 
 export const linkRecensione = (origine: string, chiave: string) => `${origine}/recensione/${chiave}`;
+
+/* ----------------------------------------------------------- gli inviti */
+
+/** Quanti inviti si possono fare in una volta: un foglio A4 ne porta quattro. */
+export const MAX_INVITI = 4;
+
+/** Crea `quanti` inviti per un prodotto e ne restituisce le chiavi. */
+export async function creaInviti(prodotto: number, quanti: number): Promise<string[]> {
+  const n = Math.max(1, Math.min(MAX_INVITI, Math.floor(quanti)));
+  const rows = await query<{ chiave: string }>(
+    `INSERT INTO inviti_recensione (prodotto)
+     SELECT $1 FROM generate_series(1, $2)
+     RETURNING chiave`,
+    [prodotto, n],
+  );
+  return rows.map((r) => r.chiave);
+}
+
+/** Per la scheda del prodotto: quanti QR ha dato e quanti sono tornati come recensione. */
+export type ContoInviti = { dati: number; usati: number };
+
+export async function contaInviti(prodotto: number): Promise<ContoInviti | null> {
+  const rows = await query<{ dati: number; usati: number }>(
+    `SELECT count(*)::int AS dati, count(usato_at)::int AS usati
+       FROM inviti_recensione WHERE prodotto = $1`,
+    [prodotto],
+  ).catch(() => null);
+  return rows?.[0] ?? null;
+}
+
+/** Se l'invito di questa chiave è già stato usato. Null se la chiave non è di un invito. */
+export async function invitoUsato(chiave: string): Promise<boolean | null> {
+  if (!chiaveValida(chiave)) return null;
+  const rows = await query<{ usato: boolean }>(
+    `SELECT usato_at IS NOT NULL AS usato FROM inviti_recensione WHERE chiave = $1`,
+    [chiave],
+  ).catch(() => []);
+  return rows[0]?.usato ?? null;
+}

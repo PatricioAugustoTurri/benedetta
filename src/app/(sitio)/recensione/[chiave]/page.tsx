@@ -18,7 +18,8 @@ type Params = { params: Promise<{ chiave: string }> };
 /**
  * Dove porta il link della recensione: quello della mail di spedizione, o
  * quello che lei manda dall'ordine. Senza account: la chiave del link è
- * l'ordine. Si vedono solo i prodotti di quell'ordine, e il link vale per
+ * l'ordine. O un invito, il QR che lei dà a chi ha comprato fuori dal sito:
+ * allora c'è un prodotto solo, e niente numero d'ordine né nome. Si vedono solo i prodotti di quell'ordine, e il link vale per
  * un invio solo: dopo, resta il grazie con quello che ha scritto.
  */
 export default async function RecensionePage({ params }: Params) {
@@ -65,14 +66,16 @@ export default async function RecensionePage({ params }: Params) {
     const nome = nomeProprio(ordine.nome);
     return (
       <section className="shell pt-12 pb-8 md:pt-20">
-        <p className="label">Ordine #{ordine.id}</p>
-        <h1 className="display-h1 mt-5 max-w-[20ch] text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance">
+        {!ordine.dalVivo && <p className="label mb-5">Ordine #{ordine.id}</p>}
+        <h1 className="display-h1 max-w-[20ch] text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance">
           {nome ? `Grazie, ${nome}!` : "Grazie!"}
         </h1>
         <p className="prose-measure mt-6 text-lg leading-relaxed text-ink-soft">
           {fatte.length > 0
             ? "Le tue parole sono già nello Shop. Mi aiuta tantissimo sapere com’è arrivato e dove l’hai messo."
-            : "La recensione di quest’ordine è già stata lasciata."}
+            : ordine.dalVivo
+              ? "Questo QR è già stato usato: vale per una recensione sola."
+              : "La recensione di quest’ordine è già stata lasciata."}
         </p>
 
         {fatte.length > 0 && (
@@ -100,7 +103,7 @@ export default async function RecensionePage({ params }: Params) {
   if (ordine.prodotti.length === 0) {
     return (
       <Messaggio titolo="Non c’è niente da recensire.">
-        I prodotti di quest’ordine non sono più nello Shop.
+        {ordine.dalVivo ? "Questo prodotto non è più nello Shop." : "I prodotti di quest’ordine non sono più nello Shop."}
       </Messaggio>
     );
   }
@@ -109,12 +112,14 @@ export default async function RecensionePage({ params }: Params) {
 
   return (
     <section className="shell pt-12 pb-8 md:pt-20">
-      <p className="label">Ordine #{ordine.id}</p>
-      <h1 className="display-h1 mt-5 max-w-[20ch] text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance">
+      {!ordine.dalVivo && <p className="label mb-5">Ordine #{ordine.id}</p>}
+      <h1 className="display-h1 max-w-[20ch] text-[clamp(2rem,4.4vw,3.25rem)] leading-[1.1] text-balance">
         {`${saluto(ordine.nome)} com’è andata?`}
       </h1>
       <p className="prose-measure mt-6 text-lg leading-relaxed text-ink-soft">
-        {piu
+ {ordine.dalVivo
+          ? "Lascia le stelle e due righe su quello che hai preso: escono nella pagina dello Shop, con il tuo nome. Non serve nessun account, e il QR vale per un invio solo."
+          : piu
           ? "Lascia le stelle e due righe ai prodotti del tuo ordine: escono nella pagina dello Shop, con il tuo nome. Non serve nessun account. Puoi saltare quello che non vuoi recensire, ma il link vale per un invio solo: quello che lasci vuoto non si potrà aggiungere dopo."
           : "Lascia le stelle e due righe su quello che hai comprato: escono nella pagina dello Shop, con il tuo nome. Non serve nessun account, e il link vale per un invio solo."}
       </p>

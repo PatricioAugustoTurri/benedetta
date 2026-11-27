@@ -235,3 +235,19 @@ export function Expand({ className, size = 20 }: Props) {
     </svg>
   );
 }
+
+/**
+ * Il QR della recensione: i tre quadrati d'angolo che ogni codice ha, e due
+ * segni nel quarto vuoto. Abbastanza per riconoscerlo a 16px accanto alla
+ * matita e al cestino, senza fingere un codice vero.
+ */
+export function Qr({ className, size = 20 }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <rect x="4.5" y="4.5" width="5.5" height="5.5" rx="0.75" />
+      <rect x="14" y="4.5" width="5.5" height="5.5" rx="0.75" />
+      <rect x="4.5" y="14" width="5.5" height="5.5" rx="0.75" />
+      <path d="M14 14h2.5v2.5M19.5 14v.01M14 19.5h.01M17 19.5h2.5V17" />
+    </svg>
+  );
+}

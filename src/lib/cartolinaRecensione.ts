@@ -25,12 +25,20 @@ import {
  * caratteri del sito, la ragazza con la stella a linea, la firma scritta a
  * mano e il PDF senza librerie. Il QR si disegna a quadretti pieni
  * nell'inchiostro del sito, non in nero: sulla carta si legge uguale.
+ *
+ * La stessa cartolina serve a chi ha comprato fuori dal sito (2026-11-27):
+ * accanto al QR, al posto del numero d'ordine, il titolo del prodotto. Per il
+ * mercato ne entrano quattro in un foglio, ognuna con il suo QR —ogni invito
+ * vale una volta—, e le tacche per tagliarle.
  */
 
 export type DatiCartolina = {
   /** L'indirizzo completo della pagina di recensione dell'ordine. */
   link: string;
-  ordine: number;
+  /** L'ordine, per la cartolina del pacco. */
+  ordine?: number;
+  /** Il prodotto, per quella di chi ha comprato fuori dal sito. */
+  prodotto?: string;
   /** Il nome di battesimo di chi ha comprato, se c'è. */
   per: string | null;
   /** Il sito, senza «https://», scritto sotto il codice. */
@@ -38,7 +46,19 @@ export type DatiCartolina = {
   instagram?: string;
 };
 
-async function disegnaCartolina(d: DatiCartolina, firmaSrc: string, laminaSrc: string): Promise<HTMLCanvasElement> {
+/** I quattro A6 di un A4, da sinistra a destra e dall'alto in basso, in millimetri. */
+const POSTI = [
+  [0, 0],
+  [CARTA.w, 0],
+  [0, CARTA.h],
+  [CARTA.w, CARTA.h],
+] as const;
+
+async function disegnaCartoline(
+  lista: DatiCartolina[],
+  firmaSrc: string,
+  laminaSrc: string,
+): Promise<HTMLCanvasElement> {
   const titolo = famiglia("--font-caprasimo", "Georgia, serif");
   const testo = famiglia("--font-geist", "system-ui, sans-serif");
   // Se un carattere non carica —capita con quelli di riserva su un sistema
@@ -56,6 +76,24 @@ async function disegnaCartolina(d: DatiCartolina, firmaSrc: string, laminaSrc: s
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  lista.slice(0, POSTI.length).forEach((d, i) => {
+    ctx.save();
+    ctx.translate(POSTI[i][0] * MM, POSTI[i][1] * MM);
+    disegnaFaccia(ctx, d, { titolo, testo }, firma, lamina);
+    ctx.restore();
+  });
+  tacche(ctx, lista.length > 1);
+  return canvas;
+}
+
+/** Una cartolina, nell'A6 in alto a sinistra: chi chiama sposta il foglio. */
+function disegnaFaccia(
+  ctx: CanvasRenderingContext2D,
+  d: DatiCartolina,
+  { titolo, testo }: { titolo: string; testo: string },
+  firma: HTMLImageElement,
+  lamina: HTMLImageElement,
+) {
   const m = 11 * MM;
   const sx = m;
   const largo = CARTA.w * MM - 2 * m;
@@ -124,7 +162,12 @@ async function disegnaCartolina(d: DatiCartolina, firmaSrc: string, laminaSrc: s
   ctx.fillStyle = INK_FAINT;
   ctx.font = `400 ${7.5 * PT}px ${testo}`;
   let ty = qy + lato - 4 * modulo - 2 * 11 * PT;
-  for (const r of [`Ordine #${d.ordine}`, d.sito]) {
+  // Il titolo di un prodotto può essere lungo: va a capo, al più in due righe,
+  // e le righe salgono perché il sito resti sulla linea di fondo del QR.
+  const accantoQr =
+    d.ordine != null ? [`Ordine #${d.ordine}`] : d.prodotto ? aCapo(ctx, d.prodotto, tl).slice(0, 2) : [];
+  ty -= (accantoQr.length - 1) * 11 * PT;
+  for (const r of [...accantoQr, d.sito]) {
     ty += 11 * PT;
     ctx.fillText(r, tx, ty, tl);
   }
@@ -144,18 +187,25 @@ async function disegnaCartolina(d: DatiCartolina, firmaSrc: string, laminaSrc: s
     ctx.fillText(d.instagram, sx + largo, fondo - 1 * MM);
     ctx.textAlign = "left";
   }
-
-  tacche(ctx, false);
-  return canvas;
 }
 
 /** Disegna, impagina e scarica: «recensione-ordine-12.pdf». */
 export async function scaricaCartolina(d: DatiCartolina, firmaSrc: string, laminaSrc: string): Promise<void> {
-  const pdf = await pdfDaCanvas(await disegnaCartolina(d, firmaSrc, laminaSrc));
+  await scaricaCartoline([d], `recensione-ordine-${d.ordine}.pdf`, firmaSrc, laminaSrc);
+}
+
+/** Da una a quattro cartoline in un A4, con il nome di file che si chiede. */
+export async function scaricaCartoline(
+  lista: DatiCartolina[],
+  nomeFile: string,
+  firmaSrc: string,
+  laminaSrc: string,
+): Promise<void> {
+  const pdf = await pdfDaCanvas(await disegnaCartoline(lista, firmaSrc, laminaSrc));
   const url = URL.createObjectURL(pdf);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `recensione-ordine-${d.ordine}.pdf`;
+  a.download = nomeFile;
   document.body.append(a);
   a.click();
   a.remove();
@@ -163,4 +213,5 @@ export async function scaricaCartolina(d: DatiCartolina, firmaSrc: string, lamin
 }
 
 /** Solo l'immagine, per vederla prima di stamparla. */
-export { disegnaCartolina };
+export const disegnaCartolina = (d: DatiCartolina, firmaSrc: string, laminaSrc: string) =>
+  disegnaCartoline([d], firmaSrc, laminaSrc);

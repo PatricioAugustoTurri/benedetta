@@ -7,6 +7,7 @@ import { prodottoHref } from "@/data/shop";
 import type { Prodotto } from "@/lib/prodotti";
 import { cancellaProdotto } from "../shop/actions";
 import PlacaStampa from "./PlacaStampa";
+import QrRecensione from "./QrRecensione";
 
 /**
  * Una stampa nella griglia dell'admin. È `ObraEditable` con un'opera diversa
@@ -17,6 +18,12 @@ import PlacaStampa from "./PlacaStampa";
  * In più c'è «Vedi nel sito», che le opere non hanno perché nell'archivio
  * sono sempre pubblicate. Sta fuori dal link della cella —un link dentro un
  * link non si può— sulla riga dove, senza puntatore, cadono i controlli.
+ *
+ * E c'è il QR della recensione, per chi l'ha comprata al mercato o in
+ * negozio: solo pubblicata, perché la recensione esce nella sua pagina. Senza
+ * puntatore la matita non scende con gli altri: la cella intera porta già
+ * alla scheda, e su mezzo schermo di telefono quattro controlli e «Nel sito»
+ * non entrano in una riga.
  */
 export default function StampaEditabile({ stampa: p, manija }: { stampa: Prodotto; manija?: ReactNode }) {
   const [confermando, setConfermando] = useState(false);
@@ -41,8 +48,13 @@ export default function StampaEditabile({ stampa: p, manija }: { stampa: Prodott
               Sul telefono la cella è larga mezzo schermo e qui accanto
               cadono i tre controlli: la frase intera andava a capo.
             */}
-            <span className="link-underline sm:hidden">Nel sito</span>
-            <span className="link-underline hidden sm:inline">Vedi nel sito</span>
+            {/* `link-underline` fissa il suo display: il nascondere va sul contenitore. */}
+            <span className="sm:hidden">
+              <span className="link-underline">Nel sito</span>
+            </span>
+            <span className="hidden sm:inline">
+              <span className="link-underline">Vedi nel sito</span>
+            </span>
           </Link>
         ) : (
           <span />
@@ -50,12 +62,13 @@ export default function StampaEditabile({ stampa: p, manija }: { stampa: Prodott
 
         <div className="flex gap-1 [@media(hover:hover)]:absolute [@media(hover:hover)]:right-2 [@media(hover:hover)]:top-2 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:duration-300 [@media(hover:hover)]:group-hover/stampa:opacity-100 [@media(hover:hover)]:group-focus-within/stampa:opacity-100">
           {manija}
+          {p.pubblicato && <QrRecensione prodotto={{ id: p.id, title: p.title, slug: p.slug }} aspetto="icona" />}
           <Link
             href={`/admin/shop/${p.id}`}
             title="Modifica"
             aria-hidden="true"
             tabIndex={-1}
-            className="flex h-8 w-8 items-center justify-center bg-paper/95 text-ink-soft transition-colors hover:text-ink"
+            className="flex h-8 w-8 [@media(hover:none)]:hidden items-center justify-center bg-paper/95 text-ink-soft transition-colors hover:text-ink"
           >
             <Pencil size={16} />
           </Link>

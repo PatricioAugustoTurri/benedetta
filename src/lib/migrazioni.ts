@@ -36,6 +36,27 @@ const RECENSIONI = [
       SET recensione_usata_at = (SELECT min(r.created_at) FROM recensioni r WHERE r.ordine = o.id)
     WHERE o.recensione_usata_at IS NULL
       AND EXISTS (SELECT 1 FROM recensioni r WHERE r.ordine = o.id)`,
+  // 023: il QR per chi ha comprato fuori dal sito. Vedi db/migrations/023-inviti-recensione.sql.
+  `CREATE TABLE IF NOT EXISTS inviti_recensione (
+     id         integer     GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+     chiave     text        NOT NULL DEFAULT replace(gen_random_uuid()::text, '-', '')
+                CONSTRAINT inviti_recensione_chiave_key UNIQUE,
+     prodotto   integer     NOT NULL REFERENCES prodotti (id) ON DELETE CASCADE,
+     created_at timestamptz NOT NULL DEFAULT now(),
+     usato_at   timestamptz
+   )`,
+  `CREATE INDEX IF NOT EXISTS inviti_recensione_prodotto ON inviti_recensione (prodotto)`,
+  `ALTER TABLE recensioni ALTER COLUMN ordine DROP NOT NULL`,
+  `ALTER TABLE recensioni
+     ADD COLUMN IF NOT EXISTS invito integer
+       CONSTRAINT recensioni_invito_key UNIQUE
+       REFERENCES inviti_recensione (id) ON DELETE CASCADE`,
+  `DO $$
+   BEGIN
+     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'recensioni_una_fonte') THEN
+       ALTER TABLE recensioni ADD CONSTRAINT recensioni_una_fonte CHECK (num_nonnulls(ordine, invito) = 1);
+     END IF;
+   END $$`,
 ];
 
 /**

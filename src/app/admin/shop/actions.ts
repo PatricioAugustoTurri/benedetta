@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { esServizio, type Colore, type Formato } from "@/data/shop";
+import { site } from "@/data/site";
 import { requireSession } from "@/lib/auth";
 import {
   aggiornaCategoria,
@@ -27,6 +28,7 @@ import {
   riordinaProdotti,
   updateProdotto,
 } from "@/lib/prodotti";
+import { contaInviti, creaInviti, invitoUsato, linkRecensione, MAX_INVITI, type ContoInviti } from "@/lib/recensioni";
 import { getServizio, updateServizio } from "@/lib/servizi";
 import { esVideo } from "@/lib/video";
 import type { WorkImage } from "@/lib/works";
@@ -680,4 +682,44 @@ function rivalida() {
   revalidatePath("/shop", "layout");
   revalidatePath("/opera/[slug]", "page");
   revalidatePath("/sitemap.xml");
+}
+
+export type EsitoInviti = { links: string[]; conto: ContoInviti | null } | { error: string };
+
+/**
+ * Gli inviti a recensire per chi ha comprato fuori dal sito: uno da mostrare
+ * sul telefono, o quattro per il foglio da stampare. Ogni QR vale per una
+ * recensione sola. Il link è quello del dominio, come nella cartolina del
+ * pacco: chi lo inquadra deve arrivare al sito vero, non a localhost.
+ *
+ * Solo per un prodotto pubblicato: la recensione esce nella sua pagina, e
+ * una bozza una pagina non ce l'ha.
+ */
+export async function creaInvitiAzione(id: number, quanti: number): Promise<EsitoInviti> {
+  await requireSession();
+  if (!Number.isInteger(id) || !Number.isInteger(quanti) || quanti < 1 || quanti > MAX_INVITI) {
+    return { error: "Non ho capito quanti QR fare." };
+  }
+  try {
+    const prodotto = await getProdottoById(id);
+    if (!prodotto) return { error: "Questo prodotto non c’è più." };
+    if (!prodotto.pubblicato) {
+      return { error: "Prima pubblicalo: la recensione esce nella sua pagina, e una bozza non ce l’ha." };
+    }
+    const chiavi = await creaInviti(id, quanti);
+    return { links: chiavi.map((c) => linkRecensione(site.url, c)), conto: await contaInviti(id) };
+  } catch (e) {
+    console.error("Inviti: non creati.", e);
+    return { error: "Il QR non è venuto: il database non ha risposto. Riprova." };
+  }
+}
+
+/**
+ * Se il QR che ha sullo schermo è già tornato come recensione: la finestra
+ * del QR lo chiede ogni tanto, per dirle che può passare al prossimo.
+ */
+export async function invitoUsatoAzione(link: string): Promise<boolean | null> {
+  await requireSession();
+  const chiave = String(link).split("/").pop() ?? "";
+  return invitoUsato(chiave);
 }

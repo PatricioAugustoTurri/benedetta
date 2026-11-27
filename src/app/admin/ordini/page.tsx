@@ -196,7 +196,7 @@ export default async function OrdiniPage() {
                     </p>
                     <p className="prose-measure mt-2 text-sm leading-relaxed whitespace-pre-line text-ink">{r.testo}</p>
                     <p className="figures mt-1.5 text-xs text-ink-faint">
-                      {r.autore} · ordine #{r.ordine} · {data(r.creata)}
+                      {r.autore} · {r.ordine === null ? "comprato fuori dal sito" : `ordine #${r.ordine}`} · {data(r.creata)}
                     </p>
                   </div>
                   <form action={cancellaRecensioneAzione}>
