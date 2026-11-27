@@ -108,7 +108,14 @@ export function briciole(passi: { nome: string; path: string }[]) {
   };
 }
 
-/** Un `<script type="application/ld+json">` con uno o più oggetti. */
+/**
+ * I dati strutturati, uno `<script type="application/ld+json">` per oggetto.
+ * Un array in un solo script Google lo legge, ma altri lettori (validatori,
+ * strumenti di audit, qualche crawler) cercano `@type` in cima allo script e
+ * non lo trovano.
+ */
 export function JsonLd({ dati }: { dati: object | object[] }) {
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dati) }} />;
+  return (Array.isArray(dati) ? dati : [dati]).map((d, i) => (
+    <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(d) }} />
+  ));
 }
